@@ -21,8 +21,19 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { TransactionPayload, TransactionService } from '../../../services/transaction.service';
+import { TransactionService } from '../../../services/transaction.service';
 import { LookupService } from '../../../core/api/lookup.service';
+import { AttachmentApiService } from '../../../core/api/attachment-api.service';
+import { DepartmentApiService } from '../../../core/api/department-api.service';
+import {
+  CorrespondenceAttachmentFormDto,
+  CorrespondenceCreateRequest,
+  LetterTemplateDto
+} from '../../../core/api/api-types';
+import { LetterTemplateApiService } from '../../../core/api/letter-template-api.service';
+import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../../core/i18n/lookup-translate.pipe';
@@ -32,6 +43,12 @@ import { DepartmentTreeDialogComponent } from '../department-tree-dialog/departm
 import { MatDialog } from '@angular/material/dialog';
 import JsBarcode from 'jsbarcode';
 
+type LetterTemplateItem = {
+  key: string;
+  nameAr?: string;
+  nameEn?: string;
+  getHtml: () => string;
+};
 
 @Component({
   selector: 'app-transaction-create',
@@ -76,22 +93,49 @@ export class CreateTransactionComponent implements OnInit {
     name: string;
     description: string;
   }[] = [];
-  transactionNumber = 'TRX-2026-000123';
+  transactionNumber = '';
+  lastCreatedCorrespondenceId: string | null = null;
+
+  private deptLabels = new Map<number, string>();
 
   ngOnInit(): void {
-    this.letterForm.patchValue({
-      letterContent: this.defaultTemplate()
-    });
+    this.editorConfig = {
+      ...this.editorConfig,
+      placeholder: this.i18n.instant('createTx.letterEditor.contentPlaceholder')
+    };
 
-    this.lookupService.getBundle().subscribe({
-      next: (b) => {
-        this.transactionTypes = b.correspondenceTypes.map((t) => ({ key: t.code }));
-        this.secrecyLevels = b.confidentialities.map((c) => ({ key: c.code }));
+    this.letterTemplates = this.buildLocalLetterTemplates();
+
+    forkJoin({
+      bundle: this.lookupService.getBundle(),
+      templates: this.letterTemplateApi.list().pipe(catchError(() => of([] as LetterTemplateDto[])))
+    }).subscribe({
+      next: ({ bundle, templates }) => {
+        this.transactionTypes = bundle.correspondenceTypes.map((t) => ({ key: t.code }));
+        this.secrecyLevels = bundle.confidentialities.map((c) => ({ key: c.code }));
+        this.priorityLevels = bundle.priorities.map((p) => ({ key: p.code }));
+        this.classificationLevels = (bundle.classifications ?? []).map((c) => ({ key: c.code }));
+        this.applyLetterTemplatesFromApi(templates ?? []);
       },
       error: () => {
         this.transactionTypes = [];
         this.secrecyLevels = [];
+        this.priorityLevels = [];
+        this.classificationLevels = [];
+        this.applyLetterTemplatesFromApi([]);
       }
+    });
+
+    this.departmentApi.list().subscribe({
+      next: (rows) => {
+        const lang = this.i18n.currentLang();
+        this.deptLabels.clear();
+        for (const r of rows ?? []) {
+          const label = lang === 'en' ? r.nameEn : r.nameAr;
+          this.deptLabels.set(r.id, label);
+        }
+      },
+      error: () => this.deptLabels.clear()
     });
   }
 
@@ -99,7 +143,7 @@ export class CreateTransactionComponent implements OnInit {
 
     setTimeout(() => {
 
-      if (this.barcode?.nativeElement) {
+      if (this.barcode?.nativeElement && this.transactionNumber) {
 
         JsBarcode(this.barcode.nativeElement, this.transactionNumber, {
           format: "CODE128",
@@ -126,6 +170,10 @@ export class CreateTransactionComponent implements OnInit {
 
   }
   nextStep() {
+    if (this.currentStep === 4) {
+      this.submit();
+      return;
+    }
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
     }
@@ -152,11 +200,15 @@ export class CreateTransactionComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private transactionService: TransactionService,
+    private attachmentApi: AttachmentApiService,
+    private departmentApi: DepartmentApiService,
+    private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
     private lookupService: LookupService,
+    private letterTemplateApi: LetterTemplateApiService,
     private i18n: I18nService
   ) {
 
@@ -164,15 +216,17 @@ export class CreateTransactionComponent implements OnInit {
     this.basicForm = this.fb.group({
       type: ['', Validators.required],
       secrecy: ['', Validators.required],
+      priority: ['', Validators.required],
+      classification: ['', Validators.required],
       subject: ['', [Validators.required, Validators.minLength(5)]],
       description: ['']
     });
 
-    // Step 2
+    // Step 2 — recipients optional at API level; owner department taken from first selection when present
     this.secondaryForm = this.fb.group({
-      from: ['', Validators.required],
-      to: this.fb.array([], Validators.required),
-      cc: this.fb.array([]),
+      from: [''],
+      to: this.fb.array<number>([]),
+      cc: this.fb.array<number>([]),
       maxDays: [5, [Validators.required, Validators.min(1), Validators.max(30)]]
     });
 
@@ -227,7 +281,7 @@ export class CreateTransactionComponent implements OnInit {
     spellcheck: true,
     height: 'auto',
     minHeight: '800px',
-    placeholder: 'اكتب محتوى الخطاب هنا...',
+    placeholder: '',
     translate: 'no',
     defaultParagraphSeparator: 'p',
     defaultFontName: 'Cairo',
@@ -256,7 +310,8 @@ export class CreateTransactionComponent implements OnInit {
   ================================ */
 
   buildBaseTemplate(bodyContent: string): string {
-    const today = new Date().toLocaleDateString('ar-EG', {
+    const locale = this.i18n.currentLang() === 'en' ? 'en-GB' : 'ar-EG';
+    const today = new Date().toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -283,11 +338,11 @@ export class CreateTransactionComponent implements OnInit {
       font-weight:800;
       margin-bottom:10px;
     ">
-      اسم الجهة
+      ${this.i18n.instant('createTx.letterEditor.headerEntity')}
     </h1>
 
     <div style="color:#6b7280;font-size:16px;">
-      الإدارة العامة للاتصالات الإدارية
+      ${this.i18n.instant('createTx.letterEditor.headerSubtitle')}
     </div>
   </div>
 
@@ -305,10 +360,10 @@ export class CreateTransactionComponent implements OnInit {
     font-size:16px;
   ">
     <div style="margin-bottom:10px;">
-      <strong style="color:#0B6E4F">التاريخ:</strong> ${today}
+      <strong style="color:#0B6E4F">${this.i18n.instant('createTx.letterEditor.dateLabel')}</strong> ${today}
     </div>
     <div>
-      <strong style="color:#0B6E4F">رقم المعاملة:</strong> يُملأ تلقائياً
+      <strong style="color:#0B6E4F">${this.i18n.instant('createTx.summary.ref')}</strong> ${this.i18n.instant('createTx.letterEditor.refFilledPlain')}
     </div>
   </div>
 
@@ -316,7 +371,7 @@ export class CreateTransactionComponent implements OnInit {
 
   <div style="margin-top:120px;">
     <div style="font-weight:700;color:#0B6E4F;margin-bottom:14px;">
-      مدير الإدارة
+      ${this.i18n.instant('createTx.letterEditor.footerManager')}
     </div>
 
     <div style="
@@ -326,7 +381,7 @@ export class CreateTransactionComponent implements OnInit {
     "></div>
 
     <div style="margin-top:10px;color:#6b7280;">
-      التوقيع
+      ${this.i18n.instant('createTx.letterEditor.footerSignature')}
     </div>
   </div>
 
@@ -338,28 +393,27 @@ export class CreateTransactionComponent implements OnInit {
   ================================ */
   defaultTemplate(): string {
     return this.buildBaseTemplate(`
-    <p><span style="font-weight:600;color:#0B6E4F">إلى:</span> .......................................................</p>
-    <p><span style="font-weight:600;color:#0B6E4F">الموضوع:</span> .......................................................</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('createTx.letterEditor.toLabel')}</span> .......................................................</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('transactions.subject')}:</span> .......................................................</p>
 
     <hr style="margin:30px 0;border:1px solid #e5e7eb;">
 
     <p style="text-align:center;font-weight:600;color:#0B6E4F;">
-      السلام عليكم ورحمة الله وبركاته، وبعد:
+      ${this.i18n.instant('createTx.letterBody.salutation')}
     </p>
 
     <p style="line-height:2.2;text-align:justify;">
-      نحيطكم علماً بأنه تم استلام خطابكم بشأن
-      <strong>[الموضوع]</strong>،
-      ونفيدكم بما يلي:
+      ${this.i18n.instant('createTx.letterBody.default.receiptBefore')}
+      <strong>${this.i18n.instant('createTx.letterBody.default.topicBracket')}</strong>${this.i18n.instant('createTx.letterBody.default.receiptAfter')}
     </p>
 
     <ol style="margin: 20px 0; padding-right: 40px; line-height: 2.2;">
-      <li>.......................................................</li>
-      <li>.......................................................</li>
-      <li>.......................................................</li>
+      <li>${this.i18n.instant('createTx.letterBody.listDots')}</li>
+      <li>${this.i18n.instant('createTx.letterBody.listDots')}</li>
+      <li>${this.i18n.instant('createTx.letterBody.listDots')}</li>
     </ol>
 
-    <p>نشكر لكم حُسن تعاونكم.</p>
+    <p>${this.i18n.instant('createTx.letterBody.default.thanks')}</p>
   `);
   }
 
@@ -368,21 +422,20 @@ export class CreateTransactionComponent implements OnInit {
   ================================ */
   reminderTemplate(): string {
     return this.buildBaseTemplate(`
-    <p><span style="font-weight:600;color:#0B6E4F">إلى:</span> .......................................................</p>
-    <p><span style="font-weight:600;color:#0B6E4F">الموضوع:</span> تذكير بخصوص معاملة</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('createTx.letterEditor.toLabel')}</span> .......................................................</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('transactions.subject')}:</span> ${this.i18n.instant('createTx.letterBody.reminder.subjectLine')}</p>
 
     <hr style="margin:30px 0;border:1px solid #e5e7eb;">
 
     <p style="text-align:center;font-weight:600;color:#0B6E4F;">
-      السلام عليكم ورحمة الله وبركاته، وبعد:
+      ${this.i18n.instant('createTx.letterBody.salutation')}
     </p>
 
     <p style="line-height:2.2;text-align:justify;">
-      بالإشارة إلى المعاملة رقم <strong>[رقم المعاملة]</strong>،
-      نود تذكيركم بضرورة الإفادة في أقرب وقت ممكن.
+      ${this.i18n.instant('createTx.letterBody.reminder.bodyBeforeRef')}<strong>${this.i18n.instant('createTx.letterEditor.refPlaceholderBracket')}</strong>${this.i18n.instant('createTx.letterBody.reminder.bodyAfterRef')}
     </p>
 
-    <p>شاكرين تعاونكم.</p>
+    <p>${this.i18n.instant('createTx.letterBody.reminder.thanks')}</p>
   `);
   }
 
@@ -391,19 +444,18 @@ export class CreateTransactionComponent implements OnInit {
   ================================ */
   approvalTemplate(): string {
     return this.buildBaseTemplate(`
-    <p><span style="font-weight:600;color:#0B6E4F">إلى:</span> .......................................................</p>
-    <p><span style="font-weight:600;color:#0B6E4F">الموضوع:</span> إفادة بالموافقة</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('createTx.letterEditor.toLabel')}</span> .......................................................</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('transactions.subject')}:</span> ${this.i18n.instant('createTx.letterBody.approval.subjectLine')}</p>
 
     <hr style="margin:30px 0;border:1px solid #e5e7eb;">
 
     <p style="text-align:center;font-weight:600;color:#0B6E4F;">
-      السلام عليكم ورحمة الله وبركاته، وبعد:
+      ${this.i18n.instant('createTx.letterBody.salutation')}
     </p>
 
     <p style="line-height:2.2;text-align:justify;">
-      نفيدكم بأنه تمت الموافقة على الطلب المتعلق بـ
-      <strong>[الموضوع]</strong>.
-      يرجى استكمال الإجراءات اللازمة.
+      ${this.i18n.instant('createTx.letterBody.approval.bodyBefore')}
+      <strong>${this.i18n.instant('createTx.letterBody.approval.topicBracket')}</strong>${this.i18n.instant('createTx.letterBody.approval.bodyAfter')}
     </p>
   `);
   }
@@ -413,18 +465,18 @@ export class CreateTransactionComponent implements OnInit {
   ================================ */
   rejectionTemplate(): string {
     return this.buildBaseTemplate(`
-    <p><span style="font-weight:600;color:#0B6E4F">إلى:</span> .......................................................</p>
-    <p><span style="font-weight:600;color:#0B6E4F">الموضوع:</span> اعتذار عن عدم الموافقة</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('createTx.letterEditor.toLabel')}</span> .......................................................</p>
+    <p><span style="font-weight:600;color:#0B6E4F">${this.i18n.instant('transactions.subject')}:</span> ${this.i18n.instant('createTx.letterBody.rejection.subjectLine')}</p>
 
     <hr style="margin:30px 0;border:1px solid #e5e7eb;">
 
     <p style="text-align:center;font-weight:600;color:#0B6E4F;">
-      السلام عليكم ورحمة الله وبركاته، وبعد:
+      ${this.i18n.instant('createTx.letterBody.salutation')}
     </p>
 
     <p style="line-height:2.2;text-align:justify;">
-      نعتذر عن عدم إمكانية الموافقة على الطلب نظراً لـ
-      <strong>[سبب الرفض]</strong>.
+      ${this.i18n.instant('createTx.letterBody.rejection.bodyBefore')}
+      <strong>${this.i18n.instant('createTx.letterBody.rejection.reasonBracket')}</strong>${this.i18n.instant('createTx.letterBody.rejection.bodyAfter')}
     </p>
   `);
   }
@@ -435,14 +487,14 @@ export class CreateTransactionComponent implements OnInit {
   administrativeCircularTemplate(): string {
     return this.buildBaseTemplate(`
     <p style="text-align:center;font-weight:700;font-size:18px;color:#0B6E4F;">
-      تعميم إداري
+      ${this.i18n.instant('createTx.letterBody.adminCircular.title')}
     </p>
 
     <hr style="margin:30px 0;border:1px solid #e5e7eb;">
 
     <p style="line-height:2.2;text-align:justify;">
-      تعلن الإدارة عن <strong>[موضوع التعميم]</strong>.
-      يرجى من جميع الإدارات الالتزام بما ورد أعلاه.
+      ${this.i18n.instant('createTx.letterBody.adminCircular.bodyBefore')}
+      <strong>${this.i18n.instant('createTx.letterBody.adminCircular.topicBracket')}</strong>${this.i18n.instant('createTx.letterBody.adminCircular.bodyAfter')}
     </p>
   `);
   }
@@ -453,15 +505,14 @@ export class CreateTransactionComponent implements OnInit {
   ministerialCircularTemplate(): string {
     return this.buildBaseTemplate(`
     <p style="text-align:center;font-weight:700;font-size:18px;color:#0B6E4F;">
-      تعميم وزاري
+      ${this.i18n.instant('createTx.letterBody.ministerialCircular.title')}
     </p>
 
     <hr style="margin:30px 0;border:1px solid #e5e7eb;">
 
     <p style="line-height:2.2;text-align:justify;">
-      بناءً على التوجيهات الوزارية بشأن
-      <strong>[موضوع التعميم]</strong>،
-      يُعتمد هذا التعميم للعمل به في جميع الجهات.
+      ${this.i18n.instant('createTx.letterBody.ministerialCircular.bodyBefore')}
+      <strong>${this.i18n.instant('createTx.letterBody.ministerialCircular.topicBracket')}</strong>${this.i18n.instant('createTx.letterBody.ministerialCircular.bodyAfter')}
     </p>
   `);
   }
@@ -469,18 +520,55 @@ export class CreateTransactionComponent implements OnInit {
   /* ================================
      TEMPLATES LIST
   ================================ */
-  letterTemplates: { key: string; getHtml: () => string }[] = [
-    { key: 'default', getHtml: () => this.defaultTemplate() },
-    { key: 'reminder', getHtml: () => this.reminderTemplate() },
-    { key: 'approval', getHtml: () => this.approvalTemplate() },
-    { key: 'rejection', getHtml: () => this.rejectionTemplate() },
-    { key: 'admin-circular', getHtml: () => this.administrativeCircularTemplate() },
-    { key: 'ministerial-circular', getHtml: () => this.ministerialCircularTemplate() },
-    { key: 'no-letter', getHtml: () => '' }
-  ];
+  letterTemplates: LetterTemplateItem[] = [];
 
-  letterTemplateTitle(key: string): string {
-    return this.i18n.instant(`createTx.letterTemplate.${key}`);
+  private buildLocalLetterTemplates(): LetterTemplateItem[] {
+    return [
+      { key: 'default', getHtml: () => this.defaultTemplate() },
+      { key: 'reminder', getHtml: () => this.reminderTemplate() },
+      { key: 'approval', getHtml: () => this.approvalTemplate() },
+      { key: 'rejection', getHtml: () => this.rejectionTemplate() },
+      { key: 'admin-circular', getHtml: () => this.administrativeCircularTemplate() },
+      { key: 'ministerial-circular', getHtml: () => this.ministerialCircularTemplate() },
+      { key: 'no-letter', getHtml: () => '' }
+    ];
+  }
+
+  private applyLetterTemplatesFromApi(rows: LetterTemplateDto[]): void {
+    if (rows?.length) {
+      this.letterTemplates = [...rows]
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map((r) => {
+          const code = r.code;
+          const body = r.bodyHtml ?? '';
+          return {
+            key: code,
+            nameAr: r.nameAr,
+            nameEn: r.nameEn,
+            getHtml: () => {
+              if (code === 'no-letter' || !body.trim()) {
+                return '';
+              }
+              return this.buildBaseTemplate(body);
+            }
+          };
+        });
+    } else {
+      this.letterTemplates = this.buildLocalLetterTemplates();
+    }
+    const first = this.letterTemplates[0];
+    if (first) {
+      this.selectedTemplateKey = first.key;
+      this.letterForm.patchValue({ letterContent: first.getHtml() });
+    }
+  }
+
+  letterTemplateTitle(t: LetterTemplateItem): string {
+    const lang = this.i18n.currentLang();
+    if (t.nameAr != null && t.nameEn != null && t.nameAr !== '' && t.nameEn !== '') {
+      return lang === 'en' ? t.nameEn : t.nameAr;
+    }
+    return this.i18n.instant(`createTx.letterTemplate.${t.key}`);
   }
 
   get toArray(): FormArray {
@@ -491,14 +579,16 @@ export class CreateTransactionComponent implements OnInit {
     return this.secondaryForm.get('cc') as FormArray;
   }
 
-  addTo(value: string): void {
-    if (!value?.trim()) return;
-    this.toArray.push(this.fb.control(value.trim()));
+  deptName(id: number): string {
+    return this.deptLabels.get(id) ?? String(id);
   }
 
-  addCc(value: string): void {
-    if (!value?.trim()) return;
-    this.ccArray.push(this.fb.control(value.trim()));
+  addTo(_value: string): void {
+    /* selection via dialog only */
+  }
+
+  addCc(_value: string): void {
+    /* selection via dialog only */
   }
 
   removeTo(index: number): void {
@@ -509,51 +599,76 @@ export class CreateTransactionComponent implements OnInit {
     this.ccArray.removeAt(index);
   }
   submit(): void {
-    if (!this.basicForm.valid || !this.secondaryForm.valid) {
+    if (!this.basicForm.valid || !this.secondaryForm.valid || !this.letterForm.valid) {
       this.showNotification(this.i18n.instant('createTx.validation.required'), 'error');
       return;
     }
 
-    const payload: TransactionPayload = {
-      type: this.basicForm.value.type,
-      secrecy: this.basicForm.value.secrecy,
-      subject: this.basicForm.value.subject,
-      description: this.basicForm.value.description,
-      from: this.secondaryForm.value.from,
-      to: this.toArray.value,
-      cc: this.ccArray.value,
-      maxDays: this.secondaryForm.value.maxDays,
-      letterContent: this.letterForm.value.letterContent
-    };
+    const maxDays = Number(this.secondaryForm.value.maxDays);
+    const due = new Date();
+    due.setDate(due.getDate() + (Number.isFinite(maxDays) ? maxDays : 5));
 
-    console.log('Sending Payload:', payload);
+    const toIds = (this.toArray.value ?? []) as number[];
+    const ownerDepartmentId = toIds.length ? toIds[0] : undefined;
+
     this.isLoading = true;
 
-    this.transactionService.createTransaction(payload).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.showNotification(this.i18n.instant('createTx.submit.success'), 'success');
-        this.resetForms();
+    const att = this.attachments;
+    const uploads$ =
+      att.length === 0
+        ? of([] as CorrespondenceAttachmentFormDto[])
+        : forkJoin(
+            att.map((a) =>
+              this.attachmentApi.upload(a.file).pipe(
+                map(
+                  (up): CorrespondenceAttachmentFormDto => ({
+                    displayName: (a.name || a.file.name).trim(),
+                    storageKey: up.storageKey,
+                    byteSize: up.byteSize,
+                    mimeType: up.mimeType ?? undefined
+                  })
+                )
+              )
+            )
+          );
+
+    uploads$.subscribe({
+      next: (flat) => {
+        const body: CorrespondenceCreateRequest = {
+          correspondenceTypeCode: this.basicForm.value.type,
+          priorityCode: this.basicForm.value.priority,
+          confidentialityCode: this.basicForm.value.secrecy,
+          classificationCode: this.basicForm.value.classification,
+          subject: (this.basicForm.value.subject ?? '').trim(),
+          description: (this.basicForm.value.description ?? '').trim() || null,
+          bodyHtml: (this.letterForm.value.letterContent ?? '') || null,
+          ownerDepartmentId: ownerDepartmentId ?? null,
+          dueDate: due.toISOString(),
+          attachments: flat.length ? flat : undefined
+        };
+
+        this.transactionService.create(body).subscribe({
+          next: (res) => {
+            this.isLoading = false;
+            this.transactionNumber = res.referenceNumber;
+            this.lastCreatedCorrespondenceId = res.id;
+            this.showNotification(this.i18n.instant('createTx.submit.success'), 'success');
+            setTimeout(() => this.goToStep(5), 0);
+            setTimeout(() => this.generateBarcode(), 0);
+          },
+          error: (error: { status?: number; error?: { message?: string }; userMessage?: string }) => {
+            this.isLoading = false;
+            const errorMessage =
+              error.userMessage ??
+              error.error?.message ??
+              this.i18n.instant('createTx.submit.errorGeneric');
+            this.showNotification(errorMessage, 'error');
+          }
+        });
       },
-      error: (error) => {
+      error: () => {
         this.isLoading = false;
-        let errorMessage = this.i18n.instant('createTx.submit.errorGeneric');
-        if (error.status === 501) {
-          errorMessage =
-            typeof error.error === 'string'
-              ? error.error
-              : this.i18n.instant('createTx.submit.notImplementedDetail');
-          this.showNotification(errorMessage, 'warning');
-          return;
-        }
-        if (error.status === 401) {
-          errorMessage = this.i18n.instant('createTx.submit.unauthorized');
-        } else if (error.status === 400) {
-          errorMessage = error.error?.message || this.i18n.instant('createTx.submit.badRequest');
-        } else if (error.status === 500) {
-          errorMessage = this.i18n.instant('createTx.submit.serverError');
-        }
-        this.showNotification(errorMessage, 'error');
+        this.showNotification(this.i18n.instant('createTx.submit.errorGeneric'), 'error');
       }
     });
   }
@@ -561,10 +676,32 @@ export class CreateTransactionComponent implements OnInit {
   resetForms(): void {
     this.basicForm.reset();
     this.secondaryForm.reset({ maxDays: 5 });
-    this.letterForm.reset({ letterContent: this.defaultTemplate() });
+    this.letterForm.reset({
+      letterContent: this.letterTemplates[0]?.getHtml() ?? this.defaultTemplate()
+    });
+    if (this.letterTemplates[0]) {
+      this.selectedTemplateKey = this.letterTemplates[0].key;
+    }
     this.toArray.clear();
     this.ccArray.clear();
+    this.attachments = [];
+    this.transactionNumber = '';
+    this.lastCreatedCorrespondenceId = null;
+    this.currentStep = 1;
+  }
 
+  viewCreated(): void {
+    if (this.lastCreatedCorrespondenceId) {
+      this.router.navigate(['/transactions', this.lastCreatedCorrespondenceId]);
+    }
+  }
+
+  createAnother(): void {
+    this.resetForms();
+  }
+
+  finishWizard(): void {
+    this.router.navigate(['/dashboard']);
   }
 
   showNotification(message: string, type: 'success' | 'error' | 'warning'): void {
@@ -584,29 +721,31 @@ export class CreateTransactionComponent implements OnInit {
 
   secrecyLevels: { key: string }[] = [];
 
+  priorityLevels: { key: string }[] = [];
+
+  classificationLevels: { key: string }[] = [];
+
 
   openDepartmentDialog(type: 'to' | 'cc') {
-    const currentValues = type === 'to'
-      ? this.toArray.value
-      : this.ccArray.value;
+    const currentValues = (type === 'to' ? this.toArray.value : this.ccArray.value) as number[];
 
     const dialogRef = this.dialog.open(DepartmentTreeDialogComponent, {
       width: '800px',
-      data: currentValues
+      data: currentValues ?? []
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result: number[] | undefined) => {
       if (!result || !result.length) return;
 
       this.zone.run(() => {
-        const unique = [...new Set<string>(result)];
+        const unique = [...new Set(result)];
 
         if (type === 'to') {
           this.toArray.clear();
-          unique.forEach(v => this.toArray.push(this.fb.control(v)));
+          unique.forEach((id) => this.toArray.push(this.fb.control(id, { nonNullable: true })));
         } else {
           this.ccArray.clear();
-          unique.forEach(v => this.ccArray.push(this.fb.control(v)));
+          unique.forEach((id) => this.ccArray.push(this.fb.control(id, { nonNullable: true })));
         }
         this.cdr.detectChanges();
       });

@@ -1,6 +1,7 @@
 package com.gov.ac.persistence;
 
 import com.gov.ac.domain.user.AppUser;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -15,4 +16,9 @@ public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
 
   @EntityGraph(attributePaths = "department")
   Optional<AppUser> findByIdAndDeletedAtIsNull(UUID id);
+
+  List<AppUser> findByDepartment_IdAndDeletedAtIsNullAndActiveTrue(Long departmentId);
+
+  Optional<AppUser> findByUsernameIgnoreCaseAndDeletedAtIsNull(String username);
 }
+

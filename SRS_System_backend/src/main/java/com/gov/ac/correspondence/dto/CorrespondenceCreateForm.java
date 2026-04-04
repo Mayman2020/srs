@@ -56,5 +56,5 @@ public class CorrespondenceCreateForm {
   @Size(max = 20000)
   private String primaryComment;
 
-  @Valid private List<CorrespondenceAttachmentForm> attachments;
+  @Valid @Size(max = 30) private List<CorrespondenceAttachmentForm> attachments;
 }

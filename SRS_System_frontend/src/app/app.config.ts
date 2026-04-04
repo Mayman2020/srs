@@ -4,9 +4,12 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners
 } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './core/api/auth.interceptor';
+import { httpErrorInterceptor } from './core/api/http-error.interceptor';
 import { firstValueFrom } from 'rxjs';
 
 import { routes } from './app.routes';
@@ -28,10 +31,11 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideAnimations(),
-    provideHttpClient(withFetch()),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, httpErrorInterceptor])),
     provideAppInitializer(async () => {
       const i18n = inject(I18nService);
       await firstValueFrom(i18n.loadLang(readStoredLang()));
+      inject(Title).setTitle(i18n.instant('app.title'));
       const lookups = inject(LookupLabelsService);
       await firstValueFrom(lookups.load());
     })

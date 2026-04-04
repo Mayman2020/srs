@@ -1,37 +1,36 @@
-<h2 mat-dialog-title class="dialog-title">اختيار الجهات</h2>
+<h2 mat-dialog-title class="dialog-title">{{ 'departmentTree.title' | t }}</h2>
 
 <mat-dialog-content class="dialog-content">
 
-  <!-- SELECT ALL ROW -->
-    <div class="select-all-row">
-      <div class="select-all-pill">
-        <span class="select-all-label">اختيار الكل</span>
-        <mat-checkbox
-          [checked]="isAllSelected()"
-          [indeterminate]="isSomeSelected()"
-          (change)="toggleAll($event.checked)">
-        </mat-checkbox>
-      </div>
-    </div>
+  <p class="muted" *ngIf="loadError">{{ 'errors.generic' | t }}</p>
 
-  <!-- TREE -->
-  <div class="tree-wrapper">
+  <div class="select-all-row" *ngIf="!loadError && dataSource.data.length">
+    <div class="select-all-pill">
+      <span class="select-all-label">{{ 'departmentTree.selectAll' | t }}</span>
+      <mat-checkbox
+        [checked]="isAllSelected()"
+        [indeterminate]="isSomeSelected()"
+        (change)="toggleAll($event.checked)">
+      </mat-checkbox>
+    </div>
+  </div>
+
+  <div class="tree-wrapper" *ngIf="!loadError">
     <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="entity-tree">
 
-      <!-- PARENT NODE -->
       <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
         <div class="parent-group" [class.expanded]="treeControl.isExpanded(node)">
-    
+
           <div class="parent-row tree-row">
 
             <span class="node-dot parent-dot"></span>
 
             <span class="node-label parent-label">
-              {{ node.name }}
+              {{ node.label }}
             </span>
 
-             <mat-checkbox class="row-checkbox"
-              [checked]="isSelected(node.name)"
+            <mat-checkbox class="row-checkbox"
+              [checked]="isSelected(node.id)"
               [indeterminate]="isIndeterminate(node)"
               (change)="toggleNode(node, $event.checked)">
             </mat-checkbox>
@@ -51,14 +50,13 @@
         </div>
       </mat-nested-tree-node>
 
-      <!-- LEAF NODE -->
       <mat-tree-node *matTreeNodeDef="let node">
         <div class="child-row">
           <span class="node-dot child-dot"></span>
-          <span class="node-label child-label">{{ node.name }}</span>
+          <span class="node-label child-label">{{ node.label }}</span>
           <mat-checkbox class="row-checkbox"
-            [checked]="isSelected(node.name)"
-            (change)="toggleLeaf(node.name, $event.checked)">
+            [checked]="isSelected(node.id)"
+            (change)="toggleLeaf(node.id, $event.checked)">
           </mat-checkbox>
         </div>
       </mat-tree-node>
@@ -70,7 +68,7 @@
 
 <mat-dialog-actions class="dialog-actions">
   <button mat-flat-button class="btn-primary" (click)="confirm()">
-   تأكيد
+    {{ 'departmentTree.confirm' | t }}
   </button>
-  <button mat-button mat-dialog-close class="btn-outline">إلغاء</button>
+  <button mat-button mat-dialog-close class="btn-outline">{{ 'departmentTree.cancel' | t }}</button>
 </mat-dialog-actions>

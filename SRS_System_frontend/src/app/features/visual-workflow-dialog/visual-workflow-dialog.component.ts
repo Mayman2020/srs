@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Transaction } from '../new_transaction_details/transaction-details';
 import { VisualTrackingTreeComponent } from '../visual-tracking-tree/visual-tracking-tree.component';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 
 export interface VisualWorkflowDialogData {
@@ -21,6 +22,7 @@ export interface VisualWorkflowDialogData {
     MatIconModule,
     MatButtonModule,
     VisualTrackingTreeComponent,
+    TranslatePipe
   ],
   templateUrl: "./visual-workflow-dialog.component.html",
   styleUrl: "./visual-workflow-dialog.component.scss"

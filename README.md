@@ -69,15 +69,37 @@ APIs expect `Authorization: Bearer <jwt>`. The JWT must use **HS256**; the claim
 
 ## Backend setup
 
+### Option C — PowerShell runner (Windows)
+
+From `SRS_System_backend`:
+
+- **Double-click:** `run-backend.cmd` (runs PowerShell with bypass execution policy; window stays open at the end with `pause`).
+- **Or in PowerShell / Terminal:**
+
+```powershell
+cd SRS_System_backend
+# Optional: copy secrets template — create run-backend.secrets.ps1 (gitignored) with AC_JWT_SECRET, DB password, etc.
+.\run-backend.ps1
+.\run-backend.ps1 -SkipBuild
+.\run-backend.ps1 -Profile local
+```
+
+If `.\run-backend.ps1` says scripts are disabled, run once:  
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+
+Default port for **`run-backend.ps1` is 8081** (avoids Oracle **TNSLSNR** on 8080). **`proxy.conf.json`** targets **8081** to match. Manual `mvn spring-boot:run` without `SERVER_PORT` still uses **8080** — then set proxy back to `http://localhost:8080` or export `SERVER_PORT=8081`. The repo includes **Maven Wrapper** (`mvnw.cmd`); Maven on PATH is optional.
+
+### Manual Maven
+
 ```powershell
 cd SRS_System_backend
 # Set env vars (Option A) or use application-local.yml (Option B)
 mvn spring-boot:run
 ```
 
-- API base: `http://localhost:8080`
-- OpenAPI: `http://localhost:8080/api/v1/api-docs`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- API base: `http://localhost:8080` (default `application.yml`; use **8081** if you run `run-backend.ps1`, which defaults to 8081 to avoid Oracle on 8080)
+- OpenAPI: `http://localhost:8081/api/v1/api-docs` when using the script default port
+- Swagger UI: `http://localhost:8081/swagger-ui.html` (or `:8080` if you start the JAR without `SERVER_PORT`)
 
 Ensure PostgreSQL is running and Flyway can apply migrations on startup.
 

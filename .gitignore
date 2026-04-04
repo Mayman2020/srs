@@ -25,6 +25,7 @@ logs/
 **/logs/
 
 # Local & secrets (never commit)
+run-backend.secrets.ps1
 .env
 .env.*
 !.env.example

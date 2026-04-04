@@ -32,6 +32,8 @@ export interface Transaction {
   to: string;
   created: string;
   maxDays: number;
+  /** ISO date from API when set */
+  dueDateIso?: string | null;
   timeline: TimelineStep[];
   attachments: Attachment[];
 }

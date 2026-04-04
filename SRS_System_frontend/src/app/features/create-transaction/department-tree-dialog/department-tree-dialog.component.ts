@@ -7,11 +7,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CdkTreeModule } from '@angular/cdk/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { AfterViewInit } from '@angular/core';
+import { DepartmentApiService } from '../../../core/api/department-api.service';
+import { DepartmentFlatDto } from '../../../core/api/api-types';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
-interface DepartmentNode {
-  name: string;
-  children?: DepartmentNode[];
+export interface DepartmentTreeNode {
+  id: number;
+  label: string;
+  children?: DepartmentTreeNode[];
 }
 
 @Component({
@@ -25,179 +29,146 @@ interface DepartmentNode {
     MatTreeModule,
     MatCheckboxModule,
     CdkTreeModule,
-    MatDialogModule
+    MatDialogModule,
+    TranslatePipe
   ]
 })
 export class DepartmentTreeDialogComponent implements OnInit {
+  treeControl = new NestedTreeControl<DepartmentTreeNode>((node) => node.children);
+  dataSource = new MatTreeNestedDataSource<DepartmentTreeNode>();
+  selected = new Set<number>();
 
-  treeControl = new NestedTreeControl<DepartmentNode>(node => node.children);
-  dataSource = new MatTreeNestedDataSource<DepartmentNode>();
-  selected = new Set<string>();
-
-  departments: DepartmentNode[] = [
-    {
-      name: 'الإدارة العامة للموارد البشرية',
-      children: [
-        { name: 'إدارة التوظيف' },
-        { name: 'إدارة التدريب والتطوير' }
-      ]
-    },
-    {
-      name: 'الإدارة العامة لتقنية المعلومات',
-      children: [
-        { name: 'إدارة البنية التحتية' },
-        { name: 'إدارة الأمن السيبراني' }
-      ]
-    },
-    {
-      name: 'الإدارة العامة للشؤون المالية',
-      children: [
-        { name: 'إدارة الميزانية' },
-        { name: 'إدارة الحسابات' }
-      ]
-    }
-  ];
+  loadError = false;
 
   constructor(
-    private dialogRef: MatDialogRef<DepartmentTreeDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: string[]
+    private dialogRef: MatDialogRef<DepartmentTreeDialogComponent, number[]>,
+    private departmentApi: DepartmentApiService,
+    private i18n: I18nService,
+    @Inject(MAT_DIALOG_DATA) public data: number[]
   ) {
-    // this.dataSource.data = this.departments;
-
-
-    if (data) {
-      data.forEach(x => this.selected.add(x));
+    if (data?.length) {
+      data.forEach((id) => this.selected.add(id));
     }
   }
 
   ngOnInit(): void {
-    this.dataSource.data = this.departments;
-
-    // Expand كل parent
-    this.expandAllNodes(this.departments);
+    this.departmentApi.list().subscribe({
+      next: (rows) => {
+        this.loadError = false;
+        const tree = this.buildTree(rows ?? []);
+        this.dataSource.data = tree;
+        this.expandAllNodes(tree);
+      },
+      error: () => {
+        this.loadError = true;
+        this.dataSource.data = [];
+      }
+    });
   }
 
-  expandAllNodes(nodes: DepartmentNode[]) {
-    nodes.forEach(node => {
+  private displayName(row: DepartmentFlatDto): string {
+    return this.i18n.currentLang() === 'en' ? row.nameEn : row.nameAr;
+  }
+
+  private buildTree(flat: DepartmentFlatDto[]): DepartmentTreeNode[] {
+    const byParent = new Map<number | null, DepartmentFlatDto[]>();
+    for (const row of flat) {
+      const p = row.parentId ?? null;
+      const list = byParent.get(p) ?? [];
+      list.push(row);
+      byParent.set(p, list);
+    }
+    for (const list of byParent.values()) {
+      list.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+    }
+
+    const build = (parentId: number | null): DepartmentTreeNode[] => {
+      const rows = byParent.get(parentId) ?? [];
+      return rows.map((r) => {
+        const children = build(r.id);
+        const node: DepartmentTreeNode = {
+          id: r.id,
+          label: this.displayName(r)
+        };
+        if (children.length) {
+          node.children = children;
+        }
+        return node;
+      });
+    };
+
+    return build(null);
+  }
+
+  expandAllNodes(nodes: DepartmentTreeNode[]) {
+    nodes.forEach((node) => {
       this.treeControl.expand(node);
-      if (node.children && node.children.length) {
+      if (node.children?.length) {
         this.expandAllNodes(node.children);
       }
     });
   }
-  // ─────────────────────────────────────────
-  //  Tree predicate
-  // ─────────────────────────────────────────
 
-  hasChild = (_: number, node: DepartmentNode): boolean =>
-    !!node.children && node.children.length > 0;
+  hasChild = (_: number, node: DepartmentTreeNode): boolean => !!node.children?.length;
 
-  // ─────────────────────────────────────────
-  //  Helpers
-  // ─────────────────────────────────────────
-
-  getAllNames(nodes: DepartmentNode[]): string[] {
-    let result: string[] = [];
-    nodes.forEach(node => {
-      result.push(node.name);
-      if (node.children) {
-        result = result.concat(this.getAllNames(node.children));
-      }
-    });
-    return result;
-  }
-
-  /** إيجاد الأب المباشر لابن معين */
-  private findParent(childName: string): DepartmentNode | null {
-    for (const parent of this.departments) {
-      if (parent.children?.some(c => c.name === childName)) {
-        return parent;
+  getAllNodes(nodes: DepartmentTreeNode[]): DepartmentTreeNode[] {
+    let out: DepartmentTreeNode[] = [];
+    for (const n of nodes) {
+      out.push(n);
+      if (n.children?.length) {
+        out = out.concat(this.getAllNodes(n.children));
       }
     }
-    return null;
+    return out;
   }
 
-  // ─────────────────────────────────────────
-  //  State checks
-  // ─────────────────────────────────────────
-
-  isSelected(name: string): boolean {
-    return this.selected.has(name);
+  isSelected(id: number): boolean {
+    return this.selected.has(id);
   }
 
   isAllSelected(): boolean {
-    const allNames = this.getAllNames(this.departments);
-    return allNames.length > 0 && allNames.every(name => this.selected.has(name));
+    const all = this.getAllNodes(this.dataSource.data);
+    return all.length > 0 && all.every((n) => this.selected.has(n.id));
   }
 
-  /** ✅ ناقصة — indeterminate لـ "اختيار الكل" */
   isSomeSelected(): boolean {
-    const allNames = this.getAllNames(this.departments);
-    const selCount = allNames.filter(name => this.selected.has(name)).length;
-    return selCount > 0 && selCount < allNames.length;
+    const all = this.getAllNodes(this.dataSource.data);
+    const sel = all.filter((n) => this.selected.has(n.id)).length;
+    return sel > 0 && sel < all.length;
   }
 
-  /** ✅ ناقصة — indeterminate للأب لما بعض أبنائه محددين */
-  isIndeterminate(node: DepartmentNode): boolean {
-    if (!node.children || node.children.length === 0) return false;
-    const selCount = node.children.filter(c => this.selected.has(c.name)).length;
-    return selCount > 0 && selCount < node.children.length;
+  isIndeterminate(node: DepartmentTreeNode): boolean {
+    if (!node.children?.length) {
+      return false;
+    }
+    const sel = node.children.filter((c) => this.selected.has(c.id)).length;
+    return sel > 0 && sel < node.children.length;
   }
-
-  // ─────────────────────────────────────────
-  //  Toggle actions
-  // ─────────────────────────────────────────
 
   toggleAll(checked: boolean): void {
-    const allNames = this.getAllNames(this.departments);
+    const all = this.getAllNodes(this.dataSource.data);
     if (checked) {
-      allNames.forEach(name => this.selected.add(name));
+      all.forEach((n) => this.selected.add(n.id));
     } else {
       this.selected.clear();
     }
   }
 
-  // toggleNode(node: DepartmentNode, checked: boolean): void {
-  //   if (checked) {
-  //     this.selected.add(node.name);
-  //     node.children?.forEach(child => this.selected.add(child.name));
-  //   } else {
-  //     this.selected.delete(node.name);
-  //     node.children?.forEach(child => this.selected.delete(child.name));
-  //   }
-  // }
-
-  toggleNode(node: DepartmentNode, checked: boolean): void {
-    checked
-      ? this.selected.add(node.name)
-      : this.selected.delete(node.name);
+  toggleNode(node: DepartmentTreeNode, checked: boolean): void {
+    if (checked) {
+      this.selected.add(node.id);
+    } else {
+      this.selected.delete(node.id);
+    }
   }
 
-  /** ✅ محدَّثة — تحديد ابن + تحديث حالة الأب تلقائياً */
-  // toggleLeaf(name: string, checked: boolean): void {
-  //   checked ? this.selected.add(name) : this.selected.delete(name);
-
-  //   // تحديث حالة الأب بناءً على أبنائه
-  //   const parent = this.findParent(name);
-  //   if (!parent) return;
-
-  //   const allSelected = parent.children!.every(c => this.selected.has(c.name));
-  //   const noneSelected = parent.children!.every(c => !this.selected.has(c.name));
-
-  //   if (allSelected) this.selected.add(parent.name);
-  //   else if (noneSelected) this.selected.delete(parent.name);
-  //   // لو indeterminate → الأب مش موجود في selected (بس checkbox هتظهر indeterminate)
-  // }
-
-  toggleLeaf(name: string, checked: boolean): void {
-    checked
-      ? this.selected.add(name)
-      : this.selected.delete(name);
+  toggleLeaf(id: number, checked: boolean): void {
+    if (checked) {
+      this.selected.add(id);
+    } else {
+      this.selected.delete(id);
+    }
   }
-
-  // ─────────────────────────────────────────
-  //  Dialog actions
-  // ─────────────────────────────────────────
 
   confirm(): void {
     this.dialogRef.close(Array.from(this.selected));

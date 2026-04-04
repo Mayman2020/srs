@@ -6,12 +6,11 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { DashboardApiService } from '../../core/api/dashboard-api.service';
-import { CodeCountDto, DashboardChartsDto } from '../../core/api/api-types';
+import { DashboardBucketDto, DashboardResponseDto } from '../../core/api/api-types';
 import { TransactionService } from '../../services/transaction.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
-import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,8 +30,7 @@ export class DashboardComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private dashboardApi: DashboardApiService,
     private transactionService: TransactionService,
-    private i18n: I18nService,
-    private lookupLabels: LookupLabelsService
+    private i18n: I18nService
   ) {}
 
   slaPercent = 0;
@@ -44,14 +42,16 @@ export class DashboardComponent implements OnInit {
   incoming = 0;
   outbound = 0;
 
-  aiRisk = 0;
-  aiConfidence = 0;
-  aiNextMonth = 0;
+  overdueCount = 0;
+  slaOnTime = 0;
+  slaLate = 0;
+  slaAction = 0;
 
-  private chartData: DashboardChartsDto | null = null;
+  private dash: DashboardResponseDto | null = null;
 
   transactions: {
     id: string;
+    referenceNumber: string;
     typeCode: string;
     subject: string;
     created: string;
@@ -60,24 +60,28 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     forkJoin({
-      dash: this.dashboardApi.getSummary(),
-      charts: this.dashboardApi.getCharts(),
-      recent: this.transactionService.listPage(0, 6)
+      dash: this.dashboardApi.getDashboard(),
+      recent: this.transactionService.listPage({ page: 0, size: 6 })
     }).subscribe({
-      next: ({ dash, charts, recent }) => {
-        this.chartData = charts;
-        this.total = dash.totalCorrespondence;
-        this.done = dash.completedCount;
-        this.inProgress = dash.inProgressCount;
-        this.incoming = dash.inboundCount;
-        this.outbound = dash.outboundCount;
+      next: ({ dash, recent }) => {
+        this.dash = dash;
+        this.total = dash.totalCorrespondences;
+        this.overdueCount = dash.overdueCount;
+        this.done = this.countByStatusCodes(dash, ['COMPLETED', 'ARCHIVED']);
+        this.inProgress = this.countByStatusCodes(dash, ['IN_PROGRESS', 'PENDING_APPROVAL', 'RETURNED']);
+        this.incoming = this.countByStatusCodes(dash, ['NEW']);
+        this.outbound = this.countByType(recent, 'OUTBOUND');
+
         const denom = Math.max(this.total, 1);
         this.slaPercent = Math.min(100, Math.round((this.done / denom) * 100));
-        this.aiRisk = Math.min(100, this.inProgress * 3);
-        this.aiConfidence = Math.min(100, 60 + Math.min(this.done, 20));
-        this.aiNextMonth = this.total + Math.round(this.inProgress * 0.5);
+
+        this.slaLate = this.overdueCount;
+        this.slaAction = this.inProgress;
+        this.slaOnTime = Math.max(0, this.done - this.slaLate);
+
         this.transactions = recent.map((t) => ({
-          id: t.referenceNumber ?? t.id,
+          id: t.id,
+          referenceNumber: t.referenceNumber ?? t.id,
           typeCode: t.typeCode,
           subject: t.subject,
           created: t.created,
@@ -92,9 +96,23 @@ export class DashboardComponent implements OnInit {
       error: () => {
         this.total = 0;
         this.transactions = [];
-        this.chartData = null;
+        this.dash = null;
+        this.overdueCount = 0;
+        this.slaOnTime = 0;
+        this.slaLate = 0;
+        this.slaAction = 0;
       }
     });
+  }
+
+  private countByStatusCodes(d: DashboardResponseDto, codes: string[]): number {
+    const set = new Set(codes.map((c) => c.toUpperCase()));
+    return (d.byStatus ?? []).filter((b) => set.has(b.code.toUpperCase())).reduce((s, b) => s + b.count, 0);
+  }
+
+  private countByType(rows: { typeCode: string }[], code: string): number {
+    const u = code.toUpperCase();
+    return rows.filter((r) => (r.typeCode ?? '').toUpperCase() === u).length;
   }
 
   animateSla() {
@@ -123,34 +141,43 @@ export class DashboardComponent implements OnInit {
     return 'linear-gradient(90deg, var(--sla-danger), var(--gov-primary))';
   }
 
-  private seriesForLookupTable(
-    buckets: CodeCountDto[],
-    table: string
-  ): { labels: string[]; data: number[] } {
-    const countMap = new Map(buckets.map((b) => [b.code, b.count]));
-    const rows = this.lookupLabels.orderedRows(table);
+  private bucketSeries(buckets: DashboardBucketDto[]): { labels: string[]; data: number[] } {
+    const lang = this.i18n.currentLang();
+    const sorted = [...(buckets ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     return {
-      labels: rows.map((r) => this.lookupLabels.displayName(r)),
-      data: rows.map((r) => countMap.get(r.code) ?? 0)
+      labels: sorted.map((b) => (lang === 'en' ? b.nameEn : b.nameAr)),
+      data: sorted.map((b) => b.count)
     };
   }
 
   private renderCharts() {
-    if (!this.chartData) {
+    if (!this.dash) {
       return;
     }
 
-    const status = this.seriesForLookupTable(
-      this.chartData.byCorrespondenceStatus,
-      'correspondenceStatus'
-    );
-    const types = this.seriesForLookupTable(
-      this.chartData.byCorrespondenceType,
-      'correspondenceType'
-    );
-    const priorities = this.seriesForLookupTable(this.chartData.byPriority, 'priority');
+    const status = this.bucketSeries(this.dash.byStatus);
+    const priorities = this.bucketSeries(this.dash.byPriority);
 
     const countAxisLabel = this.i18n.instant('dashboard.chart.count');
+
+    const palette = ['#10B981', '#F59E0B', '#0da1eb', '#6366F1', '#EC4899', '#14B8A6', '#8B5CF6'];
+
+    const doughnutOpts = {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom' as const,
+          rtl: this.i18n.currentLang() === 'ar',
+          labels: {
+            font: { size: 13, family: 'Cairo, sans-serif', weight: 'bold' as const },
+            padding: 15,
+            usePointStyle: true,
+            pointStyle: 'circle' as const
+          }
+        }
+      }
+    };
 
     if (this.statusDonut?.nativeElement) {
       new Chart(this.statusDonut.nativeElement, {
@@ -160,29 +187,14 @@ export class DashboardComponent implements OnInit {
           datasets: [
             {
               data: status.data,
-              backgroundColor: ['#10B981', '#F59E0B', '#0da1eb', '#6366F1', '#EC4899', '#14B8A6'],
+              backgroundColor: status.labels.map((_, i) => palette[i % palette.length]),
               borderColor: '#FFFFFF',
               borderWidth: 3,
               hoverOffset: 10
             }
           ]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              rtl: true,
-              labels: {
-                font: { size: 13, family: 'Cairo, sans-serif', weight: 'bold' },
-                padding: 15,
-                usePointStyle: true,
-                pointStyle: 'circle'
-              }
-            }
-          }
-        }
+        options: doughnutOpts
       });
     }
 
@@ -190,12 +202,12 @@ export class DashboardComponent implements OnInit {
       new Chart(this.deptBar.nativeElement, {
         type: 'bar',
         data: {
-          labels: types.labels,
+          labels: priorities.labels,
           datasets: [
             {
               label: countAxisLabel,
-              data: types.data,
-              backgroundColor: ['#0B6E4F', '#10B981', '#34D399', '#6EE7B7', '#A7F3D0', '#D1FAE5'],
+              data: priorities.data,
+              backgroundColor: priorities.labels.map((_, i) => palette[(i + 2) % palette.length]),
               borderColor: '#FFFFFF',
               borderWidth: 2,
               borderRadius: 8
@@ -222,7 +234,7 @@ export class DashboardComponent implements OnInit {
           datasets: [
             {
               data: status.data,
-              backgroundColor: ['#0da1eb', '#F59E0B', '#10B981', '#6366F1', '#EC4899'],
+              backgroundColor: status.labels.map((_, i) => palette[i % palette.length]),
               borderWidth: 3
             }
           ]
@@ -240,7 +252,7 @@ export class DashboardComponent implements OnInit {
             {
               label: this.i18n.instant('dashboard.chart.priorityAxis'),
               data: priorities.data,
-              backgroundColor: ['#44c7ef', '#F59E0B', '#10B981', '#8B5CF6', '#F43F5E'],
+              backgroundColor: priorities.labels.map((_, i) => palette[(i + 1) % palette.length]),
               borderRadius: 8
             }
           ]
@@ -251,10 +263,15 @@ export class DashboardComponent implements OnInit {
   }
 
   format(n: number): string {
-    return n.toLocaleString('ar-SA');
+    const loc = this.i18n.currentLang() === 'en' ? 'en-US' : 'ar-SA';
+    return n.toLocaleString(loc);
   }
 
   openTransctions(): void {
     this.router.navigate(['/transactions']);
+  }
+
+  openTransaction(id: string): void {
+    this.router.navigate(['/transactions', id]);
   }
 }

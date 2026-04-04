@@ -7,6 +7,7 @@ import com.gov.ac.correspondence.mapper.CorrespondenceCreateMapper;
 import com.gov.ac.correspondence.reference.ReferenceNumberGenerator;
 import com.gov.ac.correspondence.workflow.CamundaCorrespondenceWorkflowService;
 import com.gov.ac.correspondence.workflow.CamundaCorrespondenceWorkflowService.StartedProcess;
+import com.gov.ac.correspondence.CorrespondenceLookupCodes;
 import com.gov.ac.correspondence.workflow.CorrespondenceProcessDefinitionKeys;
 import com.gov.ac.domain.correspondence.Attachment;
 import com.gov.ac.domain.correspondence.AttachmentVersion;
@@ -20,6 +21,7 @@ import com.gov.ac.domain.user.AppUser;
 import com.gov.ac.domain.workflow.WorkflowHistory;
 import com.gov.ac.domain.workflow.WorkflowInstance;
 import com.gov.ac.lookup.LookupResolutionService;
+import com.gov.ac.notification.NotificationService;
 import com.gov.ac.persistence.AppUserRepository;
 import com.gov.ac.persistence.AttachmentRepository;
 import com.gov.ac.persistence.AttachmentVersionRepository;
@@ -30,7 +32,8 @@ import com.gov.ac.persistence.OrganizationRepository;
 import com.gov.ac.persistence.WorkflowHistoryRepository;
 import com.gov.ac.persistence.WorkflowInstanceRepository;
 import com.gov.ac.persistence.WorkflowInstanceStatusRepository;
-import com.gov.ac.web.BadRequestException;
+import com.gov.ac.common.api.BadRequestException;
+import com.gov.ac.common.api.SystemConfigurationException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -51,10 +54,7 @@ public class CorrespondenceCreateService {
   /** SRS §14.1 aggregate cap (application-enforced). */
   private static final long MAX_TOTAL_ATTACHMENT_BYTES = 200L * 1024 * 1024;
 
-  private static final String INITIAL_STATUS_CODE = "NEW";
-  private static final String WORKFLOW_INSTANCE_RUNNING = "RUNNING";
-  private static final String HISTORY_EVENT_CREATE = "CREATE";
-  private static final String HISTORY_ACTION_CREATE = "CREATE";
+  private static final int MAX_ATTACHMENTS_COUNT = 30;
 
   private final LookupResolutionService lookups;
   private final ReferenceNumberGenerator referenceNumberGenerator;
@@ -70,19 +70,30 @@ public class CorrespondenceCreateService {
   private final WorkflowInstanceRepository workflowInstanceRepository;
   private final WorkflowInstanceStatusRepository workflowInstanceStatusRepository;
   private final WorkflowHistoryRepository workflowHistoryRepository;
+  private final NotificationService notificationService;
 
+  /**
+   * Creates correspondence, attachments, Camunda process, {@code workflow_instance}, and first
+   * {@code workflow_history} in one transaction. Rolls back on any failure, including Camunda
+   * startup errors, when the process engine shares the Spring-managed transaction (default for
+   * Camunda Spring Boot).
+   */
   @Transactional(rollbackFor = Exception.class)
   public CorrespondenceCreatedResponse create(UUID actorUserId, CorrespondenceCreateForm form) {
+    Instant now = Instant.now();
+
     AppUser actor =
         appUserRepository
             .findByIdAndDeletedAtIsNull(actorUserId)
-            .orElseThrow(() -> new BadRequestException("Unknown or deleted user: " + actorUserId));
+            .orElseThrow(() -> new BadRequestException("Unknown or deleted user"));
     if (!Boolean.TRUE.equals(actor.getActive())) {
       throw new BadRequestException("Inactive user cannot create correspondence");
     }
 
     var type = lookups.requireActiveCorrespondenceType(form.getCorrespondenceTypeCode());
-    var initialStatus = lookups.requireActiveCorrespondenceStatus(INITIAL_STATUS_CODE);
+    var initialStatus =
+        lookups.requireActiveCorrespondenceStatus(
+            CorrespondenceLookupCodes.INITIAL_CORRESPONDENCE_STATUS);
     var priority = lookups.requireActivePriority(form.getPriorityCode());
     var confidentiality = lookups.requireActiveConfidentiality(form.getConfidentialityCode());
     var classification = lookups.requireActiveClassification(form.getClassificationCode());
@@ -91,11 +102,19 @@ public class CorrespondenceCreateService {
     Organization recipient = resolveOrganization(form.getRecipientOrganizationId());
     Department ownerDept = resolveDepartment(form.getOwnerDepartmentId());
 
+    if (!CollectionUtils.isEmpty(form.getAttachments())
+        && form.getAttachments().size() > MAX_ATTACHMENTS_COUNT) {
+      throw new BadRequestException(
+          "Too many attachments (max " + MAX_ATTACHMENTS_COUNT + " per correspondence)");
+    }
+
     long attachmentTotal = sumAttachmentBytes(form.getAttachments());
     if (attachmentTotal > MAX_TOTAL_ATTACHMENT_BYTES) {
       throw new BadRequestException(
           "Total attachment size exceeds limit of " + MAX_TOTAL_ATTACHMENT_BYTES + " bytes");
     }
+
+    validateAttachmentSizes(form.getAttachments());
 
     String referenceNumber = referenceNumberGenerator.nextReferenceNumber();
     String processKey = CorrespondenceProcessDefinitionKeys.forCorrespondenceTypeCode(type.getCode());
@@ -142,24 +161,30 @@ public class CorrespondenceCreateService {
 
     WorkflowInstanceStatus running =
         workflowInstanceStatusRepository
-            .findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(WORKFLOW_INSTANCE_RUNNING)
+            .findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(
+                CorrespondenceLookupCodes.WORKFLOW_INSTANCE_RUNNING)
             .orElseThrow(
-                () -> new IllegalStateException("Missing workflow_instance_status: RUNNING"));
+                () ->
+                    new SystemConfigurationException(
+                        "Missing active workflow_instance_status lookup: "
+                            + CorrespondenceLookupCodes.WORKFLOW_INSTANCE_RUNNING));
 
     WorkflowInstance instance = new WorkflowInstance();
     instance.setCorrespondence(correspondence);
     instance.setProcessDefinitionKey(started.processDefinitionKey());
     instance.setProcessInstanceId(started.processInstanceId());
     instance.setStatus(running);
-    instance.setStartedAt(Instant.now());
+    instance.setStartedAt(now);
     instance.setBusinessKey(referenceNumber);
     instance.setCreatedBy(actorUserId);
     instance.setUpdatedBy(actorUserId);
     instance = workflowInstanceRepository.save(instance);
 
     int nextSeq = workflowHistoryRepository.maxSequenceNo(correspondence.getId()) + 1;
-    var eventType = lookups.requireActiveHistoryEventType(HISTORY_EVENT_CREATE);
-    var actionType = lookups.requireActiveWorkflowActionType(HISTORY_ACTION_CREATE);
+    var eventType =
+        lookups.requireActiveHistoryEventType(CorrespondenceLookupCodes.WORKFLOW_HISTORY_CREATE);
+    var actionType =
+        lookups.requireActiveWorkflowActionType(CorrespondenceLookupCodes.WORKFLOW_HISTORY_CREATE);
 
     WorkflowHistory history = new WorkflowHistory();
     history.setCorrespondence(correspondence);
@@ -167,7 +192,7 @@ public class CorrespondenceCreateService {
     history.setEventType(eventType);
     history.setWorkflowActionType(actionType);
     history.setActor(actor);
-    history.setOccurredAt(Instant.now());
+    history.setOccurredAt(now);
     history.setSequenceNo(nextSeq);
     history.setPrimaryCommentText(trimToNull(form.getPrimaryComment()));
     history.setNewCorrespondenceStatus(initialStatus);
@@ -189,8 +214,32 @@ public class CorrespondenceCreateService {
         started.processInstanceId(),
         actorUserId);
 
+    notificationService.notifyCorrespondenceCreated(correspondence, actor);
+    if (StringUtils.hasText(form.getPrimaryComment())) {
+      notificationService.notifyCommentAdded(correspondence, actor);
+    }
+
     return createMapper.toCreatedResponse(
         correspondence, instance, started.processInstanceId());
+  }
+
+  private void validateAttachmentSizes(List<CorrespondenceAttachmentForm> attachments) {
+    if (CollectionUtils.isEmpty(attachments)) {
+      return;
+    }
+    for (CorrespondenceAttachmentForm a : attachments) {
+      if (a.getByteSize() == null || a.getByteSize() < 0) {
+        throw new BadRequestException("Invalid attachment size");
+      }
+      if (!StringUtils.hasText(a.getContentTypeCode())) {
+        continue;
+      }
+      AttachmentContentType ct = lookups.requireActiveAttachmentContentType(a.getContentTypeCode());
+      if (ct.getMaxBytes() != null && a.getByteSize() > ct.getMaxBytes()) {
+        throw new BadRequestException(
+            "Attachment exceeds max size for content type " + ct.getCode());
+      }
+    }
   }
 
   private long sumAttachmentBytes(List<CorrespondenceAttachmentForm> attachments) {
@@ -244,7 +293,11 @@ public class CorrespondenceCreateService {
     }
     return organizationRepository
         .findByIdAndDeletedAtIsNull(id)
-        .orElseThrow(() -> new BadRequestException("Unknown or deleted organization: " + id));
+        .orElseThrow(
+            () -> {
+              log.debug("Reject create: unknown organization id={}", id);
+              return new BadRequestException("Unknown or deleted organization");
+            });
   }
 
   private Department resolveDepartment(Long id) {
@@ -253,7 +306,11 @@ public class CorrespondenceCreateService {
     }
     return departmentRepository
         .findByIdAndDeletedAtIsNull(id)
-        .orElseThrow(() -> new BadRequestException("Unknown or deleted department: " + id));
+        .orElseThrow(
+            () -> {
+              log.debug("Reject create: unknown department id={}", id);
+              return new BadRequestException("Unknown or deleted department");
+            });
   }
 
   private static String trimToNull(String s) {

@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, ViewChild, inject } from '@angular/core';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import {
   NgxInteractiveOrgChart,
   OrgChartNode,
@@ -41,11 +43,13 @@ type OrgNode = OrgChartNode<NodeData>;
 @Component({
   selector: 'app-visual-tracking-tree',
   standalone: true,
-  imports: [CommonModule, NgxInteractiveOrgChart],
+  imports: [CommonModule, NgxInteractiveOrgChart, TranslatePipe],
   templateUrl: './visual-tracking-tree.component.html',
   styleUrls: ['./visual-tracking-tree.component.scss'],
 })
 export class VisualTrackingTreeComponent implements OnChanges {
+  private readonly i18n = inject(I18nService);
+
   @Input({ required: true }) transaction!: Transaction;
   @Input() activeIndex = 0;
 
@@ -135,7 +139,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
       name: tx.subject,
       data: {
         title: tx.subject,
-        note: `رقم المعاملة: ${tx.id}`,
+        note: `${this.i18n.instant('transactions.refNo')}: ${tx.id}`,
         user: tx.from,
         date: tx.created ?? null,
         status: 'info',
@@ -145,7 +149,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
           id: 'handler',
           name: tx.currentHandler,
           data: {
-            title: 'المعالج الحالي',
+            title: this.i18n.instant('transactionDetails.visualCurrentHandler'),
             note: tx.to,
             user: tx.currentHandler,
             date: null,

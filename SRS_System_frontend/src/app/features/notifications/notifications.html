@@ -30,7 +30,7 @@
       class="notification-item"
       [class.unread]="!notification.read"
       [ngClass]="getNotificationClass(notification.type)"
-      (click)="markAsRead(notification); viewTransaction(notification.transactionId)">
+      (click)="markAsRead(notification); viewTransaction(notification.correspondenceId)">
       
       <div class="notification-icon">
         {{ getNotificationIcon(notification.type) }}
@@ -80,8 +80,8 @@
         <button 
           type="button"
           class="btn-icon btn-view" 
-          *ngIf="notification.transactionId"
-          (click)="viewTransaction(notification.transactionId); $event.stopPropagation()"
+          *ngIf="notification.correspondenceId"
+          (click)="viewTransaction(notification.correspondenceId); $event.stopPropagation()"
           [attr.title]="'notifications.viewTxTitle' | t">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"></polyline>

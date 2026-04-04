@@ -33,16 +33,7 @@ export class TransactionsListComponent implements OnInit {
   pageSize = 5;
   total = 0;
 
-  readonly statusFilterCodes = [
-    'NEW',
-    'IN_PROGRESS',
-    'RETURNED',
-    'COMPLETED',
-    'REJECTED',
-    'ARCHIVED',
-    'DEFERRED',
-    'PENDING_APPROVAL'
-  ];
+  statusFilterCodes: string[] = [];
 
   constructor(
     private service: TransactionService,
@@ -50,7 +41,9 @@ export class TransactionsListComponent implements OnInit {
     public router: Router,
     private lookupLabels: LookupLabelsService,
     private i18n: I18nService
-  ) {}
+  ) {
+    this.statusFilterCodes = this.lookupLabels.orderedRows('correspondenceStatus').map((r) => r.code);
+  }
 
   get listContextLabel(): string {
     if (!this.type) {
@@ -85,10 +78,12 @@ export class TransactionsListComponent implements OnInit {
   applyFilters(): void {
     this.filtered = this.all.filter((t) => {
       const id = t.id?.toString().toLowerCase() ?? '';
+      const ref = (t.referenceNumber ?? '').toString().toLowerCase();
       const subject = t.subject?.toLowerCase() ?? '';
       const from = t.from?.toLowerCase() ?? '';
 
-      if (this.fNo && !id.includes(this.fNo.toLowerCase())) return false;
+      if (this.fNo && !id.includes(this.fNo.toLowerCase()) && !ref.includes(this.fNo.toLowerCase()))
+        return false;
       if (this.fSubject && !subject.includes(this.fSubject.toLowerCase())) return false;
       if (this.fFrom && !from.includes(this.fFrom.toLowerCase())) return false;
       if (this.fStatus && t.statusCode !== this.fStatus) return false;

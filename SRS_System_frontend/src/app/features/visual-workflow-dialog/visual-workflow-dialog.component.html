@@ -2,7 +2,7 @@
   <div class="vwd-header">
     <div class="vwd-title">
       <mat-icon>account_tree</mat-icon>
-      <span>التتبع البصري</span>
+      <span>{{ 'workflowDialog.title' | t }}</span>
     </div>
 
     <div class="vwd-tools">
@@ -29,6 +29,6 @@
   </div>
 
   <div class="vwd-actions">
-    <button mat-stroked-button (click)="close()">إغلاق</button>
+    <button mat-stroked-button (click)="close()">{{ 'workflowDialog.close' | t }}</button>
   </div>
 </div>

@@ -15,7 +15,11 @@ public class ReferenceNumberGenerator {
 
   @PersistenceContext private EntityManager entityManager;
 
-  /** Registry-style number, e.g. {@code CORR-2026-00000001}. */
+  /**
+   * Registry-style number, e.g. {@code CORR-2026-00000001}. {@code nextval} is atomic per PostgreSQL
+   * session/transaction, so concurrent callers receive distinct sequence values. Uniqueness among
+   * non-deleted rows is also enforced by {@code ux_correspondence_reference_active} (Flyway V6).
+   */
   public String nextReferenceNumber() {
     long seq =
         ((Number) entityManager.createNativeQuery(SEQ_SQL).getSingleResult()).longValue();

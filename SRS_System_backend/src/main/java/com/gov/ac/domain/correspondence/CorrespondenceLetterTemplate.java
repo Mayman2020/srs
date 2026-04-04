@@ -1,0 +1,40 @@
+package com.gov.ac.domain.correspondence;
+
+import com.gov.ac.domain.base.SoftDeletableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "correspondence_letter_template")
+@Getter
+@Setter
+public class CorrespondenceLetterTemplate extends SoftDeletableEntity {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @Column(nullable = false)
+  private String code;
+
+  @Column(name = "name_ar", nullable = false)
+  private String nameAr;
+
+  @Column(name = "name_en", nullable = false)
+  private String nameEn;
+
+  @Column(name = "body_html", nullable = false, columnDefinition = "text")
+  private String bodyHtml = "";
+
+  @Column(name = "sort_order", nullable = false)
+  private Integer sortOrder = 0;
+
+  @Column(name = "is_active", nullable = false)
+  private Boolean active = true;
+}

@@ -62,17 +62,23 @@ export class TransactionsComponent implements OnInit {
   ngOnInit(): void {
     forkJoin({
       list: this.service.listPage(),
-      dash: this.dashboardApi.getSummary(),
+      dash: this.dashboardApi.getDashboard(),
       lookups: this.lookupService.getBundle()
     }).subscribe({
       next: ({ list, dash, lookups }) => {
         this.loadError = false;
         this.all = list;
-        this.dashTotal = dash.totalCorrespondence;
-        this.dashInbound = dash.inboundCount;
-        this.dashOutbound = dash.outboundCount;
-        this.dashInProgress = dash.inProgressCount;
-        this.dashCompleted = dash.completedCount;
+        this.dashTotal = dash.totalCorrespondences;
+        const inbound = list.filter((t) => (t.typeCode ?? '').toUpperCase() === 'INBOUND').length;
+        const outbound = list.filter((t) => (t.typeCode ?? '').toUpperCase() === 'OUTBOUND').length;
+        this.dashInbound = inbound;
+        this.dashOutbound = outbound;
+        this.dashInProgress = (dash.byStatus ?? [])
+          .filter((b) => ['IN_PROGRESS', 'PENDING_APPROVAL', 'RETURNED'].includes(b.code.toUpperCase()))
+          .reduce((s, b) => s + b.count, 0);
+        this.dashCompleted = (dash.byStatus ?? [])
+          .filter((b) => ['ARCHIVED', 'COMPLETED'].includes(b.code.toUpperCase()))
+          .reduce((s, b) => s + b.count, 0);
         this.correspondenceTypes = lookups.correspondenceTypes;
         this.correspondenceStatuses = lookups.correspondenceStatuses;
         this.applyFilters();
@@ -92,10 +98,11 @@ export class TransactionsComponent implements OnInit {
 
     this.filtered = this.all.filter((t) => {
       const id = (t.id ?? '').toString().toLowerCase();
+      const ref = (t.referenceNumber ?? '').toString().toLowerCase();
       const subject = (t.subject ?? '').toLowerCase();
       const from = (t.from ?? '').toLowerCase();
 
-      if (fNo && !id.includes(fNo)) return false;
+      if (fNo && !id.includes(fNo) && !ref.includes(fNo)) return false;
       if (fSubject && !subject.includes(fSubject)) return false;
       if (fFrom && !from.includes(fFrom)) return false;
       if (this.fType && t.typeCode !== this.fType) return false;

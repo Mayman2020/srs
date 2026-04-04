@@ -38,19 +38,19 @@
       <div class="sla-item ok">
         <mat-icon>check_circle</mat-icon>
         <span>{{ 'dashboard.slaOnTime' | t }}</span>
-        <b>1,073</b>
+        <b>{{ format(slaOnTime) }}</b>
       </div>
 
       <div class="sla-item bad">
         <mat-icon>error</mat-icon>
         <span>{{ 'dashboard.slaLate' | t }}</span>
-        <b>27</b>
+        <b>{{ format(slaLate) }}</b>
       </div>
 
       <div class="sla-item warn">
         <mat-icon>pending_actions</mat-icon>
         <span>{{ 'dashboard.slaAction' | t }}</span>
-        <b>148</b>
+        <b>{{ format(slaAction) }}</b>
       </div>
 
     </div>
@@ -176,63 +176,32 @@
 
     <div class="sla-alert-list">
 
-      <div class="sla-alert-row danger">
+      <div class="sla-alert-row info" *ngIf="overdueCount === 0">
+        <div class="sla-alert-icon">
+          <mat-icon>info</mat-icon>
+        </div>
+        <div class="sla-alert-content">
+          <div class="sla-alert-text">{{ 'dashboard.slaAlertsEmpty' | t }}</div>
+        </div>
+      </div>
 
+      <div class="sla-alert-row danger" *ngIf="overdueCount > 0">
         <div class="sla-alert-icon">
           <mat-icon>warning</mat-icon>
         </div>
-
         <div class="sla-alert-content">
-          <div class="sla-alert-id">1445/10293</div>
-          <div class="sla-alert-text">{{ 'dashboard.slaAlert1Text' | t }}</div>
+          <div class="sla-alert-text">{{ 'dashboard.slaLate' | t }}</div>
+          <div class="sla-alert-id">{{ format(overdueCount) }}</div>
         </div>
-
         <div class="sla-alert-badge today">
           {{ 'dashboard.badgeToday' | t }}
         </div>
-
-      </div>
-
-
-      <div class="sla-alert-row warn">
-
-        <div class="sla-alert-icon">
-          <mat-icon>schedule</mat-icon>
-        </div>
-
-        <div class="sla-alert-content">
-          <div class="sla-alert-id">1445/10297</div>
-          <div class="sla-alert-text">{{ 'dashboard.slaAlert2Text' | t }}</div>
-        </div>
-
-        <div class="sla-alert-badge warn">
-          {{ 'dashboard.badge24h' | t }}
-        </div>
-
-      </div>
-
-
-      <div class="sla-alert-row">
-
-        <div class="sla-alert-icon">
-          <mat-icon>pending_actions</mat-icon>
-        </div>
-
-        <div class="sla-alert-content">
-          <div class="sla-alert-id">1445/10301</div>
-          <div class="sla-alert-text">{{ 'dashboard.slaAlert3Text' | t }}</div>
-        </div>
-
-        <div class="sla-alert-badge">
-          {{ 'dashboard.badgeFollow' | t }}
-        </div>
-
       </div>
 
     </div>
 
     <div class="sla-alert-footer">
-      <button type="button">{{ 'dashboard.viewAllAlerts' | t }}</button>
+      <button type="button" (click)="openTransctions()">{{ 'dashboard.viewAllAlerts' | t }}</button>
     </div>
 
   </div>
@@ -277,7 +246,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let tx of transactions">
-          <td><span class="link">{{ tx.id }}</span></td>
+          <td><span class="link">{{ tx.referenceNumber }}</span></td>
           <td>{{ tx.typeCode | lk:'correspondenceType' }}</td>
           <td>{{ tx.subject }}</td>
           <td>{{ tx.created }}</td>
@@ -290,7 +259,7 @@
             </span>
           </td>
           <td>
-            <button type="button" class="btn" (click)="openTransctions()">{{ 'common.open' | t }}</button>
+            <button type="button" class="btn" (click)="openTransaction(tx.id)">{{ 'common.open' | t }}</button>
           </td>
         </tr>
 
@@ -312,7 +281,7 @@
 
     <div class="ai-title">
       <mat-icon>insights</mat-icon>
-      <h3>{{ 'dashboard.aiTitle' | t }}</h3>
+      <h3>{{ 'dashboard.liveOpsTitle' | t }}</h3>
     </div>
 
     <div class="ai-grid">
@@ -320,12 +289,11 @@
       <div class="ai-item">
 
         <div class="ai-label">
-          {{ 'dashboard.aiRisk' | t }}
-          <span class="ai-tag">{{ 'dashboard.aiRiskTag' | t }}</span>
+          {{ 'dashboard.liveOpsOverdue' | t }}
         </div>
 
         <div class="ai-value danger">
-          {{ aiRisk }}%
+          {{ format(overdueCount) }}
         </div>
 
       </div>
@@ -334,12 +302,11 @@
       <div class="ai-item">
 
         <div class="ai-label">
-          {{ 'dashboard.aiConfidence' | t }}
-          <span class="ai-tag">{{ 'dashboard.aiConfidenceTag' | t }}</span>
+          {{ 'dashboard.liveOpsInProgress' | t }}
         </div>
 
         <div class="ai-value ok">
-          {{ aiConfidence }}%
+          {{ format(inProgress) }}
         </div>
 
       </div>
@@ -348,11 +315,11 @@
       <div class="ai-item wide">
 
         <div class="ai-label">
-          {{ 'dashboard.aiForecast' | t }}
+          {{ 'dashboard.kpiTotal' | t }}
         </div>
 
         <div class="ai-value">
-          {{ aiNextMonth }}
+          {{ format(total) }}
         </div>
 
       </div>
@@ -360,13 +327,13 @@
     </div>
 
     <div class="ai-note">
-      {{ 'dashboard.aiDisclaimer' | t }}
+      {{ 'dashboard.liveOpsNote' | t }}
     </div>
 
   </div>
   <div class="card">
     <div class="title">
-      <h3>{{ 'dashboard.aiSplitTitle' | t }}</h3>
+      <h3>{{ 'dashboard.liveSplitTitle' | t }}</h3>
     </div>
     <div class="grid c2">
       <div class="chart-box" class="chart-container"><canvas #aiStatusDonut></canvas></div>

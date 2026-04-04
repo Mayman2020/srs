@@ -6,6 +6,8 @@ import { EditorModule } from '@tinymce/tinymce-angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 
 
@@ -53,8 +55,7 @@ interface Transaction {
     ReactiveFormsModule,
     MatTabsModule,
     MatIconModule,
-
-
+    TranslatePipe,
   ],
   standalone: true,
   encapsulation: ViewEncapsulation.None,
@@ -75,7 +76,11 @@ export class TransactionDetailsComponent implements OnInit {
   activeTab = 'details';
 
 
-  constructor(private route: ActivatedRoute, private fb: FormBuilder) {
+  constructor(
+    private route: ActivatedRoute,
+    private fb: FormBuilder,
+    private readonly i18n: I18nService
+  ) {
 
 
     this.editorInit = {
@@ -215,8 +220,8 @@ export class TransactionDetailsComponent implements OnInit {
       </div>
 
       <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 30px;">
-        <p style="margin: 5px 0;"><span class="label">التاريخ:</span> ${today}</p>
-        <p style="margin: 5px 0;"><span class="label">رقم المعاملة:</span> [يُملأ تلقائياً]</p>
+        <p style="margin: 5px 0;"><span class="label">${this.i18n.instant('createTx.letterEditor.dateLabel')}</span> ${today}</p>
+        <p style="margin: 5px 0;"><span class="label">${this.i18n.instant('createTx.summary.ref')}</span> ${this.i18n.instant('createTx.letterEditor.refAuto')}</p>
       </div>
 
       <p><span class="label">إلى:</span> ......................................................................</p>

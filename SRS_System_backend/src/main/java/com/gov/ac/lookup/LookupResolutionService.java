@@ -16,7 +16,7 @@ import com.gov.ac.persistence.CorrespondenceTypeRepository;
 import com.gov.ac.persistence.PriorityRepository;
 import com.gov.ac.persistence.WorkflowActionTypeRepository;
 import com.gov.ac.persistence.WorkflowHistoryEventTypeRepository;
-import com.gov.ac.web.BadRequestException;
+import com.gov.ac.common.api.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

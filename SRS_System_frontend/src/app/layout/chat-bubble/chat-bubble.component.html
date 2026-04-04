@@ -1,5 +1,5 @@
 <button class="ai-fab" (click)="toggle()">
-   <img src="assets/img/ai_icon.png" alt="AI" class="ai-icon" />
+   <img src="assets/img/ai_icon.png" [attr.alt]="'chat.assistant' | t" class="ai-icon" />
 </button>
 
 <section class="ai-panel" [class.show]="open">
@@ -11,11 +11,11 @@
     <div class="ai-brand">
 
       <div>
-           <img src="assets/img/ai_icon.png" alt="AI" class="ai-icon" />
+           <img src="assets/img/ai_icon.png" [attr.alt]="'chat.assistant' | t" class="ai-icon" />
       </div>
 
       <div class="ai-title">
-        <b>المساعد الذكي</b>
+        <b>{{ 'chat.assistant' | t }}</b>
       </div>
 
     </div>
@@ -73,13 +73,13 @@
   <div class="ai-foot">
 
     <button class="ai-send" (click)="send()">
-      إرسال
+      {{ 'chat.send' | t }}
     </button>
 
     <input
       [(ngModel)]="query"
       (keydown.enter)="send()"
-      placeholder="اسألني عن معاملة..." />
+      [attr.placeholder]="'chat.inputPlaceholder' | t" />
 
   </div>
 

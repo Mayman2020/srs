@@ -1,22 +1,18 @@
 <div class="login-shell">
 
-  <!-- ✅ الخلفية المتحركة داخل login-shell -->
   <div id="particles-js"></div>
 
-  <!-- LEFT / HERO -->
   <section class="login-hero">
     <div class="hero-top">
       <div class="hero-logo-wrapper">
         <div class="logo-spotlight"></div>
-        <img class="hero-logo" src="assets/img/logo.png" alt="System Logo">
+        <img class="hero-logo" src="assets/img/logo.png" [attr.alt]="'login.logoAlt' | t">
       </div>
 
       <div class="hero-text">
-        <h2>نظام تخطيط موارد المؤسسات الحكومي</h2>
-        <h3>Government ERP System</h3>
+        <h2>{{ 'login.heroTitle' | t }}</h2>
         <p>
-          منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي،
-          تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030
+          {{ 'login.heroLead' | t }}
         </p>
       </div>
     </div>
@@ -25,58 +21,57 @@
       <div class="feat">
         <i class="icon">🤖</i>
         <div class="feat-content">
-          <b>ذكاء اصطناعي متقدم</b>
-          <span>تحليلات ذكية وتوقعات مالية وإدارية تلقائية</span>
+          <b>{{ 'login.feat1Title' | t }}</b>
+          <span>{{ 'login.feat1Desc' | t }}</span>
         </div>
       </div>
 
       <div class="feat">
         <i class="icon">⚖️</i>
         <div class="feat-content">
-          <b>حوكمة رقمية شاملة</b>
-          <span>التزام كامل بمعايير الحوكمة والشفافية</span>
+          <b>{{ 'login.feat2Title' | t }}</b>
+          <span>{{ 'login.feat2Desc' | t }}</span>
         </div>
       </div>
 
       <div class="feat">
         <i class="icon">📊</i>
         <div class="feat-content">
-          <b>إدارة موارد متكاملة</b>
-          <span>مالية، موارد بشرية، مشتريات، ومخزون</span>
+          <b>{{ 'login.feat3Title' | t }}</b>
+          <span>{{ 'login.feat3Desc' | t }}</span>
         </div>
       </div>
 
       <div class="feat">
         <i class="icon">🎯</i>
         <div class="feat-content">
-          <b>رؤية المملكة 2030</b>
-          <span>دعم التحول الرقمي وتحقيق الأهداف الاستراتيجية</span>
+          <b>{{ 'login.feat4Title' | t }}</b>
+          <span>{{ 'login.feat4Desc' | t }}</span>
         </div>
       </div>
     </div>
 
     <div class="muted">
-      <div class="vision-badge"> 
-        <span>متوافق مع رؤية المملكة 2030</span>
+      <div class="vision-badge">
+        <span>{{ 'login.visionBadge' | t }}</span>
       </div>
       <div class="copyright">
-        © 2024 نسخة — للاستخدام المؤسسي الحكومي
+        {{ 'login.copyrightLine' | t }}
       </div>
     </div>
   </section>
 
-  <!-- RIGHT / LOGIN -->
   <section class="login-panel">
     <div class="login-card">
       <div class="login-head">
         <div class="login-logo-container">
-          <img class="login-logo" src="assets/img/logo.png" alt="Logo">
+          <img class="login-logo" src="assets/img/logo.png" [attr.alt]="'login.logoAlt' | t">
           <div class="logo-glow"></div>
         </div>
 
-        <h3>تسجيل الدخول</h3>
+        <h3>{{ 'login.title' | t }}</h3>
         <div class="login-divider"></div>
-        <div class="sub">يرجى إدخال بيانات المستخدم للوصول إلى النظام</div>
+        <div class="sub">{{ 'login.panelSub' | t }}</div>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="login()">
@@ -84,44 +79,39 @@
           <div class="field">
             <label>
               <i class="field-icon">👤</i>
-              اسم المستخدم
+              {{ 'login.username' | t }}
             </label>
-            <input 
-              formControlName="username" 
-              placeholder="أدخل اسم المستخدم"
+            <input
+              formControlName="username"
+              [attr.placeholder]="'login.usernamePlaceholder' | t"
               class="modern-input">
           </div>
 
           <div class="field">
             <label>
               <i class="field-icon">🔒</i>
-              كلمة المرور
+              {{ 'login.password' | t }}
             </label>
-            <input 
-              type="password" 
-              formControlName="password" 
-              placeholder="••••••••"
+            <input
+              type="password"
+              formControlName="password"
+              [attr.placeholder]="'login.passwordPlaceholder' | t"
               class="modern-input">
           </div>
         </div>
 
         <div class="login-actions">
           <button class="btn btn-primary" type="submit">
-            <span>دخول إلى النظام</span>
+            <span>{{ 'login.submitLong' | t }}</span>
             <i class="arrow">←</i>
           </button>
 
           <a class="forgot" (click)="forgotPassword()">
             <i class="help-icon">❓</i>
-            نسيت كلمة المرور؟
+            {{ 'login.forgotPassword' | t }}
           </a>
         </div>
       </form>
-
-      <!-- <div class="security-badge">
-        <i class="shield">🛡️</i>
-        <span>اتصال آمن ومشفر</span>
-      </div> -->
 
       <div class="toast show" *ngIf="toast.show">
         <b>{{ toast.title }}</b>

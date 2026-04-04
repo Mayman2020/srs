@@ -25,7 +25,7 @@
           <div class="vt-card__title">{{ node?.data?.title ?? node?.name }}</div>
 
           <div class="vt-card__tools">
-            <button type="button" class="vt-icbtn" title="بحث">
+            <button type="button" class="vt-icbtn" [attr.title]="'visualTracking.searchTooltip' | t">
               <span class="vt-ic">🔍</span>
             </button>
           </div>
@@ -38,7 +38,7 @@
         <footer class="vt-card__foot">
           <div class="vt-card__user">{{ node?.data?.user }}</div>
 
-          <!-- LTR داخل RTL -->
+          <!-- LTR inside RTL layout -->
           <div
             class="vt-card__date"
             *ngIf="node?.data?.date"

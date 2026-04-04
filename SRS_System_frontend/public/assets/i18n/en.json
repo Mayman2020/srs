@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Administrative communications"
+  },
   "common": {
     "all": "All",
     "apply": "Apply",
@@ -16,6 +19,50 @@
     "empty": "No data",
     "toastOk": "Done",
     "close": "Close"
+  },
+  "errors": {
+    "network": "Could not reach the server.",
+    "unauthorized": "Please sign in again.",
+    "forbidden": "You do not have permission.",
+    "notFound": "Not found.",
+    "server": "Server error. Try again later.",
+    "generic": "Something went wrong.",
+    "http": {
+      "generic": "Something went wrong",
+      "notImplemented": "Not implemented yet"
+    }
+  },
+  "notification": {
+    "correspondence": {
+      "created": "New correspondence: {{referenceNumber}}",
+      "comment_added": "New comment on {{referenceNumber}}"
+    },
+    "workflow": {
+      "task_completed": "Workflow update ({{taskName}}): {{referenceNumber}}"
+    }
+  },
+  "reports": {
+    "pageTitle": "Reports & statistics",
+    "exportPdf": "Export PDF",
+    "exportExcel": "Export Excel",
+    "kpiTitle": "Summary",
+    "kpiTotal": "Total",
+    "kpiDone": "Completed",
+    "kpiLate": "Overdue",
+    "kpiAvg": "Avg. age (days)",
+    "filtersTitle": "Advanced search",
+    "from": "From",
+    "to": "To",
+    "type": "Type",
+    "status": "Status",
+    "run": "Run report",
+    "chartStatus": "Status distribution (live)",
+    "chartTrend": "Monthly created (server; optional date range)",
+    "chartPriority": "Priority distribution (live)",
+    "heatmapTitle": "Open overdue items by department",
+    "heatmapPlaceholder": "",
+    "chartDeptOverdue": "Overdue open items by department",
+    "chartMonthlyCreated": "Monthly created (from server)"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -36,6 +83,8 @@
     "demoRole": "Employee"
   },
   "transactions": {
+    "createButton": "Create transaction",
+    "createMenuAria": "Create menu",
     "pageTitle": "Transactions",
     "searchTitle": "Search transactions",
     "searchSubtitle": "Quick filters",
@@ -59,7 +108,9 @@
       "subject": "Subject",
       "entity": "Entity",
       "sla": "SLA",
-      "secrecy": "Classification",
+      "secrecy": "Confidentiality",
+      "priority": "Priority",
+      "classification": "Classification",
       "attachments": "Attachments",
       "status": "Status"
     },
@@ -91,8 +142,8 @@
     "viewAllAlerts": "View all alerts",
     "statusChartTitle": "Transaction statuses",
     "statusChartHint": "Status mix (new / in progress / returned / completed).",
-    "deptChartTitle": "Department productivity (Top)",
-    "deptChartHint": "Short comparison of throughput.",
+    "deptChartTitle": "Priority distribution",
+    "deptChartHint": "Counts from the correspondence register (by priority).",
     "kpiTotal": "Total transactions",
     "kpiTotalDesc": "Last 30 days",
     "kpiDone": "Completed",
@@ -109,6 +160,12 @@
     "thStatus": "Status",
     "thActions": "Actions",
     "noTransactions": "No transactions",
+    "liveOpsTitle": "Live indicators",
+    "liveOpsOverdue": "Overdue (open)",
+    "liveOpsInProgress": "In progress",
+    "liveOpsNote": "Values are loaded from the server dashboard API.",
+    "liveSplitTitle": "Status and priority (live)",
+    "slaAlertsEmpty": "No sample alerts — open the transactions list for details.",
     "aiTitle": "AI analytics",
     "aiRisk": "Risk index",
     "aiRiskTag": "(experimental)",
@@ -167,7 +224,13 @@
       "new-transaction": "New transaction",
       "approval": "Approval",
       "reminder": "Reminder",
-      "system": "System"
+      "system": "System",
+      "CORRESPONDENCE_CREATED": "New correspondence",
+      "COMMENT_ADDED": "Comment",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "RETURNED": "Returned",
+      "ASSIGNED": "Assigned"
     },
     "agoMinutes": "{{m}} min ago",
     "agoHours": "{{h}} h ago",
@@ -209,11 +272,18 @@
     "ccPlaceholder": "Click to select organizations",
     "maxDays": "Response time (days)",
     "maxDaysPlaceholder": "Number of days",
+    "attachmentsTitle": "Attachments",
+    "attachmentsHint": "Drag files here or click to browse",
+    "attachmentsAllowed": "Allowed: PDF, Word, Excel, images",
+    "attachmentNamePlaceholder": "Attachment name",
+    "attachmentDescPlaceholder": "Description (optional)",
     "letterTemplatesHeading": "Letter templates",
     "summary": {
       "ref": "Reference:",
       "type": "Type:",
-      "secrecy": "Classification:",
+      "secrecy": "Confidentiality:",
+      "priority": "Priority:",
+      "classification": "Classification:",
       "maxDays": "Response time:"
     },
     "done": {
@@ -240,6 +310,18 @@
       "badRequest": "Invalid data",
       "serverError": "Server error — try again later"
     },
+    "letterEditor": {
+      "dateLabel": "Date:",
+      "refAuto": "[Filled automatically]",
+      "refFilledPlain": "Filled in automatically",
+      "headerEntity": "[Organization name]",
+      "headerSubtitle": "General Department of Administrative Communications",
+      "footerManager": "Department manager",
+      "footerSignature": "Signature",
+      "toLabel": "To:",
+      "refPlaceholderBracket": "[Reference number]",
+      "contentPlaceholder": "Write the letter content here…"
+    },
     "letterTemplate": {
       "default": "Standard official letter",
       "reminder": "Reminder letter",
@@ -248,7 +330,107 @@
       "admin-circular": "Administrative circular",
       "ministerial-circular": "Ministerial circular",
       "no-letter": "No letter"
+    },
+    "letterBody": {
+      "salutation": "Greetings,",
+      "listDots": ".......................................................",
+      "default": {
+        "receiptBefore": "We acknowledge receipt of your letter regarding",
+        "topicBracket": "[Subject]",
+        "receiptAfter": ". We inform you as follows:",
+        "thanks": "Thank you for your cooperation."
+      },
+      "reminder": {
+        "subjectLine": "Reminder regarding a transaction",
+        "bodyBeforeRef": "With reference to transaction No. ",
+        "bodyAfterRef": ", we remind you to provide your response at the earliest opportunity.",
+        "thanks": "Thank you for your cooperation."
+      },
+      "approval": {
+        "subjectLine": "Notice of approval",
+        "bodyBefore": "We inform you that approval has been granted for the request concerning",
+        "topicBracket": "[Subject]",
+        "bodyAfter": ". Please complete the necessary procedures."
+      },
+      "rejection": {
+        "subjectLine": "Apology — request not approved",
+        "bodyBefore": "We regret that we are unable to approve the request due to",
+        "reasonBracket": "[Reason]",
+        "bodyAfter": "."
+      },
+      "adminCircular": {
+        "title": "Administrative circular",
+        "bodyBefore": "The administration announces",
+        "topicBracket": "[Circular subject]",
+        "bodyAfter": ". All departments are requested to comply with the above."
+      },
+      "ministerialCircular": {
+        "title": "Ministerial circular",
+        "bodyBefore": "Pursuant to ministerial directives concerning",
+        "topicBracket": "[Circular subject]",
+        "bodyAfter": ", this circular is adopted for implementation across all entities."
+      }
     }
+  },
+  "transactionDetails": {
+    "pageTitle": "Transaction details",
+    "statCompletedSteps": "Completed stages",
+    "statRemainingDays": "Days left to respond",
+    "statComments": "Comments",
+    "tabDetails": "Details",
+    "tabWorkflow": "Workflow",
+    "tabReply": "Reply",
+    "tabNotes": "Notes",
+    "tabRelated": "Related transactions",
+    "basicDataTitle": "Basic information",
+    "labelType": "Type",
+    "labelCreated": "Created on",
+    "labelSecrecy": "Confidentiality",
+    "labelToEntity": "Recipient organization",
+    "labelReferredFrom": "Referred from",
+    "labelMaxReplyDays": "Max. response time",
+    "maxDaysCount": "{{n}} days",
+    "visualTrack": "Visual tracking",
+    "workflowTitle": "Workflow",
+    "stepDone": "Done",
+    "stepInProgress": "In progress",
+    "stepPending": "Waiting",
+    "editorTitle": "Transaction content editor",
+    "saveDraft": "Save draft",
+    "send": "Send",
+    "addAttachment": "Add attachment",
+    "attachmentsHeading": "Attachments",
+    "previewAttachment": "Preview",
+    "downloadAttachment": "Download",
+    "deleteAttachment": "Delete",
+    "noAttachments": "No attachments",
+    "notesTitle": "Notes and comments",
+    "notePlaceholder": "Add a note or comment…",
+    "relatedTitle": "Related transactions",
+    "actionReplyLetter": "Reply with letter",
+    "actionImageTransfer": "Image transfer",
+    "actionReferralForm": "Referral form",
+    "actionTransfer": "Transfer",
+    "actionReplyTx": "Reply to transaction",
+    "actionSendMail": "Send email",
+    "actionCancel": "Cancel",
+    "actionPrintBarcode": "Print barcode",
+    "quickSummary": "Quick summary",
+    "quickSummarySubtitle": "Overview of transaction status",
+    "qiStatus": "Status",
+    "qiDueDate": "Due date",
+    "qiCurrentStage": "Current stage",
+    "qiCurrentOwner": "Current owner",
+    "miniTimelineTitle": "Timeline",
+    "qiPriorityLevel": "Priority level",
+    "approveTransaction": "Approve transaction",
+    "workflowCommentPrompt": "Enter a reason or comment (required):",
+    "workflowCommentRequired": "A comment is required for this action.",
+    "legacyTimelineTitle": "Transaction timeline",
+    "wfApprove": "Approve",
+    "wfReturn": "Return",
+    "wfReject": "Reject",
+    "visualCurrentHandler": "Current handler"
   },
   "login": {
     "title": "Sign in",
@@ -256,10 +438,45 @@
     "username": "Username",
     "password": "Password",
     "submit": "Sign in",
-    "demo": "Quick demo"
+    "demo": "Quick demo",
+    "heroTitle": "Government ERP system",
+    "heroLead": "An integrated platform for institutional resource management with AI, digital governance, and Vision 2030 alignment.",
+    "feat1Title": "Advanced AI",
+    "feat1Desc": "Smart analytics and automated financial and administrative forecasts",
+    "feat2Title": "Digital governance",
+    "feat2Desc": "Full alignment with governance and transparency standards",
+    "feat3Title": "Integrated resources",
+    "feat3Desc": "Finance, HR, procurement, and inventory",
+    "feat4Title": "Vision 2030",
+    "feat4Desc": "Supporting digital transformation and strategic goals",
+    "visionBadge": "Aligned with Vision 2030",
+    "copyrightLine": "© 2024 — Government institutional use",
+    "panelSub": "Enter your credentials to access the system",
+    "usernamePlaceholder": "Enter username",
+    "passwordPlaceholder": "••••••••",
+    "submitLong": "Sign in",
+    "forgotPassword": "Forgot password?",
+    "logoAlt": "System logo"
+  },
+  "chat": {
+    "assistant": "AI assistant",
+    "send": "Send",
+    "inputPlaceholder": "Ask about a transaction…"
+  },
+  "workflowDialog": {
+    "title": "Visual tracking",
+    "close": "Close"
+  },
+  "visualTracking": {
+    "searchTooltip": "Search"
   },
   "auth": {
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "loginSuccessTitle": "Welcome",
+    "loginSuccessMessage": "Signed in successfully.",
+    "validationRequired": "Please enter username and password.",
+    "forgotPasswordMessage": "Please contact IT support to reset your password.",
+    "forgotPasswordTitle": "Password recovery"
   },
   "topbar": {
     "markAllRead": "Mark all as read",
@@ -277,11 +494,5 @@
   },
   "genericSelect": {
     "placeholder": "Choose…"
-  },
-  "errors": {
-    "http": {
-      "generic": "Something went wrong",
-      "notImplemented": "Not implemented yet"
-    }
   }
 }

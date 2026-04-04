@@ -1,7 +1,7 @@
 <!-- PAGE HEADER -->
 <div class="page-header">
   <div>
-    <h2>تفاصيل المعاملة</h2>
+    <h2>{{ 'transactionDetails.pageTitle' | t }}</h2>
   </div>
 </div>
 
@@ -15,7 +15,7 @@
       <div class="header-icon">
         <i class="fa-solid fa-file-lines"></i>
       </div>
-      <h3>البيانات الأساسية</h3>
+      <h3>{{ 'transactionDetails.basicDataTitle' | t }}</h3>
     </div>
 
     <span class="status-badge">{{ transaction.status }}</span>
@@ -29,7 +29,7 @@
         <i class="fa-solid fa-hashtag"></i>
       </div>
       <div class="info-content">
-        <span class="info-label">رقم المعاملة</span>
+        <span class="info-label">{{ 'transactions.refNo' | t }}</span>
         <span class="info-value">{{ transaction.id }}</span>
       </div>
     </div>
@@ -39,7 +39,7 @@
         <i class="fa-solid fa-layer-group"></i>
       </div>
       <div class="info-content">
-        <span class="info-label">النوع</span>
+        <span class="info-label">{{ 'transactionDetails.labelType' | t }}</span>
         <span class="info-value">{{ transaction.type }}</span>
       </div>
     </div>
@@ -49,7 +49,7 @@
         <i class="fa-regular fa-calendar"></i>
       </div>
       <div class="info-content">
-        <span class="info-label">تاريخ الإنشاء</span>
+        <span class="info-label">{{ 'transactionDetails.labelCreated' | t }}</span>
         <span class="info-value">{{ transaction.created | date: 'd MMM y' : '' : 'en' }}</span>
       </div>
     </div>
@@ -59,7 +59,7 @@
         <i class="fa-solid fa-shield-halved"></i>
       </div>
       <div class="info-content">
-        <span class="info-label">السرية</span>
+        <span class="info-label">{{ 'transactionDetails.labelSecrecy' | t }}</span>
         <span class="info-value secrecy-badge">{{ transaction.secrecy }}</span>
       </div>
     </div>
@@ -69,7 +69,7 @@
         <i class="fa-solid fa-building"></i>
       </div>
       <div class="info-content">
-        <span class="info-label">الجهة المرسلة</span>
+        <span class="info-label">{{ 'transactions.fromEntity' | t }}</span>
         <span class="info-value">{{ transaction.from }}</span>
       </div>
     </div>
@@ -79,7 +79,7 @@
         <i class="fa-solid fa-arrow-left"></i>
       </div>
       <div class="info-content">
-        <span class="info-label">الجهة المستقبلة</span>
+        <span class="info-label">{{ 'transactionDetails.labelToEntity' | t }}</span>
         <span class="info-value">{{ transaction.to }}</span>
       </div>
     </div>
@@ -90,8 +90,8 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">أقصى مدة للرد</span>
-        <span class="info-value highlight-value">{{ transaction.maxDays }} أيام</span>
+        <span class="info-label">{{ 'transactionDetails.labelMaxReplyDays' | t }}</span>
+        <span class="info-value highlight-value">{{ 'transactionDetails.maxDaysCount' | t: { n: transaction.maxDays } }}</span>
       </div>
 
       <div class="highlight-bar">
@@ -107,22 +107,22 @@
   <div class="actions">
     <button class="btn primary">
       <i class="fa-solid fa-circle-check"></i>
-      اعتماد
+      {{ 'transactionDetails.wfApprove' | t }}
     </button>
 
     <button class="btn secondary">
       <i class="fa-solid fa-arrow-right-arrow-left"></i>
-      تحويل
+      {{ 'transactionDetails.actionTransfer' | t }}
     </button>
 
     <button class="btn secondary">
       <i class="fa-solid fa-rotate-left"></i>
-      إرجاع
+      {{ 'transactionDetails.wfReturn' | t }}
     </button>
 
     <button class="btn danger">
       <i class="fa-solid fa-circle-xmark"></i>
-      رفض
+      {{ 'transactionDetails.wfReject' | t }}
     </button>
   </div>
 
@@ -135,7 +135,7 @@
 
 <div class="tl-wrapper" *ngIf="transaction">
   <div class="card-title">
-    <h3>الجدول الزمني للمعاملة</h3>
+    <h3>{{ 'transactionDetails.legacyTimelineTitle' | t }}</h3>
   </div>
   <div class="tl-track">
 
@@ -202,7 +202,7 @@
   <div class="wf-header">
     <div class="wf-header-title">
       <mat-icon>account_tree</mat-icon>
-      <span>مسار المعاملة</span>
+      <span>{{ 'transactionDetails.workflowTitle' | t }}</span>
     </div>
     <div class="wf-progress-info">
       <span class="wf-progress-label">{{ activeIndex }} / {{ transaction.timeline.length }}</span>
@@ -229,9 +229,9 @@
         <div class="wf-node-header">
           <div class="wf-step-num">{{ i + 1 }}</div>
           <span class="wf-status-chip">
-            <ng-container *ngIf="i < activeIndex">مكتمل</ng-container>
-            <ng-container *ngIf="i === activeIndex">جاري</ng-container>
-            <ng-container *ngIf="i > activeIndex">قيد الانتظار</ng-container>
+            <ng-container *ngIf="i < activeIndex">{{ 'transactionDetails.stepDone' | t }}</ng-container>
+            <ng-container *ngIf="i === activeIndex">{{ 'transactionDetails.stepInProgress' | t }}</ng-container>
+            <ng-container *ngIf="i > activeIndex">{{ 'transactionDetails.stepPending' | t }}</ng-container>
           </span>
         </div>
 
@@ -299,7 +299,7 @@
 <div class="card full-width">
 
   <div class="card-title">
-    <h3>محرر محتوى المعاملة</h3>
+    <h3>{{ 'transactionDetails.editorTitle' | t }}</h3>
   </div>
 
   <div class="editor-wrapper">
@@ -318,7 +318,7 @@
 <div class="card full-width">
 
   <div class="card-title">
-    <h3>المرفقات</h3>
+    <h3>{{ 'transactions.table.attachments' | t }}</h3>
   </div>
 
   <div class="attachments">

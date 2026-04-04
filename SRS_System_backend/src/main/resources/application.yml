@@ -1,6 +1,10 @@
 spring:
   application:
     name: admin-communications-api
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ac_communications}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -39,6 +43,8 @@ camunda.bpm:
     enabled: true
 
 ac:
+  storage:
+    root: ${AC_STORAGE_ROOT:./data/attachments}
   security:
     jwt:
       # HS256 — minimum 32 UTF-8 bytes; set AC_JWT_SECRET (see README)

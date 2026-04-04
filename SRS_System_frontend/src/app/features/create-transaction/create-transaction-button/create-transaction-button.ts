@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { ClickOutsideDirective } from '../../../directives/click-outside.directive';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 @Component({
    selector: 'app-create-transaction-button',
  standalone: true,                
-  imports: [CommonModule, RouterModule ], 
+  imports: [CommonModule, RouterModule, TranslatePipe], 
   templateUrl: './create-transaction-button.html',
   styleUrl: './create-transaction-button.css',
 })

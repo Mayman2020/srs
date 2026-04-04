@@ -25,20 +25,6 @@
       {{ actionLabel }}
     </button>
 
-    <!-- Notifications -->
-    <!-- <button class="icon-btn modern" title="الإشعارات">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-      </svg>
-
-      <span class="notification-badge"
-            *ngIf="unreadNotifications > 0">
-        {{ unreadNotifications }}
-      </span>
-    </button> -->
-
-
 <!-- Notifications -->
 <div class="notification-wrapper">
 
@@ -59,47 +45,18 @@
 
     <div class="notification-popover" *ngIf="showNotifications">
 
-        <!-- HEADER -->
-        <!-- <div class="popover-header">
-
-          <div class="popover-title">
-            <h4>الإشعارات</h4>
-            <span class="count" *ngIf="unreadNotifications > 0">
-              {{ unreadNotifications }} غير مقروء
-            </span>
-          </div>
-
-          <div class="popover-actions">
-
-            <button class="mark-all-btn"
-                    *ngIf="unreadNotifications > 0"
-                    (click)="markAllRead()">
-              <svg viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" fill="none"/>
-              </svg>
-              تعيين الكل كمقروء
-            </button>
-
-            <button class="close-btn"
-                    (click)="showNotifications = false">
-              ✕
-            </button>
-
-          </div>
-        </div> -->
-
         <div class="noti-header">
 
-          <button class="close-btn">
+          <button type="button" class="close-btn" (click)="showNotifications = false">
             ✕
           </button>
 
           <div class="noti-title-box">
             <h3>{{ 'topbar.notificationsTitle' | t }}</h3>
-            <span class="noti-count">{{ 'topbar.unreadCount' | t: { n: 2 } }}</span>
+            <span class="noti-count">{{ 'topbar.unreadCount' | t: { n: unreadNotifications } }}</span>
           </div>
 
-          <button type="button" class="mark-all-btn">
+          <button type="button" class="mark-all-btn" (click)="markAllRead()">
             <svg viewBox="0 0 24 24" width="16" height="16">
               <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none"/>
             </svg>
@@ -114,7 +71,7 @@
           <div *ngFor="let n of notifications; let i = index"
               class="notification-item"
               [class.unread]="!n.read"
-              (click)="openNotificationsPage()">
+              (click)="openPopoverItem(n, i)">
 
             <div class="noti-icon">
               <span [class.important]="n.important"></span>

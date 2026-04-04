@@ -4,8 +4,13 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angul
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, takeUntil } from 'rxjs/operators';
 
-import { WorkflowHistoryEntryDto } from '../../core/api/api-types';
+import { CorrespondenceCommentDetailDto, CorrespondenceDetailResponse, WorkflowHistoryEntryDto } from '../../core/api/api-types';
 import { TransactionService } from '../../services/transaction.service';
+import { AttachmentApiService } from '../../core/api/attachment-api.service';
+import { AuthTokenService } from '../../core/auth/auth-token.service';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { MatTabsModule } from '@angular/material/tabs';
 import { CommonModule } from '@angular/common';
@@ -56,6 +61,7 @@ export interface RelatedTransaction {
 
 export interface Transaction {
   id: string;
+  referenceNumber: string;
   subject: string;
   type: string;
   created: Date | string;
@@ -94,7 +100,7 @@ export interface Transaction {
     MatIconModule,
     MatDialogModule,
     MatButtonModule,
-
+    TranslatePipe,
   ],
   standalone: true,
 })
@@ -103,12 +109,13 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ── Data ────────────────────────────────────
   transaction!: Transaction;
   relatedTransactions: RelatedTransaction[] = [];
+  correspondenceUuid = '';
 
   // ── UI State ────────────────────────────────
   activeIndex = 2;
   newNote = '';
   canRefer = true;
-  canAddNote = true;
+  canAddNote = false;
   isOverdue = false;
   activeTab = "details" ;
 
@@ -138,7 +145,10 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private dialog: MatDialog,
-    private transactionService: TransactionService
+    private transactionService: TransactionService,
+    private attachmentApi: AttachmentApiService,
+    private tokens: AuthTokenService,
+    private i18n: I18nService
   ) {}
 
   // ══════════════════════════════════════════════
@@ -161,7 +171,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   get completedSteps(): number {
-    return this.activeIndex;
+    return this.transaction?.timeline?.length ?? 0;
   }
 
   get currentStepName(): string {
@@ -183,54 +193,29 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.correspondenceUuid = id;
+
     forkJoin({
-      c: this.transactionService.getById(id),
+      d: this.transactionService.getDetail(id),
       h: this.transactionService
         .getWorkflowHistory(id)
         .pipe(catchError(() => of([] as WorkflowHistoryEntryDto[]))),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ c, h }) => {
-          const steps = this.transactionService.historyToTimeline(h).map((s) => ({
-            action: s.action,
-            note: s.note ?? '',
-            user: s.user,
-            date: s.date,
-          }));
-          const created = c.createdAt;
-          const due = new Date(created.getTime() + c.maxDays * 86_400_000);
-          this.transaction = {
-            id: c.referenceNumber?.trim() ? c.referenceNumber : c.id,
-            subject: c.subject,
-            type: c.typeCode,
-            created,
-            dueDate: due,
-            secrecy: c.secrecy?.trim() ? c.secrecy : c.priorityCode ?? '—',
-            from: c.from?.trim() ? c.from : '—',
-            to: c.to?.trim() ? c.to : '—',
-            status: c.statusCode,
-            statusClass: this.mapStatusClass(c.statusCode),
-            maxDays: c.maxDays,
-            remainingDays: Math.max(
-              0,
-              Math.ceil((due.getTime() - Date.now()) / 86_400_000)
-            ),
-            priority: c.priorityCode,
-            priorityClass: 'normal',
-            priorityPercent: 40,
-            currentHandler: '—',
-            timeline: steps,
-            attachments: [],
-            notes: this.notesFromHistory(h),
-          };
-          this.activeIndex = steps.length > 0 ? steps.length - 1 : 0;
+        next: ({ d, h }) => {
+          this.transaction = this.mapDetail(d, h);
+          const steps = this.transaction.timeline.length;
+          this.activeIndex = steps > 0 ? steps - 1 : 0;
           this.checkOverdue();
+          this.canAddNote = true;
         },
         error: () => {
+          this.canAddNote = false;
           this.transaction = {
-            id: id,
-            subject: 'تعذّر تحميل المعاملة',
+            id,
+            referenceNumber: '—',
+            subject: this.i18n.instant('errors.generic'),
             type: '—',
             created: new Date(),
             dueDate: new Date(),
@@ -253,6 +238,85 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
+  private mapDetail(d: CorrespondenceDetailResponse, h: WorkflowHistoryEntryDto[]): Transaction {
+    const created = d.createdAt ? new Date(d.createdAt) : new Date();
+    const dueDate = d.dueDate ? new Date(d.dueDate) : new Date(created.getTime() + 5 * 86_400_000);
+    const maxDays = Math.max(
+      1,
+      Math.ceil((dueDate.getTime() - created.getTime()) / 86_400_000)
+    );
+    const timelineDto =
+      d.timeline && d.timeline.length > 0
+        ? this.transactionService.detailTimelineToSteps(d.timeline)
+        : this.transactionService.historyToTimeline(h);
+    const steps = timelineDto.map((s) => ({
+      action: s.action,
+      note: s.note ?? '',
+      user: s.user,
+      date: s.date,
+    }));
+    const typeCode = d.correspondenceType?.code ?? '—';
+    const statusCode = d.correspondenceStatus?.code ?? '—';
+    const priorityCode = d.priority?.code ?? '—';
+    const secrecyCode = d.confidentiality?.code ?? '—';
+
+    return {
+      id: d.id,
+      referenceNumber: d.referenceNumber ?? d.id,
+      subject: d.subject ?? '—',
+      type: typeCode,
+      created,
+      dueDate,
+      secrecy: secrecyCode,
+      from: d.senderOrganization?.nameAr ?? d.senderOrganization?.nameEn ?? '—',
+      to: d.recipientOrganization?.nameAr ?? d.recipientOrganization?.nameEn ?? '—',
+      status: statusCode,
+      statusClass: this.mapStatusClass(statusCode),
+      maxDays,
+      remainingDays: Math.max(0, Math.ceil((dueDate.getTime() - Date.now()) / 86_400_000)),
+      priority: priorityCode,
+      priorityClass: 'normal',
+      priorityPercent: 40,
+      currentHandler: d.ownerDepartment?.nameAr ?? d.ownerDepartment?.code ?? '—',
+      timeline: steps,
+      attachments: (d.attachments ?? []).map((a) => ({
+        id: a.id,
+        name: a.displayName,
+        type: a.contentType?.code ?? 'FILE',
+        secrecy: secrecyCode,
+        size: this.formatBytes(
+          (a.versions ?? []).reduce((m, v) => Math.max(m, v.byteSize), 0)
+        ),
+        date: (a.versions?.[0]?.createdAt ?? d.updatedAt ?? '').toString().substring(0, 10),
+        url: this.attachmentApi.downloadUrl(a.id),
+      })),
+      notes: this.notesFromComments(d.comments ?? []),
+    };
+  }
+
+  private formatBytes(n: number): string {
+    if (!n) {
+      return '0 KB';
+    }
+    const k = 1024;
+    const i = Math.floor(Math.log(n) / Math.log(k));
+    return `${parseFloat((n / Math.pow(k, i)).toFixed(2))} ${['Bytes', 'KB', 'MB', 'GB'][i]}`;
+  }
+
+  private notesFromComments(rows: CorrespondenceCommentDetailDto[]): TransactionNote[] {
+    return rows.map((c) => ({
+      id: c.id,
+      author:
+        c.author?.fullNameAr?.trim() ||
+        c.author?.fullNameEn?.trim() ||
+        c.author?.username ||
+        '—',
+      text: c.body,
+      date: new Date(c.createdAt),
+      typeClass: 'info',
+    }));
+  }
+
   private loadRelated(): void {
     this.relatedTransactions = [];
   }
@@ -266,18 +330,6 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     if (u.includes('REJECT')) return 'rejected';
     if (u.includes('NEW') || u.includes('DRAFT')) return 'pending';
     return 'active';
-  }
-
-  private notesFromHistory(h: WorkflowHistoryEntryDto[]): TransactionNote[] {
-    return h
-      .filter((e) => (e.primaryCommentText ?? '').trim().length > 0)
-      .map((e) => ({
-        id: e.id,
-        author: e.actorDisplayName ?? e.actorUserId ?? '—',
-        text: e.primaryCommentText!.trim(),
-        date: new Date(e.occurredAt),
-        typeClass: 'info',
-      }));
   }
 
   private checkOverdue(): void {
@@ -304,26 +356,59 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ACTION HANDLERS
   // ══════════════════════════════════════════════
 
-  approveTransaction(): void {
-    // this.transactionService.approve(this.transaction!.id).subscribe(...)
-    console.log('approve');
+  private runWorkflowAction(
+    action: 'APPROVE' | 'REJECT' | 'RETURN',
+    comment?: string | null
+  ): void {
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    this.transactionService
+      .workflowAction(this.correspondenceUuid, { action, comment })
+      .subscribe({
+        next: () => this.loadTransaction(),
+        error: (err: HttpErrorResponse & { userMessage?: string }) => {
+          const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+          window.alert(msg);
+        },
+      });
   }
 
+  approveTransaction(): void {
+    this.runWorkflowAction('APPROVE');
+  }
+
+  /** Quick complete (same as approve) — e.g. toolbar "تحويل". */
   transferTransaction(): void {
-    // open transfer dialog
-    console.log('transfer');
+    this.runWorkflowAction('APPROVE');
   }
 
   returnTransaction(): void {
-    console.log('return');
+    const c = window.prompt(this.i18n.instant('transactionDetails.workflowCommentPrompt'));
+    if (c === null) {
+      return;
+    }
+    if (!c.trim()) {
+      window.alert(this.i18n.instant('transactionDetails.workflowCommentRequired'));
+      return;
+    }
+    this.runWorkflowAction('RETURN', c);
   }
 
   referTransaction(): void {
-    console.log('refer');
+    this.returnTransaction();
   }
 
   rejectTransaction(): void {
-    console.log('reject');
+    const c = window.prompt(this.i18n.instant('transactionDetails.workflowCommentPrompt'));
+    if (c === null) {
+      return;
+    }
+    if (!c.trim()) {
+      window.alert(this.i18n.instant('transactionDetails.workflowCommentRequired'));
+      return;
+    }
+    this.runWorkflowAction('REJECT', c);
   }
 
   printTransaction(): void {
@@ -339,13 +424,11 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   saveDraft(): void {
-    const content = this.form.get('letterContent')?.value;
-    console.log('save draft:', content);
+    /* Persisted via correspondence APIs when available */
   }
 
   sendReply(): void {
-    const content = this.form.get('letterContent')?.value;
-    console.log('send reply:', content);
+    /* Outbound reply via correspondence APIs when available */
   }
 
   // ══════════════════════════════════════════════
@@ -353,18 +436,46 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   addAttachment(): void {
-    console.log('add attachment');
+    /* Upload wired when correspondence attachment API is exposed for existing items */
   }
 
   previewAttachment(att: Attachment): void {
-    window.open(att.url, '_blank');
+    this.downloadWithAuth(att.id, att.name, true);
   }
 
   downloadAttachment(att: Attachment): void {
-    const a = document.createElement('a');
-    a.href = att.url;
-    a.download = att.name;
-    a.click();
+    this.downloadWithAuth(att.id, att.name, false);
+  }
+
+  private downloadWithAuth(attachmentId: number, filename: string, openInTab: boolean): void {
+    const token = this.tokens.getToken();
+    if (!token) {
+      return;
+    }
+    fetch(this.attachmentApi.downloadUrl(attachmentId), {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error('download failed');
+        }
+        return r.blob();
+      })
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        if (openInTab) {
+          window.open(url, '_blank', 'noopener');
+        } else {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.click();
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      })
+      .catch(() => {
+        window.alert(this.i18n.instant('errors.generic'));
+      });
   }
 
   deleteAttachment(att: Attachment): void {
@@ -378,15 +489,19 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   submitNote(): void {
-    if (!this.newNote?.trim() || !this.transaction) return;
-    this.transaction.notes.push({
-      id: Date.now(),
-      author: 'المستخدم الحالي',
-      text: this.newNote.trim(),
-      date: new Date(),
-      typeClass: 'info',
+    const text = this.newNote?.trim();
+    if (!text || !this.correspondenceUuid) {
+      return;
+    }
+    this.transactionService.addComment(this.correspondenceUuid, text).subscribe({
+      next: () => {
+        this.newNote = '';
+        this.loadTransaction();
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        window.alert(err.userMessage ?? this.i18n.instant('errors.generic'));
+      },
     });
-    this.newNote = '';
   }
 
   // ══════════════════════════════════════════════

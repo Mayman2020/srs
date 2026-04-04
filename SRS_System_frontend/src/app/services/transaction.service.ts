@@ -1,59 +1,86 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { API_BASE_URL } from '../core/api/api-url';
-import { LookupLabelsService } from '../core/lookup/lookup-labels.service';
+import { CorrespondenceApiService, CorrespondenceListParams } from '../core/api/correspondence-api.service';
 import {
-  CorrespondenceListDto,
-  SpringPage,
+  CorrespondenceCommentDetailDto,
+  CorrespondenceCreateRequest,
+  CorrespondenceCreatedResponse,
+  CorrespondenceDetailResponse,
+  CorrespondenceListItemDto,
+  CorrespondenceTimelineEntryDto,
   WorkflowHistoryEntryDto
 } from '../core/api/api-types';
+import { LookupLabelsService } from '../core/lookup/lookup-labels.service';
 import { Transaction, TimelineStep } from '../models/transaction.model';
-
-export interface TransactionPayload {
-  type: string;
-  secrecy: string;
-  subject: string;
-  description: string;
-  from: string;
-  to: string[];
-  cc: string[];
-  maxDays: number;
-  letterContent: string;
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class TransactionService {
   constructor(
-    private http: HttpClient,
-    @Inject(API_BASE_URL) private base: string,
+    private correspondenceApi: CorrespondenceApiService,
     private lookupLabels: LookupLabelsService
   ) {}
 
-  listPage(page = 0, size = 500): Observable<Transaction[]> {
-    const params = new HttpParams().set('page', String(page)).set('size', String(size));
-    return this.http
-      .get<SpringPage<CorrespondenceListDto>>(`${this.base}/correspondence`, { params })
+  listPage(params: CorrespondenceListParams = {}): Observable<Transaction[]> {
+    return this.correspondenceApi
+      .list({ size: params.size ?? 500, page: params.page ?? 0, ...params })
       .pipe(map((p) => (p.content ?? []).map((row) => this.mapListRow(row))));
   }
 
-  getById(id: string): Observable<Transaction> {
-    return this.http
-      .get<CorrespondenceListDto>(`${this.base}/correspondence/${id}`)
-      .pipe(map((row) => this.mapListRow(row)));
+  /** Full correspondence payload for the details screen. */
+  getDetail(id: string): Observable<CorrespondenceDetailResponse> {
+    return this.correspondenceApi.getById(id);
   }
 
   getWorkflowHistory(correspondenceId: string): Observable<WorkflowHistoryEntryDto[]> {
-    return this.http.get<WorkflowHistoryEntryDto[]>(
-      `${this.base}/correspondence/${correspondenceId}/workflow-history`
-    );
+    return this.correspondenceApi.getWorkflowHistory(correspondenceId);
   }
 
-  /**
-   * Maps API timeline entries into legacy `TimelineStep` for existing templates.
-   */
+  create(body: CorrespondenceCreateRequest): Observable<CorrespondenceCreatedResponse> {
+    return this.correspondenceApi.create(body);
+  }
+
+  workflowAction(
+    id: string,
+    opts?: { action?: 'APPROVE' | 'REJECT' | 'RETURN'; comment?: string | null }
+  ): Observable<void> {
+    return this.correspondenceApi.workflowAction(id, {
+      action: opts?.action,
+      comment: opts?.comment ?? undefined
+    });
+  }
+
+  addComment(
+    id: string,
+    bodyText: string,
+    parentCommentId?: number | null
+  ): Observable<CorrespondenceCommentDetailDto> {
+    return this.correspondenceApi.addComment(id, {
+      body: bodyText,
+      parentCommentId: parentCommentId ?? undefined
+    });
+  }
+
+  detailTimelineToSteps(entries: CorrespondenceTimelineEntryDto[]): TimelineStep[] {
+    return entries.map((e) => {
+      const actionLabel =
+        this.lookupLabels.label('workflowActionType', e.action) !== '\u2014'
+          ? this.lookupLabels.label('workflowActionType', e.action)
+          : this.lookupLabels.label('workflowHistoryEventType', e.eventTypeCode);
+      return {
+        action: actionLabel,
+        user:
+          e.user?.fullNameAr?.trim() ||
+          e.user?.fullNameEn?.trim() ||
+          e.user?.username ||
+          '\u2014',
+        date: new Date(e.timestamp),
+        note: e.comment ?? undefined
+      };
+    });
+  }
+
   historyToTimeline(entries: WorkflowHistoryEntryDto[]): TimelineStep[] {
     return entries.map((e) => {
       const ev = this.lookupLabels.label('workflowHistoryEventType', e.eventTypeCode);
@@ -70,32 +97,37 @@ export class TransactionService {
     });
   }
 
-  createTransaction(payload: TransactionPayload): Observable<unknown> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${localStorage.getItem('auth_token') ?? ''}`
-    });
-    return this.http.post(`${this.base}/correspondence`, payload, { headers });
-  }
-
-  private mapListRow(dto: CorrespondenceListDto): Transaction {
+  private mapListRow(dto: CorrespondenceListItemDto): Transaction {
     const createdAt = dto.createdAt ? new Date(dto.createdAt) : new Date();
+    const typeCode = dto.correspondenceType?.code ?? '';
+    const statusCode = dto.correspondenceStatus?.code ?? '';
+    const priorityCode = dto.priority?.code ?? '';
+    let maxDays = 5;
+    if (dto.dueDate) {
+      const due = new Date(dto.dueDate).getTime();
+      const createdMs = createdAt.getTime();
+      const diff = Math.ceil((due - createdMs) / 86_400_000);
+      if (diff > 0) {
+        maxDays = diff;
+      }
+    }
     return {
       id: dto.id,
       referenceNumber: dto.referenceNumber,
-      type: dto.typeCode,
-      typeCode: dto.typeCode,
-      status: dto.statusCode,
-      statusCode: dto.statusCode,
-      priorityCode: dto.priorityCode,
+      type: typeCode,
+      typeCode,
+      status: statusCode,
+      statusCode,
+      priorityCode,
       subject: dto.subject,
       description: '',
       createdAt,
       secrecy: '',
-      from: '',
+      from: dto.ownerDepartment?.nameAr ?? dto.ownerDepartment?.code ?? '',
       to: '',
       created: dto.createdAt?.substring(0, 10) ?? createdAt.toISOString().substring(0, 10),
-      maxDays: 5,
+      maxDays,
+      dueDateIso: dto.dueDate,
       timeline: [],
       attachments: []
     };

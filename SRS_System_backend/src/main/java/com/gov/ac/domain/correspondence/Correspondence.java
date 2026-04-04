@@ -16,6 +16,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -25,6 +27,14 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "correspondence")
+@NamedEntityGraph(
+    name = "Correspondence.list",
+    attributeNodes = {
+      @NamedAttributeNode("correspondenceType"),
+      @NamedAttributeNode("correspondenceStatus"),
+      @NamedAttributeNode("priority"),
+      @NamedAttributeNode("ownerDepartment")
+    })
 @Getter
 @Setter
 public class Correspondence extends SoftDeletableEntity {

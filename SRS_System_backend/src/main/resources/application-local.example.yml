@@ -3,8 +3,8 @@
 # -----------------------------------------------------------------------------
 # 1. Copy this file to: src/main/resources/application-local.yml
 #    (application-local.yml is gitignored — never commit it.)
-# 2. Run the API with the local profile, for example:
-#    mvn spring-boot:run -Dspring-boot.run.profiles=local
+# 2. Run the API: run-backend.ps1 / run-backend.cmd auto-activates profile "local"
+#    when this file exists as application-local.yml. Or: mvn spring-boot:run -Dspring-boot.run.profiles=local
 #
 # Alternatively, set environment variables instead (see README.md).
 # -----------------------------------------------------------------------------

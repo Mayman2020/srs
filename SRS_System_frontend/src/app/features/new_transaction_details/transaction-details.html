@@ -3,7 +3,7 @@
 <!-- PAGE HEADER -->
 <div class="page-header">
   <div>
-    <h2>تفاصيل المعاملة</h2>
+    <h2>{{ 'transactionDetails.pageTitle' | t }}</h2>
   </div>
 </div>
 
@@ -16,7 +16,7 @@
     <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
     <div class="stat-info">
       <span class="stat-value">{{ completedSteps }}</span>
-      <span class="stat-label">مراحل مكتملة</span>
+      <span class="stat-label">{{ 'transactionDetails.statCompletedSteps' | t }}</span>
     </div>
   </div>
 
@@ -27,7 +27,7 @@
     <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
     <div class="stat-info">
       <span class="stat-value">{{ transaction.remainingDays }}</span>
-      <span class="stat-label">أيام متبقية للرد</span>
+      <span class="stat-label">{{ 'transactionDetails.statRemainingDays' | t }}</span>
     </div>
   </div>
 
@@ -35,7 +35,7 @@
     <div class="stat-icon"><i class="fa-solid fa-paperclip"></i></div>
     <div class="stat-info">
       <span class="stat-value">{{ transaction.attachments?.length || 0 }}</span>
-      <span class="stat-label">المرفقات</span>
+      <span class="stat-label">{{ 'transactions.table.attachments' | t }}</span>
     </div>
   </div>
 
@@ -43,7 +43,7 @@
     <div class="stat-icon"><i class="fa-solid fa-comment-dots"></i></div>
     <div class="stat-info">
       <span class="stat-value">{{ transaction.notes?.length || 0 }}</span>
-      <span class="stat-label">التعليقات</span>
+      <span class="stat-label">{{ 'transactionDetails.statComments' | t }}</span>
     </div>
   </div>
 
@@ -62,7 +62,7 @@
     (click)="activeTab='details'">
 
     <i class="fa-solid fa-circle-info"></i>
-    التفاصيل
+    {{ 'transactionDetails.tabDetails' | t }}
   </button>
 
   <button
@@ -71,7 +71,7 @@
     (click)="activeTab='workflow'">
 
     <i class="fa-solid fa-route"></i>
-    مسار المعاملة
+    {{ 'transactionDetails.tabWorkflow' | t }}
   </button>
 
   <button
@@ -80,7 +80,7 @@
     (click)="activeTab='editor'">
 
     <i class="fa-solid fa-pen"></i>
-    الرد
+    {{ 'transactionDetails.tabReply' | t }}
   </button>
 
   <button
@@ -89,7 +89,7 @@
     (click)="activeTab='attachments'">
 
     <i class="fa-solid fa-paperclip"></i>
-    المرفقات
+    {{ 'transactions.table.attachments' | t }}
   </button>
 
   <button
@@ -98,7 +98,7 @@
     (click)="activeTab='notes'">
 
     <i class="fa-solid fa-comments"></i>
-    الملاحظات
+    {{ 'transactionDetails.tabNotes' | t }}
   </button>
 
     <button
@@ -106,7 +106,7 @@
     [class.active]="activeTab === 'related'"
     (click)="activeTab='related'">
     <i class="fa-solid fa-diagram-project"></i>
-    المعاملات المرتبطة
+    {{ 'transactionDetails.tabRelated' | t }}
   </button>
 
 
@@ -127,7 +127,7 @@
       <div class="header-icon">
         <i class="fa-solid fa-circle-info"></i>
       </div>
-      <h3>البيانات الأساسية</h3>
+      <h3>{{ 'transactionDetails.basicDataTitle' | t }}</h3>
     </div>
 
     <span class="status-badge" [ngClass]="'badge-' + transaction.statusClass">
@@ -149,8 +149,8 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">رقم المعاملة</span>
-        <span class="info-value">{{ transaction.id }}</span>
+        <span class="info-label">{{ 'transactions.refNo' | t }}</span>
+        <span class="info-value">{{ transaction.referenceNumber }}</span>
       </div>
 
     </div>
@@ -165,7 +165,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">النوع</span>
+        <span class="info-label">{{ 'transactionDetails.labelType' | t }}</span>
         <span class="info-value">{{ transaction.type }}</span>
       </div>
 
@@ -181,7 +181,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">تاريخ الإنشاء</span>
+        <span class="info-label">{{ 'transactionDetails.labelCreated' | t }}</span>
         <span class="info-value">
           {{ transaction.created | date:'d MMM y' : '' : 'en' }}
         </span>
@@ -199,7 +199,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">السرية</span>
+        <span class="info-label">{{ 'transactionDetails.labelSecrecy' | t }}</span>
         <span class="info-value secrecy-badge">
           {{ transaction.secrecy }}
         </span>
@@ -217,7 +217,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">الجهة المرسلة</span>
+        <span class="info-label">{{ 'transactions.fromEntity' | t }}</span>
         <span class="info-value">
           {{ transaction.from }}
         </span>
@@ -235,7 +235,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">الجهة المستقبلة</span>
+        <span class="info-label">{{ 'transactionDetails.labelToEntity' | t }}</span>
         <span class="info-value">
           {{ transaction.to }}
         </span>
@@ -253,7 +253,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">المحال من</span>
+        <span class="info-label">{{ 'transactionDetails.labelReferredFrom' | t }}</span>
         <span class="info-value">
           {{ transaction.referredFrom }}
         </span>
@@ -271,7 +271,7 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">الأولوية</span>
+        <span class="info-label">{{ 'transactions.table.priority' | t }}</span>
 
         <span class="info-value priority-badge"
               [ngClass]="'priority-' + transaction.priorityClass">
@@ -294,9 +294,9 @@
       </div>
 
       <div class="info-content">
-        <span class="info-label">أقصى مدة للرد</span>
+        <span class="info-label">{{ 'transactionDetails.labelMaxReplyDays' | t }}</span>
         <span class="info-value highlight-value">
-          {{ transaction.maxDays }} أيام
+          {{ 'transactionDetails.maxDaysCount' | t: { n: transaction.maxDays } }}
         </span>
       </div>
 
@@ -320,7 +320,7 @@
       <div class="wf-header">
         <div class="wf-header-title">
           <mat-icon>account_tree</mat-icon>
-          <span>مسار المعاملة</span>
+          <span>{{ 'transactionDetails.workflowTitle' | t }}</span>
         </div>
         <div class="wf-progress-info">
           <span class="wf-progress-label">
@@ -345,9 +345,9 @@
             <div class="wf-node-header">
               <div class="wf-step-num">{{ i + 1 }}</div>
               <span class="wf-status-chip">
-                <ng-container *ngIf="i < activeIndex">مكتمل</ng-container>
-                <ng-container *ngIf="i === activeIndex">جاري</ng-container>
-                <ng-container *ngIf="i > activeIndex">قيد الانتظار</ng-container>
+                <ng-container *ngIf="i < activeIndex">{{ 'transactionDetails.stepDone' | t }}</ng-container>
+                <ng-container *ngIf="i === activeIndex">{{ 'transactionDetails.stepInProgress' | t }}</ng-container>
+                <ng-container *ngIf="i > activeIndex">{{ 'transactionDetails.stepPending' | t }}</ng-container>
               </span>
             </div>
 
@@ -400,17 +400,11 @@
   <div class="wf-wrapper" *ngIf="activeTab==='workflow'">
 
 
-    <!-- <button mat-raised-button color="primary" (click)="openVisualTracking()">
-      <mat-icon>account_tree</mat-icon>
-      تتبع بصري
-    </button> -->
-
     <button
       type="button"
       class="visual-track-btn"
       (click)="openVisualTracking()">
-      <span class="btn-text">تتبع بصري</span>
-      <!-- trailing icon (في الآخر) -->
+      <span class="btn-text">{{ 'transactionDetails.visualTrack' | t }}</span>
       <mat-icon class="btn-icon">hub</mat-icon>
     </button>
 
@@ -422,7 +416,7 @@
           <div class="header-icon">
           <mat-icon >account_tree</mat-icon>
           </div>
-          <h3>مسار المعاملة</h3>
+          <h3>{{ 'transactionDetails.workflowTitle' | t }}</h3>
         </div>
         <div class="wf-progress-info">
           <span class="wf-progress-label">
@@ -449,9 +443,9 @@
         <div class="wf-node-header">
           <div class="wf-step-num">{{ i + 1 }}</div>
           <span class="wf-status-chip">
-            <ng-container *ngIf="i < activeIndex">مكتمل</ng-container>
-            <ng-container *ngIf="i === activeIndex">جاري</ng-container>
-            <ng-container *ngIf="i > activeIndex">قيد الانتظار</ng-container>
+            <ng-container *ngIf="i < activeIndex">{{ 'transactionDetails.stepDone' | t }}</ng-container>
+            <ng-container *ngIf="i === activeIndex">{{ 'transactionDetails.stepInProgress' | t }}</ng-container>
+            <ng-container *ngIf="i > activeIndex">{{ 'transactionDetails.stepPending' | t }}</ng-container>
           </span>
         </div>
 
@@ -519,14 +513,14 @@
       <div class="card-header">
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-pen-to-square"></i></div>
-          <h3>محرر محتوى المعاملة</h3>
+          <h3>{{ 'transactionDetails.editorTitle' | t }}</h3>
         </div>
         <div class="card-header-actions">
           <button class="btn secondary btn-sm" (click)="saveDraft()">
-            <i class="fa-solid fa-floppy-disk"></i> حفظ مسودة
+            <i class="fa-solid fa-floppy-disk"></i> {{ 'transactionDetails.saveDraft' | t }}
           </button>
           <button class="btn primary btn-sm" (click)="sendReply()">
-            <i class="fa-solid fa-paper-plane"></i> إرسال
+            <i class="fa-solid fa-paper-plane"></i> {{ 'transactionDetails.send' | t }}
           </button>
         </div>
       </div>
@@ -550,11 +544,11 @@
       <div class="card-header">
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-paperclip"></i></div>
-          <h3>المرفقات</h3>
+          <h3>{{ 'transactionDetails.attachmentsHeading' | t }}</h3>
           <span class="count-badge">{{ transaction.attachments?.length || 0 }}</span>
         </div>
         <button class="btn secondary btn-sm" (click)="addAttachment()">
-          <i class="fa-solid fa-plus"></i> إضافة مرفق
+          <i class="fa-solid fa-plus"></i> {{ 'transactionDetails.addAttachment' | t }}
         </button>
       </div>
 
@@ -579,13 +573,13 @@
             </div>
           </div>
           <div class="att-actions">
-            <button class="icon-btn" title="معاينة" (click)="previewAttachment(att)">
+            <button class="icon-btn" [attr.title]="'transactionDetails.previewAttachment' | t" (click)="previewAttachment(att)">
               <i class="fa-solid fa-eye"></i>
             </button>
-            <button class="icon-btn" title="تحميل" (click)="downloadAttachment(att)">
+            <button class="icon-btn" [attr.title]="'transactionDetails.downloadAttachment' | t" (click)="downloadAttachment(att)">
               <i class="fa-solid fa-download"></i>
             </button>
-            <button class="icon-btn danger" title="حذف" (click)="deleteAttachment(att)">
+            <button class="icon-btn danger" [attr.title]="'transactionDetails.deleteAttachment' | t" (click)="deleteAttachment(att)">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -593,7 +587,7 @@
 
         <div class="empty-state" *ngIf="!transaction.attachments?.length">
           <i class="fa-solid fa-paperclip empty-icon"></i>
-          <p>لا توجد مرفقات</p>
+          <p>{{ 'transactionDetails.noAttachments' | t }}</p>
         </div>
 
       </div>
@@ -603,12 +597,12 @@
 
     <!-- ── NOTES ── -->
      <div *ngIf="activeTab==='notes'"> 
-    <div class="card full-width" *ngIf="'transaction.notes?.length || canAddNote'">
+    <div class="card full-width" *ngIf="transaction.notes?.length || canAddNote">
 
       <div class="card-header">
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-comments"></i></div>
-          <h3>الملاحظات والتعليقات</h3>
+          <h3>{{ 'transactionDetails.notesTitle' | t }}</h3>
           <span class="count-badge">{{ transaction.notes?.length || 0 }}</span>
         </div>
       </div>
@@ -633,7 +627,7 @@
       <div class="add-note" *ngIf="canAddNote">
         <div class="add-note-input">
           <input type="text"
-                 placeholder="أضف ملاحظة أو تعليقاً..."
+                 [placeholder]="'transactionDetails.notePlaceholder' | t"
                  [(ngModel)]="newNote"
                  (keyup.enter)="submitNote()" />
           <button class="btn primary btn-sm"
@@ -655,7 +649,7 @@
       <div class="card-header">
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-link"></i></div>
-          <h3>المعاملات المرتبطة</h3>
+          <h3>{{ 'transactionDetails.relatedTitle' | t }}</h3>
           <span class="count-badge">{{ relatedTransactions.length }}</span>
         </div>
       </div>
@@ -684,44 +678,44 @@
   <div class="transaction-actionbar">
 
 
-   <button class="action-btn gray">
+   <button type="button" class="action-btn gray" (click)="activeTab='editor'">
     <i class="fa-solid fa-reply"></i>
-   رد بخطاب
+   {{ 'transactionDetails.actionReplyLetter' | t }}
   </button>
 
-  <button class="action-btn gray">
+  <button type="button" class="action-btn gray">
     <i class="fa-solid fa-image"></i>
-    تحويل صور
+    {{ 'transactionDetails.actionImageTransfer' | t }}
   </button>
 
-  <button class="action-btn gray">
+  <button type="button" class="action-btn gray" (click)="rejectTransaction()">
     <i class="fa-solid fa-share"></i>
-    نموذج إحالة
+    {{ 'transactionDetails.actionReferralForm' | t }}
   </button>
 
-  <button class="action-btn blue">
+  <button type="button" class="action-btn blue" (click)="transferTransaction()">
     <i class="fa-solid fa-right-left"></i>
-    تحويل
+    {{ 'transactionDetails.actionTransfer' | t }}
   </button>
 
-  <button class="action-btn orange">
+  <button type="button" class="action-btn orange" (click)="returnTransaction()">
     <i class="fa-solid fa-reply"></i>
-    رد المعاملة
+    {{ 'transactionDetails.actionReplyTx' | t }}
   </button>
 
-  <button class="action-btn yellow">
+  <button type="button" class="action-btn yellow">
     <i class="fa-solid fa-envelope"></i>
-    إرسال البريد
+    {{ 'transactionDetails.actionSendMail' | t }}
   </button>
 
-  <button class="action-btn gray">
+  <button type="button" class="action-btn gray">
     <i class="fa-solid fa-xmark"></i>
-    إلغاء
+    {{ 'transactionDetails.actionCancel' | t }}
   </button>
 
-  <button class="action-btn green">
+  <button type="button" class="action-btn green" (click)="printTransaction()">
     <i class="fa-solid fa-print"></i>
-    طباعة الباركود
+    {{ 'transactionDetails.actionPrintBarcode' | t }}
   </button>
 
 </div>
@@ -737,45 +731,45 @@
     <div class="quick-info-card">
 
       <div class="quick-info-header">
-        <h3>ملخص سريع</h3>
-        <p>نظرة عامة على حالة المعاملة</p>
+        <h3>{{ 'transactionDetails.quickSummary' | t }}</h3>
+        <p>{{ 'transactionDetails.quickSummarySubtitle' | t }}</p>
       </div>
 
       <div class="quick-info-body">
 
         <div class="qi-row">
-          <span class="qi-label">الحالة</span>
+          <span class="qi-label">{{ 'transactionDetails.qiStatus' | t }}</span>
           <span class="status-badge sm" [ngClass]="'badge-' + transaction.statusClass">
             {{ transaction.status }}
           </span>
         </div>
 
         <div class="qi-row">
-          <span class="qi-label">رقم المعاملة</span>
-          <span class="qi-value">{{ transaction.id }}</span>
+          <span class="qi-label">{{ 'transactions.refNo' | t }}</span>
+          <span class="qi-value">{{ transaction.referenceNumber }}</span>
         </div>
 
         <div class="qi-row">
-          <span class="qi-label">تاريخ الاستحقاق</span>
+          <span class="qi-label">{{ 'transactionDetails.qiDueDate' | t }}</span>
           <span class="qi-value" [class.overdue]="isOverdue">
             {{ transaction.dueDate | date:'d/M/yyyy' : '' : 'en' }}
           </span>
         </div>
 
         <div class="qi-row">
-          <span class="qi-label">المرحلة الحالية</span>
+          <span class="qi-label">{{ 'transactionDetails.qiCurrentStage' | t }}</span>
           <span class="qi-value">{{ currentStepName }}</span>
         </div>
 
         <div class="qi-row">
-          <span class="qi-label">المسؤول الحالي</span>
+          <span class="qi-label">{{ 'transactionDetails.qiCurrentOwner' | t }}</span>
           <span class="qi-value">{{ transaction.currentHandler }}</span>
         </div>
 
         <div class="qi-divider"></div>
 
         <div class="mini-timeline">
-          <p class="mini-timeline-title">السجل الزمني</p>
+          <p class="mini-timeline-title">{{ 'transactionDetails.miniTimelineTitle' | t }}</p>
 
           <div class="mini-tl-item"
                *ngFor="let step of transaction.timeline; let i = index"
@@ -801,7 +795,7 @@
         <div class="qi-divider"></div>
 
         <div class="qi-priority" *ngIf="transaction.priority">
-          <p class="qi-label">مستوى الأولوية</p>
+          <p class="qi-label">{{ 'transactionDetails.qiPriorityLevel' | t }}</p>
           <div class="priority-bar">
             <div class="priority-fill"
                  [style.width.%]="transaction.priorityPercent"
@@ -817,7 +811,7 @@
 
       <div class="quick-info-footer">
         <button class="btn primary full-width" (click)="approveTransaction()">
-          <i class="fa-solid fa-circle-check"></i> اعتماد المعاملة
+          <i class="fa-solid fa-circle-check"></i> {{ 'transactionDetails.approveTransaction' | t }}
         </button>
       </div>
 

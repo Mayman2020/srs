@@ -4,16 +4,30 @@
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   id="Definitions_Inbound"
                   targetNamespace="http://ac.gov/bpmn"
                   exporter="Cursor"
                   exporterVersion="1.0">
   <bpmn:process id="inbound-correspondence" name="Inbound Correspondence" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1" name="Started"/>
-    <bpmn:userTask id="Task_register" name="Register inbound" camunda:assignee="${initiator}"/>
+    <bpmn:userTask id="Task_register" name="Register inbound" camunda:assignee="${initiator}">
+      <bpmn:extensionElements>
+        <camunda:taskListener delegateExpression="${correspondenceWorkflowPersistenceTaskListener}" event="complete"/>
+        <camunda:taskListener delegateExpression="${correspondenceWorkflowNotificationTaskListener}" event="complete"/>
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_decision" name="Outcome" default="Flow_default_ok"/>
     <bpmn:endEvent id="EndEvent_1" name="End"/>
     <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_register"/>
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_register" targetRef="EndEvent_1"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_register" targetRef="Gateway_decision"/>
+    <bpmn:sequenceFlow id="Flow_reject" sourceRef="Gateway_decision" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_return" sourceRef="Gateway_decision" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'RETURN'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_default_ok" sourceRef="Gateway_decision" targetRef="EndEvent_1"/>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="inbound-correspondence">
@@ -23,8 +37,11 @@
       <bpmndi:BPMNShape id="Shape_Task" bpmnElement="Task_register">
         <dc:Bounds x="240" y="80" width="100" height="80"/>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gw" bpmnElement="Gateway_decision" isMarkerVisible="true">
+        <dc:Bounds x="385" y="95" width="50" height="50"/>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Shape_End" bpmnElement="EndEvent_1">
-        <dc:Bounds x="392" y="102" width="36" height="36"/>
+        <dc:Bounds x="482" y="102" width="36" height="36"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Edge_1" bpmnElement="Flow_1">
         <di:waypoint x="188" y="120"/>
@@ -32,7 +49,23 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Edge_2" bpmnElement="Flow_2">
         <di:waypoint x="340" y="120"/>
-        <di:waypoint x="392" y="120"/>
+        <di:waypoint x="385" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_rej" bpmnElement="Flow_reject">
+        <di:waypoint x="410" y="95"/>
+        <di:waypoint x="410" y="40"/>
+        <di:waypoint x="500" y="40"/>
+        <di:waypoint x="500" y="102"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_ret" bpmnElement="Flow_return">
+        <di:waypoint x="435" y="120"/>
+        <di:waypoint x="482" y="120"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_def" bpmnElement="Flow_default_ok">
+        <di:waypoint x="410" y="145"/>
+        <di:waypoint x="410" y="200"/>
+        <di:waypoint x="500" y="200"/>
+        <di:waypoint x="500" y="138"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

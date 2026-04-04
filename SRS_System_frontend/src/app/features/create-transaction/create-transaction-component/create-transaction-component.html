@@ -63,7 +63,25 @@
               lookupTable="confidentiality"
               formControlName="secrecy"
               [required]="true">
-            </app-generic-select>           
+            </app-generic-select>
+
+            <app-generic-select
+              label="transactions.table.priority"
+              [items]="priorityLevels"
+              primaryKey="key"
+              lookupTable="priority"
+              formControlName="priority"
+              [required]="true">
+            </app-generic-select>
+
+            <app-generic-select
+              label="transactions.table.classification"
+              [items]="classificationLevels"
+              primaryKey="key"
+              lookupTable="classification"
+              formControlName="classification"
+              [required]="true">
+            </app-generic-select>
 
             <!-- SUBJECT -->
             <div class="form-group">
@@ -71,14 +89,15 @@
                 {{ 'createTx.subject' | t }}
                 <span   class="required-indicator">*</span>
               </label>
-                 <input 
-                   class="custom-input"/>
+                 <input
+                   class="custom-input"
+                   formControlName="subject"/>
             </div>
           </div>
             <!-- DESCRIPTION -->
             <div class="form-group">
               <label class="field-label">{{ 'createTx.descriptionShort' | t }}</label>
-              <textarea class="custom-textarea">
+              <textarea class="custom-textarea" formControlName="description" rows="3">
             </textarea>
             </div>
         </div>
@@ -88,24 +107,6 @@
       <form [formGroup]="secondaryForm" class="step-form">
 
         <div class="single-form-grid">
-            <!-- <div class="form-group">
-]              <label class="field-label">
-                الجهة المرسلة
-                <span class="required-indicator">*</span>
-              </label>
-
-              <input
-                class="custom-input"
-                formControlName="from"
-                placeholder="اسم الجهة المرسلة"
-              />
-
-              <div class="error-text"
-                  *ngIf="secondaryForm.get('from')?.hasError('required') && secondaryForm.get('from')?.touched">
-                الجهة المرسلة مطلوبة
-              </div>
-            </div> -->
-
             <!-- TO -->
             <div class="form-group">
               <label class="field-label">
@@ -126,7 +127,7 @@
                   class="modern-tag">
 
                   <mat-icon>person</mat-icon>
-                  {{ item.value }}
+                  {{ deptName(item.value) }}
 
                   <button type="button"
                           (click)="removeTo(i)"
@@ -156,7 +157,7 @@
                   class="modern-tag">
 
                   <mat-icon>content_copy</mat-icon>
-                  {{ item.value }}
+                  {{ deptName(item.value) }}
 
                   <button type="button"
                           (click)="removeCc(i)"
@@ -205,12 +206,8 @@
               [class.active]="selectedTemplateKey === t.key"
               (click)="onTemplateChange(t.key)">
               <div class="template-title">
-                {{ letterTemplateTitle(t.key) }}
+                {{ letterTemplateTitle(t) }}
               </div>
-
-              <!-- <div class="template-preview">
-                {{ t.label }} - قالب رسمي جاهز
-              </div> -->
             </div>
           </div>
 
@@ -246,14 +243,14 @@
 
             <mat-icon class="upload-icon">cloud_upload</mat-icon>
 
-            <h3>إضافة مرفقات</h3>
+            <h3>{{ 'createTx.attachmentsTitle' | t }}</h3>
 
             <p>
-              اسحب الملفات هنا أو اضغط للاختيار
+              {{ 'createTx.attachmentsHint' | t }}
             </p>
 
             <span class="file-note">
-              المسموح: PDF - Word - Excel - Images
+              {{ 'createTx.attachmentsAllowed' | t }}
             </span>
 
             <input
@@ -283,14 +280,14 @@
                     [(ngModel)]="attachment.name"
                     [ngModelOptions]="{standalone:true}"
                     name="name{{i}}"
-                    placeholder="اسم المرفق" />
+                    [attr.placeholder]="'createTx.attachmentNamePlaceholder' | t" />
 
                   <textarea
                     class="attachment-description"
                     [(ngModel)]="attachment.description"
                     [ngModelOptions]="{standalone:true}"
                     name="desc{{i}}"
-                    placeholder="وصف المرفق (اختياري)">
+                    [attr.placeholder]="'createTx.attachmentDescPlaceholder' | t">
                   </textarea>
 
                   <div class="file-size">
@@ -331,7 +328,7 @@
         <div class="summary-row">
           <span class="label">{{ 'createTx.summary.ref' | t }}</span>
           <span class="value highlight">
-            {{ 'TRX-2024-00125' }}
+            {{ transactionNumber || '—' }}
           </span>
         </div>
 
@@ -339,6 +336,20 @@
           <span class="label">{{ 'createTx.summary.type' | t }}</span>
           <span class="value">
             {{ basicForm.value.type | lk:'correspondenceType' }}
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="label">{{ 'createTx.summary.priority' | t }}</span>
+          <span class="value">
+            {{ basicForm.value.priority | lk:'priority' }}
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="label">{{ 'createTx.summary.classification' | t }}</span>
+          <span class="value">
+            {{ basicForm.value.classification | lk:'classification' }}
           </span>
         </div>
 
@@ -367,12 +378,12 @@
       <!-- Action Buttons -->
       <div class="completion-actions">
 
-        <button type="button" class="btn-outline">
+        <button type="button" class="btn-outline" (click)="viewCreated()" [disabled]="!lastCreatedCorrespondenceId">
           <mat-icon>visibility</mat-icon>
           {{ 'createTx.done.viewTx' | t }}
         </button>
 
-        <button type="button" class="btn-primary">
+        <button type="button" class="btn-primary" (click)="createAnother()">
           <mat-icon>add</mat-icon>
           {{ 'createTx.done.createAnother' | t }}
         </button>
@@ -410,7 +421,8 @@
       <button
         type="button"
         class="btn-success"
-        *ngIf="currentStep === 5">
+        *ngIf="currentStep === 5"
+        (click)="finishWizard()">
 
         {{ 'createTx.done.finish' | t }}
         <mat-icon>check_circle</mat-icon>

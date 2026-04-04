@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
+import { NotificationItemDto, SpringPage } from './api-types';
 
-/** Backend inbox endpoint; extend with typed DTO when notification entity is mapped. */
 @Injectable({ providedIn: 'root' })
 export class NotificationApiService {
   constructor(
@@ -11,7 +11,12 @@ export class NotificationApiService {
     @Inject(API_BASE_URL) private base: string
   ) {}
 
-  list(): Observable<unknown[]> {
-    return this.http.get<unknown[]>(`${this.base}/notifications`).pipe(map((r) => r ?? []));
+  list(page = 0, size = 50): Observable<SpringPage<NotificationItemDto>> {
+    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    return this.http.get<SpringPage<NotificationItemDto>>(`${this.base}/notifications`, { params });
+  }
+
+  markRead(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/notifications/${id}/read`, {});
   }
 }

@@ -8,7 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Starts Camunda processes. Uses {@link Propagation#MANDATORY} so engine calls always join the
+ * caller's Spring transaction (same {@code PlatformTransactionManager} / datasource as JPA when
+ * using Camunda Spring Boot starter), allowing rollback of persistence if startup fails.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -16,6 +23,7 @@ public class CamundaCorrespondenceWorkflowService {
 
   private final RuntimeService runtimeService;
 
+  @Transactional(propagation = Propagation.MANDATORY)
   public StartedProcess startCorrespondenceProcess(
       String processDefinitionKey, String businessKey, UUID actorUserId, UUID correspondenceId) {
     Map<String, Object> variables = new HashMap<>();

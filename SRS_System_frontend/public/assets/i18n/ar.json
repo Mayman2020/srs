@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "نظام الاتصالات الإدارية"
+  },
   "common": {
     "all": "الكل",
     "apply": "تطبيق",
@@ -16,6 +19,50 @@
     "empty": "لا توجد بيانات",
     "toastOk": "تم",
     "close": "إغلاق"
+  },
+  "errors": {
+    "network": "تعذّر الاتصال بالخادم.",
+    "unauthorized": "يرجى تسجيل الدخول مرة أخرى.",
+    "forbidden": "ليس لديك صلاحية.",
+    "notFound": "غير موجود.",
+    "server": "خطأ في الخادم. حاول لاحقاً.",
+    "generic": "حدث خطأ.",
+    "http": {
+      "generic": "حدث خطأ",
+      "notImplemented": "غير مطبّق بعد"
+    }
+  },
+  "notification": {
+    "correspondence": {
+      "created": "معاملة جديدة: {{referenceNumber}}",
+      "comment_added": "تعليق جديد على {{referenceNumber}}"
+    },
+    "workflow": {
+      "task_completed": "تحديث سير العمل ({{taskName}}): {{referenceNumber}}"
+    }
+  },
+  "reports": {
+    "pageTitle": "التقارير والإحصائيات",
+    "exportPdf": "تصدير PDF",
+    "exportExcel": "تصدير Excel",
+    "kpiTitle": "ملخص النتائج",
+    "kpiTotal": "إجمالي",
+    "kpiDone": "منجزة",
+    "kpiLate": "متأخرة",
+    "kpiAvg": "متوسط العمر (أيام)",
+    "filtersTitle": "بحث متقدم",
+    "from": "من تاريخ",
+    "to": "إلى تاريخ",
+    "type": "النوع",
+    "status": "الحالة",
+    "run": "تشغيل التقرير",
+    "chartStatus": "توزيع الحالات (مباشر)",
+    "chartTrend": "الإنشاء الشهري (من الخادم، يمكن تقييده بالتواريخ)",
+    "chartPriority": "توزيع الأولوية (مباشر)",
+    "heatmapTitle": "معاملات متأخرة مفتوحة حسب الإدارة",
+    "heatmapPlaceholder": "",
+    "chartDeptOverdue": "معاملات متأخرة (مفتوحة) حسب الإدارة",
+    "chartMonthlyCreated": "إنشاء شهري (من الخادم)"
   },
   "nav": {
     "dashboard": "لوحـــــة التحكـــم",
@@ -36,6 +83,8 @@
     "demoRole": "موظف"
   },
   "transactions": {
+    "createButton": "إنشاء معاملة",
+    "createMenuAria": "قائمة إنشاء",
     "pageTitle": "إدارة المعاملات",
     "searchTitle": "بحث المعاملات",
     "searchSubtitle": "فلترة سريعة",
@@ -60,6 +109,8 @@
       "entity": "الجهة",
       "sla": "SLA",
       "secrecy": "السرية",
+      "priority": "الأولوية",
+      "classification": "التصنيف",
       "attachments": "المرفقات",
       "status": "الحالة"
     },
@@ -91,8 +142,8 @@
     "viewAllAlerts": "عرض كل التنبيهات",
     "statusChartTitle": "حالات المعاملات",
     "statusChartHint": "عرض نسب الحالات (جديدة/قيد الإجراء/معادة/منجزة).",
-    "deptChartTitle": "إنتاجية الإدارات (Top)",
-    "deptChartHint": "مقارنة مختصرة لتوزيع الإنجاز.",
+    "deptChartTitle": "توزيع الأولويات",
+    "deptChartHint": "أعداد من سجل المراسلات (حسب الأولوية).",
     "kpiTotal": "إجمالي المعاملات",
     "kpiTotalDesc": "خلال آخر 30 يوم",
     "kpiDone": "منجزة",
@@ -109,6 +160,12 @@
     "thStatus": "الحالة",
     "thActions": "إجراءات",
     "noTransactions": "لا توجد معاملات",
+    "liveOpsTitle": "مؤشرات مباشرة",
+    "liveOpsOverdue": "متأخرة (مفتوحة)",
+    "liveOpsInProgress": "قيد الإجراء",
+    "liveOpsNote": "القيم تُحمّل من واجهة لوحة التحكم في الخادم.",
+    "liveSplitTitle": "الحالة والأولوية (مباشر)",
+    "slaAlertsEmpty": "لا توجد تنبيهات تجريبية — راجع قائمة المعاملات للتفاصيل.",
     "aiTitle": "لوحة تحليلات AI",
     "aiRisk": "مؤشر المخاطر",
     "aiRiskTag": "(تجريبي)",
@@ -167,7 +224,13 @@
       "new-transaction": "معاملة جديدة",
       "approval": "اعتماد",
       "reminder": "تذكير",
-      "system": "النظام"
+      "system": "النظام",
+      "CORRESPONDENCE_CREATED": "معاملة جديدة",
+      "COMMENT_ADDED": "تعليق",
+      "APPROVED": "موافقة",
+      "REJECTED": "رفض",
+      "RETURNED": "إعادة",
+      "ASSIGNED": "إسناد"
     },
     "agoMinutes": "منذ {{m}} دقيقة",
     "agoHours": "منذ {{h}} ساعة",
@@ -209,11 +272,18 @@
     "ccPlaceholder": "اضغط لاختيار الجهات",
     "maxDays": "مدة الرد (أيام)",
     "maxDaysPlaceholder": "عدد الأيام",
+    "attachmentsTitle": "المرفقات",
+    "attachmentsHint": "اسحب الملفات هنا أو اضغط للاختيار",
+    "attachmentsAllowed": "المسموح: PDF وWord وExcel والصور",
+    "attachmentNamePlaceholder": "اسم المرفق",
+    "attachmentDescPlaceholder": "وصف (اختياري)",
     "letterTemplatesHeading": "أنواع الخطابات",
     "summary": {
       "ref": "رقم المعاملة:",
       "type": "نوع المعاملة:",
       "secrecy": "مستوى السرية:",
+      "priority": "الأولوية:",
+      "classification": "التصنيف:",
       "maxDays": "مدة الرد:"
     },
     "done": {
@@ -240,6 +310,18 @@
       "badRequest": "بيانات غير صحيحة",
       "serverError": "خطأ في الخادم، يرجى المحاولة لاحقاً"
     },
+    "letterEditor": {
+      "dateLabel": "التاريخ:",
+      "refAuto": "[يُملأ تلقائياً]",
+      "refFilledPlain": "يُملأ تلقائياً",
+      "headerEntity": "اسم الجهة",
+      "headerSubtitle": "الإدارة العامة للاتصالات الإدارية",
+      "footerManager": "مدير الإدارة",
+      "footerSignature": "التوقيع",
+      "toLabel": "إلى:",
+      "refPlaceholderBracket": "[رقم المعاملة]",
+      "contentPlaceholder": "اكتب محتوى الخطاب هنا..."
+    },
     "letterTemplate": {
       "default": "خطاب رسمي عام",
       "reminder": "خطاب تذكير",
@@ -248,7 +330,107 @@
       "admin-circular": "تعميم إداري",
       "ministerial-circular": "تعميم وزاري",
       "no-letter": "بدون خطاب"
+    },
+    "letterBody": {
+      "salutation": "السلام عليكم ورحمة الله وبركاته، وبعد:",
+      "listDots": ".......................................................",
+      "default": {
+        "receiptBefore": "نحيطكم علماً بأنه تم استلام خطابكم بشأن",
+        "topicBracket": "[الموضوع]",
+        "receiptAfter": "، ونفيدكم بما يلي:",
+        "thanks": "نشكر لكم حُسن تعاونكم."
+      },
+      "reminder": {
+        "subjectLine": "تذكير بخصوص معاملة",
+        "bodyBeforeRef": "بالإشارة إلى المعاملة رقم ",
+        "bodyAfterRef": "، نود تذكيركم بضرورة الإفادة في أقرب وقت ممكن.",
+        "thanks": "شاكرين تعاونكم."
+      },
+      "approval": {
+        "subjectLine": "إفادة بالموافقة",
+        "bodyBefore": "نفيدكم بأنه تمت الموافقة على الطلب المتعلق بـ",
+        "topicBracket": "[الموضوع]",
+        "bodyAfter": ". يرجى استكمال الإجراءات اللازمة."
+      },
+      "rejection": {
+        "subjectLine": "اعتذار عن عدم الموافقة",
+        "bodyBefore": "نعتذر عن عدم إمكانية الموافقة على الطلب نظراً لـ",
+        "reasonBracket": "[سبب الرفض]",
+        "bodyAfter": "."
+      },
+      "adminCircular": {
+        "title": "تعميم إداري",
+        "bodyBefore": "تعلن الإدارة عن",
+        "topicBracket": "[موضوع التعميم]",
+        "bodyAfter": ". يرجى من جميع الإدارات الالتزام بما ورد أعلاه."
+      },
+      "ministerialCircular": {
+        "title": "تعميم وزاري",
+        "bodyBefore": "بناءً على التوجيهات الوزارية بشأن",
+        "topicBracket": "[موضوع التعميم]",
+        "bodyAfter": "، يُعتمد هذا التعميم للعمل به في جميع الجهات."
+      }
     }
+  },
+  "transactionDetails": {
+    "pageTitle": "تفاصيل المعاملة",
+    "statCompletedSteps": "مراحل مكتملة",
+    "statRemainingDays": "أيام متبقية للرد",
+    "statComments": "التعليقات",
+    "tabDetails": "التفاصيل",
+    "tabWorkflow": "مسار المعاملة",
+    "tabReply": "الرد",
+    "tabNotes": "الملاحظات",
+    "tabRelated": "المعاملات المرتبطة",
+    "basicDataTitle": "البيانات الأساسية",
+    "labelType": "النوع",
+    "labelCreated": "تاريخ الإنشاء",
+    "labelSecrecy": "السرية",
+    "labelToEntity": "الجهة المستقبلة",
+    "labelReferredFrom": "المحال من",
+    "labelMaxReplyDays": "أقصى مدة للرد",
+    "maxDaysCount": "{{n}} أيام",
+    "visualTrack": "تتبع بصري",
+    "workflowTitle": "مسار المعاملة",
+    "stepDone": "مكتمل",
+    "stepInProgress": "جاري",
+    "stepPending": "قيد الانتظار",
+    "editorTitle": "محرر محتوى المعاملة",
+    "saveDraft": "حفظ مسودة",
+    "send": "إرسال",
+    "addAttachment": "إضافة مرفق",
+    "attachmentsHeading": "المرفقات",
+    "previewAttachment": "معاينة",
+    "downloadAttachment": "تحميل",
+    "deleteAttachment": "حذف",
+    "noAttachments": "لا توجد مرفقات",
+    "notesTitle": "الملاحظات والتعليقات",
+    "notePlaceholder": "أضف ملاحظة أو تعليقاً...",
+    "relatedTitle": "المعاملات المرتبطة",
+    "actionReplyLetter": "رد بخطاب",
+    "actionImageTransfer": "تحويل صور",
+    "actionReferralForm": "نموذج إحالة",
+    "actionTransfer": "تحويل",
+    "actionReplyTx": "رد المعاملة",
+    "actionSendMail": "إرسال البريد",
+    "actionCancel": "إلغاء",
+    "actionPrintBarcode": "طباعة الباركود",
+    "quickSummary": "ملخص سريع",
+    "quickSummarySubtitle": "نظرة عامة على حالة المعاملة",
+    "qiStatus": "الحالة",
+    "qiDueDate": "تاريخ الاستحقاق",
+    "qiCurrentStage": "المرحلة الحالية",
+    "qiCurrentOwner": "المسؤول الحالي",
+    "miniTimelineTitle": "السجل الزمني",
+    "qiPriorityLevel": "مستوى الأولوية",
+    "approveTransaction": "اعتماد المعاملة",
+    "workflowCommentPrompt": "أدخل سبباً أو تعليقاً (مطلوب):",
+    "workflowCommentRequired": "التعليق مطلوب لهذا الإجراء.",
+    "legacyTimelineTitle": "الجدول الزمني للمعاملة",
+    "wfApprove": "اعتماد",
+    "wfReturn": "إرجاع",
+    "wfReject": "رفض",
+    "visualCurrentHandler": "المعالج الحالي"
   },
   "login": {
     "title": "تسجيل الدخول",
@@ -256,10 +438,45 @@
     "username": "اسم المستخدم",
     "password": "كلمة المرور",
     "submit": "دخول",
-    "demo": "تجربة سريعة"
+    "demo": "تجربة سريعة",
+    "heroTitle": "نظام تخطيط موارد المؤسسات الحكومي",
+    "heroLead": "منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي، تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030",
+    "feat1Title": "ذكاء اصطناعي متقدم",
+    "feat1Desc": "تحليلات ذكية وتوقعات مالية وإدارية تلقائية",
+    "feat2Title": "حوكمة رقمية شاملة",
+    "feat2Desc": "التزام كامل بمعايير الحوكمة والشفافية",
+    "feat3Title": "إدارة موارد متكاملة",
+    "feat3Desc": "مالية، موارد بشرية، مشتريات، ومخزون",
+    "feat4Title": "رؤية المملكة 2030",
+    "feat4Desc": "دعم التحول الرقمي وتحقيق الأهداف الاستراتيجية",
+    "visionBadge": "متوافق مع رؤية المملكة 2030",
+    "copyrightLine": "© 2024 نسخة — للاستخدام المؤسسي الحكومي",
+    "panelSub": "يرجى إدخال بيانات المستخدم للوصول إلى النظام",
+    "usernamePlaceholder": "أدخل اسم المستخدم",
+    "passwordPlaceholder": "••••••••",
+    "submitLong": "دخول إلى النظام",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "logoAlt": "شعار النظام"
+  },
+  "chat": {
+    "assistant": "المساعد الذكي",
+    "send": "إرسال",
+    "inputPlaceholder": "اسألني عن معاملة..."
+  },
+  "workflowDialog": {
+    "title": "التتبع البصري",
+    "close": "إغلاق"
+  },
+  "visualTracking": {
+    "searchTooltip": "بحث"
   },
   "auth": {
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "loginSuccessTitle": "تم بنجاح",
+    "loginSuccessMessage": "مرحباً بك في النظام.",
+    "validationRequired": "يرجى إدخال اسم المستخدم وكلمة المرور.",
+    "forgotPasswordMessage": "يرجى التواصل مع الدعم الفني لاستعادة كلمة المرور.",
+    "forgotPasswordTitle": "استعادة كلمة المرور"
   },
   "topbar": {
     "markAllRead": "تعيين الكل كمقروء",
@@ -277,11 +494,5 @@
   },
   "genericSelect": {
     "placeholder": "اختر..."
-  },
-  "errors": {
-    "http": {
-      "generic": "حدث خطأ",
-      "notImplemented": "غير مطبّق بعد"
-    }
   }
 }

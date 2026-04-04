@@ -1,52 +1,10 @@
-<div class="actions" >
-          <div class="btn-split" >
-  <!-- Main Button -->
-  <button
-    class="btn primary"
-    type="button"
-    (click)="createDefault()">
-    إنشاء معاملة
-  </button>
-
-  <!-- Dropdown Button -->
-  <!-- <button
-    class="btn primary"
-    type="button"
-    aria-label="قائمة إنشاء"
-    (click)="toggleMenu($event)"
-    (clickOutside)="close()">
-    ▾
-  </button> -->
-
-  <!-- Menu -->
-  <!-- <div class="menu" *ngIf="open" role="menu" aria-label="خيارات إنشاء">
-
+<div class="actions">
+  <div class="btn-split">
     <button
-      class="menu-item"
-      role="menuitem"
-      (click)="go('/transaction-create')">
-      إنشاء معاملة (نموذج + خطاب)
+      class="btn primary"
+      type="button"
+      (click)="createDefault()">
+      {{ 'transactions.createButton' | t }}
     </button>
-
-    
-
-    <button
-      class="menu-item"
-      role="menuitem"
-      (click)="go('/incoming-import')">
-      توريد وارد ورقي (Demo)
-    </button>
-
-    <button
-      class="menu-item"
-      role="menuitem"
-      (click)="go('/outgoing-setup')">
-      إعداد صادر (Demo)
-    </button>
-
-  </div> -->
-
-
-
-          </div>
+  </div>
 </div>

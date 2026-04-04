@@ -25,6 +25,7 @@ export class LookupLabelsService {
         this.setTable('correspondenceStatus', b.correspondenceStatuses);
         this.setTable('priority', b.priorities);
         this.setTable('confidentiality', b.confidentialities);
+        this.setTable('classification', b.classifications ?? []);
         this.setTable('workflowActionType', b.workflowActionTypes);
         this.setTable('workflowHistoryEventType', b.workflowHistoryEventTypes ?? []);
       }),
