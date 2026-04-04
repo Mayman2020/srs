@@ -1,0 +1,200 @@
+/* ===================================================== */
+/* ======================= DIVIDER ===================== */
+/* ===================================================== */
+
+.sla-pills {
+  display: flex;
+  flex-wrap: wrap;   /* عشان لو الشاشة صغرت ينزلوا سطر جديد */
+  gap: 8px;         /* المسافة بين كل pill */
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(4, 79, 47),
+    transparent
+  );
+  margin: 24px 0;
+  width: 100%;
+  transform: scaleY(0.5);
+  transform-origin: center;
+}
+.page-wrapper {
+  display: block;
+}
+
+
+.content {
+  padding-top: 24px;
+}
+
+/* ===================== Table Style ============== */   
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+}
+
+th {
+  padding: 12px;
+  font-weight: 600;
+  text-align: right;
+  font-size: 13px;
+}
+
+td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+.type-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.type-badge.in {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.type-badge.out {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sla-bar {
+  width: 100px;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.sla-bar .bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10B981, #0B6E4F);
+  border-radius: 10px;
+}
+
+.pager-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 25px 0;
+  margin-top: 30px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 13px;
+}
+
+/* info */
+.pager-info {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* controls */
+.pager-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* page numbers */
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover {
+  background: #eef4f2;
+}
+
+/* active page */
+.page-btn.active {
+  background: #0B6E4F;
+  color: white;
+  box-shadow: 0 6px 18px rgba(11, 110, 79, 0.25);
+}
+
+/* prev/next */
+.nav-btn {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* page size */
+.pager-size select {
+  border-radius: 10px;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+}
+
+
+/* ===================================================== */
+/* ================== Page HEADER =========================== */
+/* ===================================================== */
+
+.page-header {
+  margin-bottom: 14px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #064635;
+}
+
+.page-header h2::after {
+  content: "";
+  display: block;
+  width: 50px;
+  height: 2px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: linear-gradient(to right,#0B6E4F,#D4AF37);
+}
+
+.page-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0px;
+}

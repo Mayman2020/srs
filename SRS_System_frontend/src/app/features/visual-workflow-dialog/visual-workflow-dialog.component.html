@@ -1,0 +1,34 @@
+<div class="vwd" dir="rtl">
+  <div class="vwd-header">
+    <div class="vwd-title">
+      <mat-icon>account_tree</mat-icon>
+      <span>التتبع البصري</span>
+    </div>
+
+    <div class="vwd-tools">
+      <button mat-icon-button (click)="zoomIn()" aria-label="zoom in">
+        <mat-icon>zoom_in</mat-icon>
+      </button>
+      <button mat-icon-button (click)="zoomOut()" aria-label="zoom out">
+        <mat-icon>zoom_out</mat-icon>
+      </button>
+      <button mat-icon-button (click)="reset()" aria-label="reset view">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button mat-icon-button (click)="close()" aria-label="close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="vwd-body">
+    <app-visual-tracking-tree
+      [transaction]="data.transaction"
+      [activeIndex]="data.activeIndex">
+    </app-visual-tracking-tree>
+  </div>
+
+  <div class="vwd-actions">
+    <button mat-stroked-button (click)="close()">إغلاق</button>
+  </div>
+</div>

@@ -1,0 +1,174 @@
+<header class="header">
+
+  <!-- LEFT -->
+  <div class="header-left">
+    <div class="title-box">
+      <h2 class="page-title">{{ pageTitle }}</h2>
+      <p class="page-subtitle" *ngIf="pageSubtitle">
+        {{ pageSubtitle }}
+      </p>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="header-right">
+
+    <!-- Action Button -->
+    <!-- 🔹 Custom Action Content -->
+    <ng-content select="[topbar-action]"></ng-content>
+
+    <!-- 🔹 Default Action Button (fallback) -->
+    <button
+      *ngIf="!hasProjectedAction && actionLabel"
+      class="primary-btn"
+      (click)="action.emit()">
+      {{ actionLabel }}
+    </button>
+
+    <!-- Notifications -->
+    <!-- <button class="icon-btn modern" title="الإشعارات">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+
+      <span class="notification-badge"
+            *ngIf="unreadNotifications > 0">
+        {{ unreadNotifications }}
+      </span>
+    </button> -->
+
+
+<!-- Notifications -->
+<div class="notification-wrapper">
+
+  <button type="button" class="icon-btn modern"
+          [attr.title]="'topbar.notificationsIconTitle' | t"
+          (click)="toggleNotifications()">
+
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+
+    <span class="notification-badge"
+          *ngIf="unreadNotifications > 0">
+      {{ unreadNotifications }}
+    </span>
+  </button>
+
+    <div class="notification-popover" *ngIf="showNotifications">
+
+        <!-- HEADER -->
+        <!-- <div class="popover-header">
+
+          <div class="popover-title">
+            <h4>الإشعارات</h4>
+            <span class="count" *ngIf="unreadNotifications > 0">
+              {{ unreadNotifications }} غير مقروء
+            </span>
+          </div>
+
+          <div class="popover-actions">
+
+            <button class="mark-all-btn"
+                    *ngIf="unreadNotifications > 0"
+                    (click)="markAllRead()">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" fill="none"/>
+              </svg>
+              تعيين الكل كمقروء
+            </button>
+
+            <button class="close-btn"
+                    (click)="showNotifications = false">
+              ✕
+            </button>
+
+          </div>
+        </div> -->
+
+        <div class="noti-header">
+
+          <button class="close-btn">
+            ✕
+          </button>
+
+          <div class="noti-title-box">
+            <h3>{{ 'topbar.notificationsTitle' | t }}</h3>
+            <span class="noti-count">{{ 'topbar.unreadCount' | t: { n: 2 } }}</span>
+          </div>
+
+          <button type="button" class="mark-all-btn">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            {{ 'topbar.markAllRead' | t }}
+          </button>
+
+        </div>
+
+        <!-- BODY -->
+        <div class="popover-body">
+
+          <div *ngFor="let n of notifications; let i = index"
+              class="notification-item"
+              [class.unread]="!n.read"
+              (click)="openNotificationsPage()">
+
+            <div class="noti-icon">
+              <span [class.important]="n.important"></span>
+            </div>
+
+            <div class="noti-content">
+              <div class="noti-title">{{ n.type }}</div>
+              <div class="noti-text">{{ n.text }}</div>
+              <div class="noti-time">{{ n.time }}</div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="popover-footer">
+          <button type="button" class="view-all-btn"
+                  (click)="openNotificationsPage()">
+            {{ 'topbar.viewAllNotifications' | t }}
+          </button>
+        </div>
+
+      </div>
+
+
+</div>
+  
+    <!-- User -->
+    <div class="user-menu modern">
+
+      <div class="user-avatar">
+        {{ userName.charAt(0) }}
+      </div>
+
+      <span class="user-name">
+        {{ userName }}
+      </span>
+
+     <button type="button" class="logout-btn"
+        (click)="logout()"
+        [attr.title]="'auth.logout' | t">
+
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+
+      </button>
+
+
+    </div>
+
+  </div>
+
+</header>

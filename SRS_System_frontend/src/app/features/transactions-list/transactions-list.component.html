@@ -1,0 +1,161 @@
+<div class="page-wrapper">
+ 
+  <div class="page-header">
+
+    <h2>
+      {{ 'transactionsList.title' | t }} — {{ listContextLabel }}
+    </h2>
+
+  </div>
+
+
+  <section class="card search-card">
+
+    <div class="search-row">
+
+      <div class="field">
+        <label>{{ 'transactions.refNo' | t }}</label>
+        <input [(ngModel)]="fNo">
+      </div>
+
+      <div class="field">
+        <label>{{ 'transactions.subject' | t }}</label>
+        <input [(ngModel)]="fSubject">
+      </div>
+
+      <div class="field">
+        <label>{{ 'transactionsList.entity' | t }}</label>
+        <input [(ngModel)]="fFrom">
+      </div>
+
+      <div class="field">
+        <label>{{ 'transactions.status' | t }}</label>
+        <select [(ngModel)]="fStatus">
+
+          <option value="">{{ 'common.all' | t }}</option>
+          <option *ngFor="let code of statusFilterCodes" [value]="code">{{ code | lk:'correspondenceStatus' }}</option>
+
+        </select>
+      </div>
+
+      <button type="button" class="btn primary" (click)="applyFilters()">
+        {{ 'transactionsList.search' | t }}
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- Table -->
+  <section class="card">
+    <div class="title">
+      <h3>{{ 'transactions.listTitle' | t }}</h3>
+      <small>{{ 'transactions.resultsCount' | t: { n: total } }}</small>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'transactions.table.no' | t }}</th>
+            <th>{{ 'transactions.table.type' | t }}</th>
+            <th>{{ 'transactions.table.subject' | t }}</th>
+            <th>{{ 'transactions.table.entity' | t }}</th>
+            <th>{{ 'transactions.table.sla' | t }}</th>
+            <th>{{ 'transactions.table.secrecy' | t }}</th>
+            <th>{{ 'transactions.table.attachments' | t }}</th>
+            <th>{{ 'transactions.table.status' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let t of pageData">
+            <td class="link">{{ t.id }}</td>
+
+            <td>
+              <span class="type-badge" [class.in]="t.typeCode==='INBOUND'" [class.out]="t.typeCode==='OUTBOUND'">
+                {{ t.typeCode | lk:'correspondenceType' }}
+              </span>
+            </td>
+
+            <td>
+              <div class="subject">
+                <div>{{ t.subject }}</div>
+                <small class="muted">{{ t.description }}</small>
+              </div>
+            </td>
+
+            <td>
+              <div>
+                <div>{{ t.from }}</div>
+                <small class="muted">{{ 'transactions.toPrefix' | t }} {{ t.to }}</small>
+              </div>
+            </td>
+
+            <td>
+              <div class="sla-bar">
+                <div class="bar" [style.width.%]="calcSla(t)"></div>
+              </div>
+            </td>
+
+            <td>
+              <span class="pill" [class.warn]="t.secrecy==='SECRET' || t.secrecy==='TOP_SECRET'" [class.ok]="t.secrecy==='NORMAL' || t.secrecy===''">
+                {{ t.secrecy ? (t.secrecy | lk:'confidentiality') : ('common.dash' | t) }}
+              </span>
+            </td>
+
+            <td>{{ t.attachments.length }}</td>
+
+            <td>
+              <span class="pill" [ngClass]="{
+                ok: t.statusCode === 'COMPLETED',
+                warn: t.statusCode === 'IN_PROGRESS'
+              }">
+                {{ t.statusCode | lk:'correspondenceStatus' }}
+              </span>
+            </td>
+
+            <td>
+              <button type="button" class="btn small primary" (click)="open(t)">{{ 'common.open' | t }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pager-modern">
+
+      <div class="pager-info">
+        {{ 'transactions.pagerLine' | t: { a: pageData.length, b: total } }}
+      </div>
+
+      <div class="pager-controls">
+
+        <button type="button" class="nav-btn" (click)="prev()" [disabled]="page===1">
+          {{ 'common.previous' | t }}
+        </button>
+
+        <button type="button" class="page-btn" *ngFor="let p of pages()" [class.active]="p === page" (click)="goToPage(p)">
+          {{ p }}
+        </button>
+
+        <button type="button" class="nav-btn" (click)="next()" [disabled]="page===pages().length">
+          {{ 'common.next' | t }}
+        </button>
+
+      </div>
+
+      <div class="pager-size">
+        <select [(ngModel)]="pageSize" (change)="changeSize()">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+        </select>
+      </div>
+
+    </div>
+  </section>
+</div>

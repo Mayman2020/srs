@@ -1,0 +1,425 @@
+  <div class="page-header">
+    <div>
+      <h2>{{ 'createTx.pageTitle' | t }}</h2>
+    </div>
+  </div>
+
+<div class="transaction-wrapper">
+
+  <!-- STEPPER -->
+  <div class="modern-horizontal-stepper">
+
+    <div class="progress-line">
+      <div class="progress-fill" [style.width]="getProgressWidth()"></div>
+    </div>
+
+    <div class="step"
+         *ngFor="let stepKey of wizardStepKeys; let i = index"
+         [class.active]="currentStep === i+1"
+         [class.completed]="currentStep > i+1"
+         (click)="goToStep(i+1)">
+
+      <div class="step-circle">
+        <ng-container *ngIf="currentStep > i+1; else icon">
+          <mat-icon class="icon" >check</mat-icon>
+        </ng-container>
+
+        <ng-template #icon>
+          <mat-icon *ngIf="i==0">description</mat-icon>
+          <mat-icon *ngIf="i==1">send</mat-icon>
+          <mat-icon *ngIf="i==2">edit_document</mat-icon>
+          <mat-icon *ngIf="i==3">attachment</mat-icon>
+          <mat-icon *ngIf="i==4">done_all</mat-icon>
+        </ng-template>
+      </div>
+
+      <div class="step-label">{{ stepKey | t }}</div>
+
+    </div>
+
+  </div>
+
+  <!-- CONTENT -->
+  <div class="step-content">
+    <div *ngIf="currentStep === 1">
+    <form [formGroup]="basicForm" class="step-form">
+
+        <div class="form-section">
+          <div class="form-grid">
+            <!-- TYPE -->
+            <app-generic-select
+              label="transactions.type"
+              [items]="transactionTypes"
+              primaryKey="key"
+              lookupTable="correspondenceType"
+              formControlName="type"
+              [required]="true">
+            </app-generic-select>
+
+            <app-generic-select
+              label="transactions.table.secrecy"
+              [items]="secrecyLevels"
+              primaryKey="key"
+              lookupTable="confidentiality"
+              formControlName="secrecy"
+              [required]="true">
+            </app-generic-select>           
+
+            <!-- SUBJECT -->
+            <div class="form-group">
+              <label class="field-label">
+                {{ 'createTx.subject' | t }}
+                <span   class="required-indicator">*</span>
+              </label>
+                 <input 
+                   class="custom-input"/>
+            </div>
+          </div>
+            <!-- DESCRIPTION -->
+            <div class="form-group">
+              <label class="field-label">{{ 'createTx.descriptionShort' | t }}</label>
+              <textarea class="custom-textarea">
+            </textarea>
+            </div>
+        </div>
+      </form>
+    </div>
+    <div *ngIf="currentStep === 2">
+      <form [formGroup]="secondaryForm" class="step-form">
+
+        <div class="single-form-grid">
+            <!-- <div class="form-group">
+]              <label class="field-label">
+                الجهة المرسلة
+                <span class="required-indicator">*</span>
+              </label>
+
+              <input
+                class="custom-input"
+                formControlName="from"
+                placeholder="اسم الجهة المرسلة"
+              />
+
+              <div class="error-text"
+                  *ngIf="secondaryForm.get('from')?.hasError('required') && secondaryForm.get('from')?.touched">
+                الجهة المرسلة مطلوبة
+              </div>
+            </div> -->
+
+            <!-- TO -->
+            <div class="form-group">
+              <label class="field-label">
+                {{ 'createTx.recipients' | t }}
+                <span class="required-indicator">*</span>
+              </label>
+
+              <input
+                class="custom-input"
+                readonly
+                [attr.placeholder]="'createTx.recipientsPlaceholder' | t"
+                (click)="openDepartmentDialog('to')"
+              />
+
+              <div class="tags-container" *ngIf="hasTo">
+                <span
+                  *ngFor="let item of toArray.controls; let i = index; trackBy: trackByIndex"
+                  class="modern-tag">
+
+                  <mat-icon>person</mat-icon>
+                  {{ item.value }}
+
+                  <button type="button"
+                          (click)="removeTo(i)"
+                          class="modern-tag-close">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </span>
+              </div>
+            </div>
+
+            <!-- CC -->
+            <div class="form-group">
+              <label class="field-label">
+                {{ 'createTx.cc' | t }}
+              </label>
+
+              <input
+                class="custom-input"
+                #ccInput
+                [attr.placeholder]="'createTx.ccPlaceholder' | t"
+                (click)="openDepartmentDialog('cc')"
+              />
+
+              <div class="tags-container" *ngIf="hasCc">
+                <span
+                  *ngFor="let item of ccArray.controls; let i = index; trackBy: trackByIndex"
+                  class="modern-tag">
+
+                  <mat-icon>content_copy</mat-icon>
+                  {{ item.value }}
+
+                  <button type="button"
+                          (click)="removeCc(i)"
+                          class="modern-tag-close">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </span>
+              </div>
+            </div>
+
+            <!-- DAYS -->
+            <div class="form-group">
+              <label class="field-label">
+                {{ 'createTx.maxDays' | t }}
+                <span class="required-indicator">*</span>
+              </label>
+
+              <input
+                class="custom-input"
+                type="number"
+                formControlName="maxDays"
+                min="1"
+                max="30"
+                [attr.placeholder]="'createTx.maxDaysPlaceholder' | t"
+              />
+            </div>
+
+          </div>
+
+
+      </form>
+    </div>
+    <div *ngIf="currentStep === 3">
+
+      
+    <form [formGroup]="letterForm" class="step-form">
+      <div class="letter-layout">
+
+      <!-- Templates Panel -->
+      <div class="templates-panel">
+        <h3>{{ 'createTx.letterTemplatesHeading' | t }}</h3>
+
+            <div
+              class="template-card"
+              *ngFor="let t of letterTemplates"
+              [class.active]="selectedTemplateKey === t.key"
+              (click)="onTemplateChange(t.key)">
+              <div class="template-title">
+                {{ letterTemplateTitle(t.key) }}
+              </div>
+
+              <!-- <div class="template-preview">
+                {{ t.label }} - قالب رسمي جاهز
+              </div> -->
+            </div>
+          </div>
+
+          <!-- Editor -->
+          <!-- <div class="editor-panel">
+            <editor
+              apiKey="..."
+              formControlName="letterContent"
+              [init]="editorInit">
+            </editor>
+          </div> -->
+
+          <!-- Editor Panel -->
+          <div class="editor-panel">
+            <angular-editor
+              formControlName="letterContent"
+              [config]="editorConfig">
+            </angular-editor>
+          </div>
+        </div>
+    </form>
+
+    </div>
+    <div *ngIf="currentStep === 4">
+      <form class="step-form">
+        <div class="attachments-wrapper">
+
+          <!-- Upload Box -->
+          <div class="upload-box"
+              (click)="fileInput.click()"
+              (dragover)="onDragOver($event)"
+              (drop)="onFileDrop($event)">
+
+            <mat-icon class="upload-icon">cloud_upload</mat-icon>
+
+            <h3>إضافة مرفقات</h3>
+
+            <p>
+              اسحب الملفات هنا أو اضغط للاختيار
+            </p>
+
+            <span class="file-note">
+              المسموح: PDF - Word - Excel - Images
+            </span>
+
+            <input
+              #fileInput
+              type="file"
+              multiple
+              hidden
+              (change)="onFileSelected($event)" />
+
+          </div>
+
+          <!-- Files List -->
+          <div class="attachments-list" *ngIf="attachments.length">
+
+            <div
+                class="attachment-card"
+                *ngFor="let attachment of attachments; let i = index">
+
+                <div class="file-icon">
+                  <mat-icon>attach_file</mat-icon>
+                </div>
+
+                <div class="file-info">
+
+                  <input
+                    class="attachment-name"
+                    [(ngModel)]="attachment.name"
+                    [ngModelOptions]="{standalone:true}"
+                    name="name{{i}}"
+                    placeholder="اسم المرفق" />
+
+                  <textarea
+                    class="attachment-description"
+                    [(ngModel)]="attachment.description"
+                    [ngModelOptions]="{standalone:true}"
+                    name="desc{{i}}"
+                    placeholder="وصف المرفق (اختياري)">
+                  </textarea>
+
+                  <div class="file-size">
+                    {{ formatFileSize(attachment.file.size) }}
+                  </div>
+
+                </div>
+
+                <button
+                  type="button"
+                  class="delete-file"
+                  (click)="removeAttachment(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+
+              </div>
+
+          </div>
+
+        </div>
+
+      </form>
+    </div>
+    <div *ngIf="currentStep === 5" class="completion-wrapper">
+
+      <!-- Title -->
+      <h2 class="completion-title">
+        {{ 'createTx.done.title' | t }}
+      </h2>
+
+      <p class="completion-subtitle">
+        {{ 'createTx.done.subtitle' | t }}
+      </p>
+
+      <!-- Transaction Summary Card -->
+      <div class="summary-card">
+
+        <div class="summary-row">
+          <span class="label">{{ 'createTx.summary.ref' | t }}</span>
+          <span class="value highlight">
+            {{ 'TRX-2024-00125' }}
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="label">{{ 'createTx.summary.type' | t }}</span>
+          <span class="value">
+            {{ basicForm.value.type | lk:'correspondenceType' }}
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="label">{{ 'createTx.summary.secrecy' | t }}</span>
+          <span class="value">
+            {{ basicForm.value.secrecy | lk:'confidentiality' }}
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="label">{{ 'createTx.summary.maxDays' | t }}</span>
+          <span class="value">
+            {{ secondaryForm.value.maxDays }}{{ 'createTx.daysUnit' | t }}
+          </span>
+        </div>
+
+        <div class="transaction-barcode">
+            <svg #barcode></svg>
+            <div class="barcode-text">
+              {{ transactionNumber }}
+            </div>
+          </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="completion-actions">
+
+        <button type="button" class="btn-outline">
+          <mat-icon>visibility</mat-icon>
+          {{ 'createTx.done.viewTx' | t }}
+        </button>
+
+        <button type="button" class="btn-primary">
+          <mat-icon>add</mat-icon>
+          {{ 'createTx.done.createAnother' | t }}
+        </button>
+
+        <button type="button" class="btn-success">
+          <mat-icon>print</mat-icon>
+          {{ 'createTx.done.printLetter' | t }}
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="step-actions">
+      <button
+        type="button"
+        class="btn-outline"
+        *ngIf="currentStep > 1"
+        (click)="goToStep(currentStep - 1)">
+
+        <mat-icon>arrow_forward</mat-icon>
+        {{ 'createTx.nav.prev' | t }}
+      </button>
+
+      <button
+        type="button"
+        class="btn-primary"
+        *ngIf="currentStep < 5"
+        (click)="goToStep(currentStep + 1)">
+
+        {{ 'createTx.nav.next' | t }}
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <button
+        type="button"
+        class="btn-success"
+        *ngIf="currentStep === 5">
+
+        {{ 'createTx.done.finish' | t }}
+        <mat-icon>check_circle</mat-icon>
+      </button>
+
+    </div>
+  </div>
+
+  
+
+</div>
+

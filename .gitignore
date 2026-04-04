@@ -1,0 +1,49 @@
+# Maven / Java
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+*.iml
+.idea/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# Node / frontend
+**/node_modules/
+**/dist/
+**/.angular/
+.npm
+.eslintcache
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Local & secrets (never commit)
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.properties
+*.pem
+*.p12
+*.jks
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Test / coverage
+**/coverage/
+**/.nyc_output/
+
+# Misc
+*.tmp
+*.temp

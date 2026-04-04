@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: admin-communications-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ac_communications}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+springdoc:
+  api-docs:
+    path: /api/v1/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+camunda.bpm:
+  admin-user:
+    id: ${CAMUNDA_BPM_ADMIN_USER:admin}
+    password: ${CAMUNDA_BPM_ADMIN_PASSWORD:}
+  webapp:
+    enabled: false
+  job-execution:
+    enabled: true
+
+ac:
+  security:
+    jwt:
+      # HS256 — minimum 32 UTF-8 bytes; set AC_JWT_SECRET (see README)
+      secret: ${AC_JWT_SECRET:}
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.gov.ac.correspondence: INFO
+    org.camunda: WARN

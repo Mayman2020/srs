@@ -1,0 +1,54 @@
+<div class="vt-wrap" dir="rtl" *ngIf="data as chartData">
+  <ngx-interactive-org-chart
+    class="vt-chart"
+    [data]="chartData"
+    layout="vertical"
+    [isRtl]="true"
+    [collapsible]="true"
+    [displayChildrenCount]="false"
+    [themeOptions]="themeOptions"
+    [minZoom]="0.45"
+    [maxZoom]="2.5"
+    [highlightZoomNodeWidthRatio]="0.32"
+    [highlightZoomNodeHeightRatio]="0.22"
+    [highlightZoomMinimum]="0.9"
+  >
+    <ng-template #nodeTemplate let-node="node">
+      <section
+        class="vt-card"
+        [style.--d]="(node?.data?.delayMs ?? 0) + 'ms'"
+        [class.done]="node?.data?.status === 'done'"
+        [class.active]="node?.data?.status === 'active'"
+        [class.pending]="node?.data?.status === 'pending'"
+      >
+        <header class="vt-card__head">
+          <div class="vt-card__title">{{ node?.data?.title ?? node?.name }}</div>
+
+          <div class="vt-card__tools">
+            <button type="button" class="vt-icbtn" title="بحث">
+              <span class="vt-ic">🔍</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="vt-card__note" *ngIf="node?.data?.note">
+          {{ node.data.note }}
+        </div>
+
+        <footer class="vt-card__foot">
+          <div class="vt-card__user">{{ node?.data?.user }}</div>
+
+          <!-- LTR داخل RTL -->
+          <div
+            class="vt-card__date"
+            *ngIf="node?.data?.date"
+            dir="ltr"
+            style="unicode-bidi:isolate"
+          >
+            {{ node.data.date | date:'d MMM y • hh:mm a' }}
+          </div>
+        </footer>
+      </section>
+    </ng-template>
+  </ngx-interactive-org-chart>
+</div>

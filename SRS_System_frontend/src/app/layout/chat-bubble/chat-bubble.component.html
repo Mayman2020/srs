@@ -1,0 +1,86 @@
+<button class="ai-fab" (click)="toggle()">
+   <img src="assets/img/ai_icon.png" alt="AI" class="ai-icon" />
+</button>
+
+<section class="ai-panel" [class.show]="open">
+
+  <!-- HEADER -->
+
+  <div class="ai-head">
+
+    <div class="ai-brand">
+
+      <div>
+           <img src="assets/img/ai_icon.png" alt="AI" class="ai-icon" />
+      </div>
+
+      <div class="ai-title">
+        <b>المساعد الذكي</b>
+      </div>
+
+    </div>
+
+    <button class="ai-close" (click)="open=false">
+      ✕
+    </button>
+
+  </div>
+
+
+  <!-- CHAT -->
+
+  <div class="ai-body">
+
+    <div
+      class="ai-msg"
+      *ngFor="let m of messages"
+      [class.me]="m.role==='user'"
+      [class.bot]="m.role==='bot'">
+
+      <div class="ai-bubble">
+
+        <div class="ai-content" [innerHTML]="m.text"></div>
+
+        <span class="ai-time">
+          {{m.time}}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- QUICK ACTIONS -->
+
+  <div class="ai-actions">
+
+    <button
+      class="ai-action"
+      *ngFor="let s of suggestions"
+      (click)="sendSuggestion(s)">
+
+      {{s}}
+
+    </button>
+
+  </div>
+
+
+  <!-- INPUT -->
+
+  <div class="ai-foot">
+
+    <button class="ai-send" (click)="send()">
+      إرسال
+    </button>
+
+    <input
+      [(ngModel)]="query"
+      (keydown.enter)="send()"
+      placeholder="اسألني عن معاملة..." />
+
+  </div>
+
+</section>

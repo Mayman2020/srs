@@ -1,0 +1,380 @@
+<div id="particles-js"></div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <h2>{{ 'dashboard.pageTitle' | t }}</h2>
+  </div>
+</div>
+
+<section class="grid c2 dashboard-top-section">
+
+  <!-- ================= SLA CARD ================= -->
+  <div class="card sla-summary">
+
+    <div class="card-title">
+      <h3>{{ 'dashboard.slaCardTitle' | t }}</h3>
+    </div>
+
+    <!-- KPI -->
+
+    <div class="sla-kpi">
+
+      <div class="sla-percent">
+        {{ animatedSlaPercent }}%
+      </div>
+
+      <div class="sla-label">
+        {{ 'dashboard.slaKpiLabel' | t }}
+      </div>
+
+    </div>
+
+
+    <!-- stats -->
+
+    <div class="sla-stats">
+
+      <div class="sla-item ok">
+        <mat-icon>check_circle</mat-icon>
+        <span>{{ 'dashboard.slaOnTime' | t }}</span>
+        <b>1,073</b>
+      </div>
+
+      <div class="sla-item bad">
+        <mat-icon>error</mat-icon>
+        <span>{{ 'dashboard.slaLate' | t }}</span>
+        <b>27</b>
+      </div>
+
+      <div class="sla-item warn">
+        <mat-icon>pending_actions</mat-icon>
+        <span>{{ 'dashboard.slaAction' | t }}</span>
+        <b>148</b>
+      </div>
+
+    </div>
+
+
+    <!-- progress -->
+
+    <div class="sla-progress">
+
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="animatedSlaPercent"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ================= KPI GRID ================= -->
+  <div class="grid kpi-grid">
+
+  <div class="kpi-card total">
+
+    <div class="kpi-icon">
+      <mat-icon>dashboard</mat-icon>
+    </div>
+
+    <div class="kpi-content">
+      <div class="kpi-title">
+        {{ 'dashboard.kpiTotal' | t }}
+      </div>
+
+      <div class="kpi-value">
+        {{ format(total) }}
+      </div>
+
+      <div class="kpi-desc">
+        {{ 'dashboard.kpiTotalDesc' | t }}
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="kpi-card done">
+
+    <div class="kpi-icon">
+      <mat-icon>check_circle</mat-icon>
+    </div>
+
+    <div class="kpi-content">
+      <div class="kpi-title">
+        {{ 'dashboard.kpiDone' | t }}
+      </div>
+
+      <div class="kpi-value">
+        {{ format(done) }}
+      </div>
+
+      <div class="kpi-desc">
+        {{ 'dashboard.kpiDoneDesc' | t }}
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="kpi-card progress">
+
+    <div class="kpi-icon">
+      <mat-icon>pending_actions</mat-icon>
+    </div>
+
+    <div class="kpi-content">
+      <div class="kpi-title">
+        {{ 'dashboard.kpiProgress' | t }}
+      </div>
+
+      <div class="kpi-value">
+        {{ format(inProgress) }}
+      </div>
+
+      <div class="kpi-desc">
+        {{ 'dashboard.kpiProgressDesc' | t }}
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="kpi-card incoming">
+
+    <div class="kpi-icon">
+      <mat-icon>move_to_inbox</mat-icon>
+    </div>
+
+    <div class="kpi-content">
+      <div class="kpi-title">
+        {{ 'dashboard.kpiInbound' | t }}
+      </div>
+
+      <div class="kpi-value">
+        {{ format(incoming) }}
+      </div>
+
+      <div class="kpi-desc">
+        {{ 'dashboard.kpiInboundDesc' | t }}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</section>
+<div class="  "></div>
+
+<section class="grid c3" style="margin-top:12px">
+  <div class="card sla-card">
+
+    <div class="card-title">
+      <h3>{{ 'dashboard.slaAlertsTitle' | t }}</h3>
+    </div>
+
+    <div class="sla-alert-list">
+
+      <div class="sla-alert-row danger">
+
+        <div class="sla-alert-icon">
+          <mat-icon>warning</mat-icon>
+        </div>
+
+        <div class="sla-alert-content">
+          <div class="sla-alert-id">1445/10293</div>
+          <div class="sla-alert-text">{{ 'dashboard.slaAlert1Text' | t }}</div>
+        </div>
+
+        <div class="sla-alert-badge today">
+          {{ 'dashboard.badgeToday' | t }}
+        </div>
+
+      </div>
+
+
+      <div class="sla-alert-row warn">
+
+        <div class="sla-alert-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+
+        <div class="sla-alert-content">
+          <div class="sla-alert-id">1445/10297</div>
+          <div class="sla-alert-text">{{ 'dashboard.slaAlert2Text' | t }}</div>
+        </div>
+
+        <div class="sla-alert-badge warn">
+          {{ 'dashboard.badge24h' | t }}
+        </div>
+
+      </div>
+
+
+      <div class="sla-alert-row">
+
+        <div class="sla-alert-icon">
+          <mat-icon>pending_actions</mat-icon>
+        </div>
+
+        <div class="sla-alert-content">
+          <div class="sla-alert-id">1445/10301</div>
+          <div class="sla-alert-text">{{ 'dashboard.slaAlert3Text' | t }}</div>
+        </div>
+
+        <div class="sla-alert-badge">
+          {{ 'dashboard.badgeFollow' | t }}
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="sla-alert-footer">
+      <button type="button">{{ 'dashboard.viewAllAlerts' | t }}</button>
+    </div>
+
+  </div>
+  <div class="card">
+    <div class="title">
+      <h3>{{ 'dashboard.statusChartTitle' | t }}</h3>
+    </div>
+    <div class="chart-container">
+      <canvas #statusDonut></canvas>
+    </div>
+    <div class="muted" style="margin-top:8px">{{ 'dashboard.statusChartHint' | t }}</div>
+  </div>
+
+  <div class="card">
+    <div class="title">
+      <h3>{{ 'dashboard.deptChartTitle' | t }}</h3>
+    </div>
+    <div class="chart-container">
+      <canvas #deptBar></canvas>
+    </div>
+    <div class="muted" style="margin-top:8px">{{ 'dashboard.deptChartHint' | t }}</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="card" style="margin-top:12px">
+  <div class="title">
+    <h3>{{ 'dashboard.recentTitle' | t }}</h3>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'dashboard.thRef' | t }}</th>
+          <th>{{ 'dashboard.thType' | t }}</th>
+          <th>{{ 'dashboard.thSubject' | t }}</th>
+          <th>{{ 'dashboard.thCreated' | t }}</th>
+          <th>{{ 'dashboard.thStatus' | t }}</th>
+          <th>{{ 'dashboard.thActions' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tx of transactions">
+          <td><span class="link">{{ tx.id }}</span></td>
+          <td>{{ tx.typeCode | lk:'correspondenceType' }}</td>
+          <td>{{ tx.subject }}</td>
+          <td>{{ tx.created }}</td>
+          <td>
+            <span class="pill" [ngClass]="{
+                ok: tx.statusCode === 'COMPLETED',
+                warn: tx.statusCode === 'IN_PROGRESS'
+              }">
+              {{ tx.statusCode | lk:'correspondenceStatus' }}
+            </span>
+          </td>
+          <td>
+            <button type="button" class="btn" (click)="openTransctions()">{{ 'common.open' | t }}</button>
+          </td>
+        </tr>
+
+        <tr *ngIf="transactions.length === 0">
+          <td colspan="6" class="muted">{{ 'dashboard.noTransactions' | t }}</td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+  <div id="dashTxPager"></div>
+</section>
+
+<div class="divider"></div>
+
+
+<section class="grid c2" style="margin-top:12px" id="aiAnalytics">
+  <div class="card ai-card">
+
+    <div class="ai-title">
+      <mat-icon>insights</mat-icon>
+      <h3>{{ 'dashboard.aiTitle' | t }}</h3>
+    </div>
+
+    <div class="ai-grid">
+
+      <div class="ai-item">
+
+        <div class="ai-label">
+          {{ 'dashboard.aiRisk' | t }}
+          <span class="ai-tag">{{ 'dashboard.aiRiskTag' | t }}</span>
+        </div>
+
+        <div class="ai-value danger">
+          {{ aiRisk }}%
+        </div>
+
+      </div>
+
+
+      <div class="ai-item">
+
+        <div class="ai-label">
+          {{ 'dashboard.aiConfidence' | t }}
+          <span class="ai-tag">{{ 'dashboard.aiConfidenceTag' | t }}</span>
+        </div>
+
+        <div class="ai-value ok">
+          {{ aiConfidence }}%
+        </div>
+
+      </div>
+
+
+      <div class="ai-item wide">
+
+        <div class="ai-label">
+          {{ 'dashboard.aiForecast' | t }}
+        </div>
+
+        <div class="ai-value">
+          {{ aiNextMonth }}
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="ai-note">
+      {{ 'dashboard.aiDisclaimer' | t }}
+    </div>
+
+  </div>
+  <div class="card">
+    <div class="title">
+      <h3>{{ 'dashboard.aiSplitTitle' | t }}</h3>
+    </div>
+    <div class="grid c2">
+      <div class="chart-box" class="chart-container"><canvas #aiStatusDonut></canvas></div>
+      <div class="chart-box" class="chart-container"><canvas #aiPriorityBar></canvas></div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"><b id="toastTitle">{{ 'common.toastOk' | t }}</b>
+  <p id="toastMsg">{{ 'common.dash' | t }}</p>
+</div>

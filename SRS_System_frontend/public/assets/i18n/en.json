@@ -1,0 +1,287 @@
+{
+  "common": {
+    "all": "All",
+    "apply": "Apply",
+    "clear": "Clear",
+    "open": "Open",
+    "previous": "Previous",
+    "next": "Next",
+    "dash": "—",
+    "moreInfo": "More information",
+    "results": "results",
+    "showing": "Showing",
+    "of": "of",
+    "phoneNA": "—",
+    "roleNA": "—",
+    "empty": "No data",
+    "toastOk": "Done",
+    "close": "Close"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "users": "Users",
+    "roles": "Roles & permissions",
+    "reports": "Reports & statistics",
+    "badge": {
+      "kpis": "KPIs",
+      "list": "List",
+      "rbac": "RBAC",
+      "matrix": "Matrix",
+      "charts": "Charts"
+    }
+  },
+  "sidebar": {
+    "demoUser": "Demo user",
+    "demoRole": "Employee"
+  },
+  "transactions": {
+    "pageTitle": "Transactions",
+    "searchTitle": "Search transactions",
+    "searchSubtitle": "Quick filters",
+    "refNo": "Reference",
+    "subject": "Subject",
+    "fromEntity": "Sender",
+    "type": "Type",
+    "status": "Status",
+    "listTitle": "Transaction list",
+    "resultsCount": "{{n}} results",
+    "pagerLine": "Showing {{a}} of {{b}} results",
+    "card": {
+      "all": "All transactions",
+      "outbound": "Outbound",
+      "inbound": "Inbound",
+      "archive": "Archive"
+    },
+    "table": {
+      "no": "No.",
+      "type": "Type",
+      "subject": "Subject",
+      "entity": "Entity",
+      "sla": "SLA",
+      "secrecy": "Classification",
+      "attachments": "Attachments",
+      "status": "Status"
+    },
+    "toPrefix": "To"
+  },
+  "transactionsList": {
+    "title": "Transactions",
+    "entity": "Entity",
+    "search": "Search",
+    "back": "Back",
+    "refNo": "Reference",
+    "subject": "Subject",
+    "open": "Open"
+  },
+  "dashboard": {
+    "pageTitle": "Dashboard",
+    "slaCardTitle": "Executive summary — SLA",
+    "slaKpiLabel": "Overall compliance index (last 30 days)",
+    "slaOnTime": "On time",
+    "slaLate": "Late",
+    "slaAction": "Action required",
+    "slaAlertsTitle": "SLA alerts",
+    "slaAlert1Text": "Response deadline approaching",
+    "slaAlert2Text": "Returned — completion required",
+    "slaAlert3Text": "In progress with department",
+    "badgeToday": "Today",
+    "badge24h": "24 hours",
+    "badgeFollow": "Follow-up",
+    "viewAllAlerts": "View all alerts",
+    "statusChartTitle": "Transaction statuses",
+    "statusChartHint": "Status mix (new / in progress / returned / completed).",
+    "deptChartTitle": "Department productivity (Top)",
+    "deptChartHint": "Short comparison of throughput.",
+    "kpiTotal": "Total transactions",
+    "kpiTotalDesc": "Last 30 days",
+    "kpiDone": "Completed",
+    "kpiDoneDesc": "Within approved workflow",
+    "kpiProgress": "In progress",
+    "kpiProgressDesc": "Needs executive follow-up",
+    "kpiInbound": "Inbound",
+    "kpiInboundDesc": "Inbound to the organization",
+    "recentTitle": "Recent transactions",
+    "thRef": "Reference",
+    "thType": "Type",
+    "thSubject": "Subject",
+    "thCreated": "Created",
+    "thStatus": "Status",
+    "thActions": "Actions",
+    "noTransactions": "No transactions",
+    "aiTitle": "AI analytics",
+    "aiRisk": "Risk index",
+    "aiRiskTag": "(experimental)",
+    "aiConfidence": "Forecast confidence",
+    "aiConfidenceTag": "(Demo)",
+    "aiForecast": "Expected transaction volume next month",
+    "aiDisclaimer": "Forecasts use local browser data and are not official decisions.",
+    "aiSplitTitle": "Split by status / priority",
+    "chart": {
+      "count": "Count",
+      "priorityAxis": "Priority"
+    }
+  },
+  "users": {
+    "pageTitle": "Users",
+    "addUser": "Add user",
+    "searchPlaceholder": "Search…",
+    "filterStatusAll": "All statuses",
+    "statusActive": "Active",
+    "statusSuspended": "Suspended",
+    "thName": "Name",
+    "thUsername": "Username",
+    "thRole": "Role",
+    "thDept": "Department",
+    "thEmail": "Email",
+    "thPhone": "Phone",
+    "thStatus": "Status",
+    "thActions": "Actions",
+    "pagerCount": "Users",
+    "msg": {
+      "mutationsViaApi": "User changes are done via server APIs when available."
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "suspend": "Suspend account",
+      "activate": "Activate account"
+    },
+    "pagerLabel": "Users: {{n}}"
+  },
+  "notifications": {
+    "markAllRead": "Mark all as read",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "filterRead": "Read",
+    "emptyTitle": "No notifications",
+    "emptyAll": "No notifications yet",
+    "emptyUnread": "All notifications are read",
+    "newBadge": "New",
+    "important": "Important",
+    "deleteTitle": "Delete",
+    "viewTxTitle": "View transaction",
+    "deleteConfirm": "Delete this notification?",
+    "defaultTitle": "Notification",
+    "type": {
+      "new-transaction": "New transaction",
+      "approval": "Approval",
+      "reminder": "Reminder",
+      "system": "System"
+    },
+    "agoMinutes": "{{m}} min ago",
+    "agoHours": "{{h}} h ago",
+    "agoDays": "{{d}} d ago"
+  },
+  "roles": {
+    "pageTitle": "Roles & permissions",
+    "usersCount": "users",
+    "viewPerms": "View detailed permissions",
+    "modalTitle": "Permissions for role",
+    "permsHeading": "Permissions:",
+    "permsEmpty": "Detailed permissions will appear when the server exposes a permission matrix API.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "close": "Close"
+  },
+  "reports": {
+    "title": "Reports & statistics",
+    "exportPdf": "Export PDF",
+    "exportExcel": "Export Excel",
+    "movementTitle": "Transaction movement",
+    "statusDone": "Completed",
+    "statusLate": "Overdue"
+  },
+  "createTx": {
+    "pageTitle": "Create transaction",
+    "wizard": {
+      "step1": "Basic details",
+      "step2": "Recipients",
+      "step3": "Letter",
+      "step4": "Attachments",
+      "step5": "Done"
+    },
+    "subject": "Subject",
+    "descriptionShort": "Short description (optional)",
+    "recipients": "Recipients",
+    "recipientsPlaceholder": "Click to select organizations",
+    "cc": "CC (optional)",
+    "ccPlaceholder": "Click to select organizations",
+    "maxDays": "Response time (days)",
+    "maxDaysPlaceholder": "Number of days",
+    "letterTemplatesHeading": "Letter templates",
+    "summary": {
+      "ref": "Reference:",
+      "type": "Type:",
+      "secrecy": "Classification:",
+      "maxDays": "Response time:"
+    },
+    "done": {
+      "title": "Transaction created",
+      "subtitle": "It is registered in the system; you can track it from the dashboard.",
+      "viewTx": "View transaction",
+      "createAnother": "Create another",
+      "printLetter": "Print letter",
+      "finish": "Finish"
+    },
+    "daysUnit": " days",
+    "nav": {
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "validation": {
+      "required": "Please fill all required fields"
+    },
+    "submit": {
+      "success": "Transaction created successfully",
+      "errorGeneric": "Could not create the transaction",
+      "notImplementedDetail": "Full create API is not enabled on the server yet",
+      "unauthorized": "You are not authorized",
+      "badRequest": "Invalid data",
+      "serverError": "Server error — try again later"
+    },
+    "letterTemplate": {
+      "default": "Standard official letter",
+      "reminder": "Reminder letter",
+      "approval": "Approval letter",
+      "rejection": "Apology / rejection letter",
+      "admin-circular": "Administrative circular",
+      "ministerial-circular": "Ministerial circular",
+      "no-letter": "No letter"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Administrative communications",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "demo": "Quick demo"
+  },
+  "auth": {
+    "logout": "Sign out"
+  },
+  "topbar": {
+    "markAllRead": "Mark all as read",
+    "notificationsTitle": "Notifications",
+    "notificationsIconTitle": "Notifications",
+    "unreadCount": "{{n}} unread",
+    "demoUserName": "User",
+    "viewAllNotifications": "View all notifications"
+  },
+  "departmentTree": {
+    "title": "Select organizations",
+    "selectAll": "Select all",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "genericSelect": {
+    "placeholder": "Choose…"
+  },
+  "errors": {
+    "http": {
+      "generic": "Something went wrong",
+      "notImplemented": "Not implemented yet"
+    }
+  }
+}

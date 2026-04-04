@@ -1,0 +1,380 @@
+<div class="page-wrapper">
+
+
+  <div class="page-header-container">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h2>{{ 'transactions.pageTitle' | t }}</h2>
+      </div>
+    </div>
+    <app-create-transaction-button></app-create-transaction-button>
+
+  </div>
+
+
+  <!-- DASHBOARD CARDS -->
+  <section class="dashboard-cards">
+
+    <!-- All Transactions -->
+    <div class="dash-card blue" (click)="openType('')">
+
+      <div class="card-icon">
+        <i class="fa-solid fa-chart-column"></i>
+      </div>
+
+      <div class="card-content">
+        <div class="card-number">{{ dashTotal }}</div>
+        <div class="card-title">{{ 'transactions.card.all' | t }}</div>
+      </div>
+
+      <div class="card-footer">
+        {{ 'common.moreInfo' | t }}
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+
+    </div>
+
+
+    <!-- Outgoing -->
+    <div class="dash-card green" (click)="openType('OUTBOUND')">
+
+      <div class="card-icon">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+      </div>
+
+      <div class="card-content">
+        <div class="card-number">{{ dashOutbound }}</div>
+        <div class="card-title">{{ 'transactions.card.outbound' | t }}</div>
+      </div>
+
+      <div class="card-footer">
+        {{ 'common.moreInfo' | t }}
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+
+    </div>
+
+
+    <!-- Incoming -->
+    <div class="dash-card red" (click)="openType('INBOUND')">
+
+      <div class="card-icon">
+        <i class="fa-solid fa-arrow-down"></i>
+      </div>
+
+      <div class="card-content">
+        <div class="card-number">{{ dashInbound }}</div>
+        <div class="card-title">{{ 'transactions.card.inbound' | t }}</div>
+      </div>
+
+      <div class="card-footer">
+        {{ 'common.moreInfo' | t }}
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+
+    </div>
+
+
+    <!-- Archive -->
+    <div class="dash-card yellow" (click)="openType('ARCHIVED')">
+
+      <div class="card-icon">
+        <i class="fa-solid fa-box-archive"></i>
+      </div>
+
+      <div class="card-content">
+        <div class="card-number">{{ dashCompleted }}</div>
+        <div class="card-title">{{ 'transactions.card.archive' | t }}</div>
+      </div>
+
+      <div class="card-footer">
+        {{ 'common.moreInfo' | t }}
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+
+    </div>
+
+  </section>
+
+  <div class="divider"></div>
+
+
+  <!-- SEARCH CARD -->
+  <section class="card search-card">
+
+    <div class="title">
+      <h3>{{ 'transactions.searchTitle' | t }}</h3>
+      <small>{{ 'transactions.searchSubtitle' | t }}</small>
+    </div>
+
+    <form (ngSubmit)="applyFilters()">
+
+      <div class="search-row">
+
+        <div class="field">
+          <label>{{ 'transactions.refNo' | t }}</label>
+          <input [(ngModel)]="fNo" name="fNo">
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactions.subject' | t }}</label>
+          <input [(ngModel)]="fSubject" name="fSubject">
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactions.fromEntity' | t }}</label>
+          <input [(ngModel)]="fFrom" name="fFrom">
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactions.type' | t }}</label>
+          <select [(ngModel)]="fType" name="fType" (change)="applyFilters()">
+            <option value="">{{ 'common.all' | t }}</option>
+            <option *ngFor="let typ of correspondenceTypes" [value]="typ.code">{{ typ.code | lk:'correspondenceType' }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactions.status' | t }}</label>
+          <select [(ngModel)]="fStatus" name="fStatus" (change)="applyFilters()">
+            <option value="">{{ 'common.all' | t }}</option>
+            <option *ngFor="let st of correspondenceStatuses" [value]="st.code">{{ st.code | lk:'correspondenceStatus' }}</option>
+          </select>
+        </div>
+
+        <div class="search-buttons">
+
+          <button class="btn primary" type="submit">
+            {{ 'common.apply' | t }}
+          </button>
+
+          <button class="btn clear" type="button" (click)="resetFilters()">
+            {{ 'common.clear' | t }}
+          </button>
+
+        </div>
+
+      </div>
+
+    </form>
+
+  </section>
+  <!-- <section class="grid c2">
+
+  <div class="card">
+    <div class="title"><h3>بحث المعاملات</h3><small>فلترة سريعة</small></div>
+
+    <div class="grid c2">
+      <div class="field">
+        <label>رقم المعاملة</label>
+        <input [(ngModel)]="fNo">
+      </div>
+
+      <div class="field">
+        <label>الموضوع</label>
+        <input [(ngModel)]="fSubject">
+      </div>
+
+      <div class="field">
+        <label>الجهة المرسلة</label>
+        <input [(ngModel)]="fFrom">
+      </div>
+
+      <div class="field">
+        <label>نوع المعاملة</label>
+        <select [(ngModel)]="fType">
+          <option value="">الكل</option>
+          <option>وارد</option>
+          <option>صادر</option>
+          <option>داخلية</option>
+          <option>خارجية</option>
+        </select>
+      </div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label>حالة المعاملة</label>
+        <select [(ngModel)]="fStatus">
+          <option value="">الكل</option>
+          <option>جديدة</option>
+          <option>قيد الإجراء</option>
+          <option>معادة</option>
+          <option>منجزة</option>
+          <option>مرفوضة</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:10px; display:flex; gap:8px">
+      <button class="btn primary" (click)="applyFilters()">تطبيق</button>
+      <button class="btn" (click)="resetFilters()">مسح</button>
+    </div>
+  </div>
+
+  <div class="card operational-card">
+  <div class="title">
+    <h3>ملاحظات تشغيلية</h3>
+    <small>لوحة متابعة</small>
+  </div>
+
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-icon ok">
+        <i class="fa-solid fa-route"></i>
+      </div>
+      <div class="op-content">
+        <div class="op-label">السير الإجرائي</div>
+        <div class="op-value">منضبط 98%</div>
+      </div>
+    </div>
+
+    <div class="op-item">
+      <div class="op-icon warn">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div class="op-content">
+        <div class="op-label">السرية</div>
+        <div class="op-value">حسب الدور</div>
+      </div>
+    </div>
+
+    <div class="op-item">
+      <div class="op-icon primary">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div class="op-content">
+        <div class="op-label">متوسط SLA</div>
+        <div class="op-value">4.2 يوم</div>
+      </div>
+    </div>
+
+    <div class="op-item">
+      <div class="op-icon danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="op-content">
+        <div class="op-label">متأخرة</div>
+        <div class="op-value">27 معاملة</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</section> -->
+
+
+
+  <!-- Table -->
+  <section class="card">
+    <div class="title">
+      <h3>{{ 'transactions.listTitle' | t }}</h3>
+      <small>{{ 'transactions.resultsCount' | t: { n: total } }}</small>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'transactions.table.no' | t }}</th>
+            <th>{{ 'transactions.table.type' | t }}</th>
+            <th>{{ 'transactions.table.subject' | t }}</th>
+            <th>{{ 'transactions.table.entity' | t }}</th>
+            <th>{{ 'transactions.table.sla' | t }}</th>
+            <th>{{ 'transactions.table.secrecy' | t }}</th>
+            <th>{{ 'transactions.table.attachments' | t }}</th>
+            <th>{{ 'transactions.table.status' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let t of pageData">
+            <td class="link">{{ t.id }}</td>
+
+            <td>
+              <span class="type-badge" [class.in]="t.typeCode==='INBOUND'" [class.out]="t.typeCode==='OUTBOUND'">
+                {{ t.typeCode | lk:'correspondenceType' }}
+              </span>
+            </td>
+
+            <td>
+              <div class="subject">
+                <div>{{ t.subject }}</div>
+                <small class="muted">{{ t.description }}</small>
+              </div>
+            </td>
+
+            <td>
+              <div>
+                <div>{{ t.from }}</div>
+                <small class="muted">{{ 'transactions.toPrefix' | t }} {{ t.to }}</small>
+              </div>
+            </td>
+
+            <td>
+              <div class="sla-bar">
+                <div class="bar" [style.width.%]="calcSla(t)"></div>
+              </div>
+            </td>
+
+            <td>
+              <span class="pill" [class.warn]="t.secrecy==='SECRET' || t.secrecy==='TOP_SECRET'" [class.ok]="t.secrecy==='NORMAL' || t.secrecy===''">
+                {{ t.secrecy ? (t.secrecy | lk:'confidentiality') : ('common.dash' | t) }}
+              </span>
+            </td>
+
+            <td>{{ t.attachments.length }}</td>
+
+            <td>
+              <span class="pill" [ngClass]="{
+                ok: t.statusCode === 'COMPLETED',
+                warn: t.statusCode === 'IN_PROGRESS'
+              }">
+                {{ t.statusCode | lk:'correspondenceStatus' }}
+              </span>
+            </td>
+
+            <td>
+              <button class="btn small primary" (click)="open(t)">{{ 'common.open' | t }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pager-modern">
+
+      <div class="pager-info">
+        {{ 'transactions.pagerLine' | t: { a: pageData.length, b: total } }}
+      </div>
+
+      <div class="pager-controls">
+
+        <button class="nav-btn" (click)="prev()" [disabled]="page===1">
+          {{ 'common.previous' | t }}
+        </button>
+
+        <button class="page-btn" *ngFor="let p of pages()" [class.active]="p === page" (click)="goToPage(p)">
+          {{ p }}
+        </button>
+
+        <button class="nav-btn" (click)="next()" [disabled]="page===pages().length">
+          {{ 'common.next' | t }}
+        </button>
+
+      </div>
+
+      <div class="pager-size">
+        <select [(ngModel)]="pageSize" (change)="changeSize()">
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+        </select>
+      </div>
+
+    </div>
+  </section>
+
+</div>

@@ -1,0 +1,30 @@
+<div class="form-group">
+
+  <label class="field-label">
+    {{ label | t }}
+    <span *ngIf="required" class="required-indicator">*</span>
+  </label>
+
+  <div class="combo-shell" [class.input-error]="hasError">
+
+    <select
+      class="custom-input"
+      [ngModel]="value"
+      (ngModelChange)="selectValue($event)"
+      (blur)="onTouched()"
+      [required]="required">
+
+      <option value="" disabled>
+        {{ placeholder | t }}
+      </option>
+
+      <option *ngFor="let item of items"
+              [ngValue]="optionValue(item)">
+        {{ getDisplayText(item) }}
+      </option>
+
+    </select>
+
+  </div>
+
+</div>

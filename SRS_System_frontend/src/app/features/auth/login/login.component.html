@@ -1,0 +1,132 @@
+<div class="login-shell">
+
+  <!-- ✅ الخلفية المتحركة داخل login-shell -->
+  <div id="particles-js"></div>
+
+  <!-- LEFT / HERO -->
+  <section class="login-hero">
+    <div class="hero-top">
+      <div class="hero-logo-wrapper">
+        <div class="logo-spotlight"></div>
+        <img class="hero-logo" src="assets/img/logo.png" alt="System Logo">
+      </div>
+
+      <div class="hero-text">
+        <h2>نظام تخطيط موارد المؤسسات الحكومي</h2>
+        <h3>Government ERP System</h3>
+        <p>
+          منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي،
+          تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030
+        </p>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feat">
+        <i class="icon">🤖</i>
+        <div class="feat-content">
+          <b>ذكاء اصطناعي متقدم</b>
+          <span>تحليلات ذكية وتوقعات مالية وإدارية تلقائية</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <i class="icon">⚖️</i>
+        <div class="feat-content">
+          <b>حوكمة رقمية شاملة</b>
+          <span>التزام كامل بمعايير الحوكمة والشفافية</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <i class="icon">📊</i>
+        <div class="feat-content">
+          <b>إدارة موارد متكاملة</b>
+          <span>مالية، موارد بشرية، مشتريات، ومخزون</span>
+        </div>
+      </div>
+
+      <div class="feat">
+        <i class="icon">🎯</i>
+        <div class="feat-content">
+          <b>رؤية المملكة 2030</b>
+          <span>دعم التحول الرقمي وتحقيق الأهداف الاستراتيجية</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="muted">
+      <div class="vision-badge"> 
+        <span>متوافق مع رؤية المملكة 2030</span>
+      </div>
+      <div class="copyright">
+        © 2024 نسخة — للاستخدام المؤسسي الحكومي
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT / LOGIN -->
+  <section class="login-panel">
+    <div class="login-card">
+      <div class="login-head">
+        <div class="login-logo-container">
+          <img class="login-logo" src="assets/img/logo.png" alt="Logo">
+          <div class="logo-glow"></div>
+        </div>
+
+        <h3>تسجيل الدخول</h3>
+        <div class="login-divider"></div>
+        <div class="sub">يرجى إدخال بيانات المستخدم للوصول إلى النظام</div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="login()">
+        <div class="grid">
+          <div class="field">
+            <label>
+              <i class="field-icon">👤</i>
+              اسم المستخدم
+            </label>
+            <input 
+              formControlName="username" 
+              placeholder="أدخل اسم المستخدم"
+              class="modern-input">
+          </div>
+
+          <div class="field">
+            <label>
+              <i class="field-icon">🔒</i>
+              كلمة المرور
+            </label>
+            <input 
+              type="password" 
+              formControlName="password" 
+              placeholder="••••••••"
+              class="modern-input">
+          </div>
+        </div>
+
+        <div class="login-actions">
+          <button class="btn btn-primary" type="submit">
+            <span>دخول إلى النظام</span>
+            <i class="arrow">←</i>
+          </button>
+
+          <a class="forgot" (click)="forgotPassword()">
+            <i class="help-icon">❓</i>
+            نسيت كلمة المرور؟
+          </a>
+        </div>
+      </form>
+
+      <!-- <div class="security-badge">
+        <i class="shield">🛡️</i>
+        <span>اتصال آمن ومشفر</span>
+      </div> -->
+
+      <div class="toast show" *ngIf="toast.show">
+        <b>{{ toast.title }}</b>
+        <p>{{ toast.message }}</p>
+      </div>
+    </div>
+  </section>
+</div>

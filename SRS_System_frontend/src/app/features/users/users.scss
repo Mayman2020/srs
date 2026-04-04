@@ -1,0 +1,216 @@
+
+/* ================= Filters ================= */
+
+.filters-modern {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filters-modern input,
+.filters-modern select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  background: white;
+}
+
+/* ================= Table ================= */
+
+.table-container {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.04);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+}
+
+th {
+  padding: 12px;
+  font-size: 13px;
+  text-align: right;
+  font-weight: 600;
+}
+
+td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #eef2f7;
+  font-size: 13px;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* ================= Avatar ================= */
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: #0B6E4F;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* ================= Badges ================= */
+
+.type-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.type-badge.in {
+  background: #e6f4ef;
+  color: #0B6E4F;
+}
+
+.type-badge.out {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ================= Actions ================= */
+
+.actions-mini {
+  display: flex;
+  gap: 6px;
+}
+
+.icon-btn {
+  border: none;
+  background: #f3f4f6;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.icon-btn:hover {
+  background: #e6f4ef;
+}
+
+.icon-btn.danger:hover {
+  background: #fee2e2;
+}
+
+/* ================= Pagination ================= */
+
+.pager-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  font-size: 13px;
+}
+
+.pager-info {
+  color: #6b7280;
+}
+
+.pager-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.page-btn {
+  min-width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.page-btn.active {
+  background: #0B6E4F;
+  color: white;
+}
+
+.nav-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+}
+
+.nav-btn.primary {
+  background: #0B6E4F;
+  color: white;
+  border: none;
+}
+
+/* ================= Modern Actions ================= */
+
+.actions-modern {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  font-size: 13px;
+}
+
+.action-btn i {
+  pointer-events: none;
+}
+
+.action-btn.edit {
+  color: #0B6E4F;
+}
+
+.action-btn.edit:hover {
+  background: #e6f4ef;
+  transform: translateY(-2px);
+}
+
+.action-btn.toggle {
+  color: #d97706;
+}
+
+.action-btn.toggle:hover {
+  background: #fef3c7;
+  transform: translateY(-2px);
+}
+
+.action-btn.delete {
+  color: #dc2626;
+}
+
+.action-btn.delete:hover {
+  background: #fee2e2;
+  transform: translateY(-2px);
+}

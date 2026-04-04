@@ -1,0 +1,827 @@
+
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <h2>تفاصيل المعاملة</h2>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     STATS BAR
+══════════════════════════════════════════ -->
+<div class="stats-bar" *ngIf="transaction">
+
+  <div class="stat-card stat-success">
+    <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="stat-info">
+      <span class="stat-value">{{ completedSteps }}</span>
+      <span class="stat-label">مراحل مكتملة</span>
+    </div>
+  </div>
+
+  <div class="stat-card"
+       [class.stat-warning]="transaction.remainingDays > 0 && transaction.remainingDays <= 3"
+       [class.stat-danger]="transaction.remainingDays === 0"
+       [class.stat-neutral]="transaction.remainingDays > 3">
+    <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+    <div class="stat-info">
+      <span class="stat-value">{{ transaction.remainingDays }}</span>
+      <span class="stat-label">أيام متبقية للرد</span>
+    </div>
+  </div>
+
+  <div class="stat-card stat-info">
+    <div class="stat-icon"><i class="fa-solid fa-paperclip"></i></div>
+    <div class="stat-info">
+      <span class="stat-value">{{ transaction.attachments?.length || 0 }}</span>
+      <span class="stat-label">المرفقات</span>
+    </div>
+  </div>
+
+  <div class="stat-card stat-purple">
+    <div class="stat-icon"><i class="fa-solid fa-comment-dots"></i></div>
+    <div class="stat-info">
+      <span class="stat-value">{{ transaction.notes?.length || 0 }}</span>
+      <span class="stat-label">التعليقات</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MAIN LAYOUT
+══════════════════════════════════════════ -->
+
+<div class="transaction-tabs">
+
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'details'"
+    (click)="activeTab='details'">
+
+    <i class="fa-solid fa-circle-info"></i>
+    التفاصيل
+  </button>
+
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'workflow'"
+    (click)="activeTab='workflow'">
+
+    <i class="fa-solid fa-route"></i>
+    مسار المعاملة
+  </button>
+
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'editor'"
+    (click)="activeTab='editor'">
+
+    <i class="fa-solid fa-pen"></i>
+    الرد
+  </button>
+
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'attachments'"
+    (click)="activeTab='attachments'">
+
+    <i class="fa-solid fa-paperclip"></i>
+    المرفقات
+  </button>
+
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'notes'"
+    (click)="activeTab='notes'">
+
+    <i class="fa-solid fa-comments"></i>
+    الملاحظات
+  </button>
+
+    <button
+    class="tab-btn"
+    [class.active]="activeTab === 'related'"
+    (click)="activeTab='related'">
+    <i class="fa-solid fa-diagram-project"></i>
+    المعاملات المرتبطة
+  </button>
+
+
+
+</div>
+<div class="details-layout" *ngIf="transaction">
+
+  <!-- ─── MAIN COLUMN ─── -->
+  <div class="details-main" >
+
+ <!-- BASIC INFO -->
+
+<div class="card" *ngIf="activeTab==='details'">
+
+  <div class="card-header">
+
+    <div class="card-header-title">
+      <div class="header-icon">
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+      <h3>البيانات الأساسية</h3>
+    </div>
+
+    <span class="status-badge" [ngClass]="'badge-' + transaction.statusClass">
+      {{ transaction.status }}
+    </span>
+
+  </div>
+
+
+
+  <div class="info-grid">
+
+
+    <!-- ID -->
+    <div class="info-item">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-hashtag"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">رقم المعاملة</span>
+        <span class="info-value">{{ transaction.id }}</span>
+      </div>
+
+    </div>
+
+
+
+    <!-- TYPE -->
+    <div class="info-item">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">النوع</span>
+        <span class="info-value">{{ transaction.type }}</span>
+      </div>
+
+    </div>
+
+
+
+    <!-- CREATED -->
+    <div class="info-item">
+
+      <div class="info-icon">
+        <i class="fa-regular fa-calendar"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">تاريخ الإنشاء</span>
+        <span class="info-value">
+          {{ transaction.created | date:'d MMM y' : '' : 'en' }}
+        </span>
+      </div>
+
+    </div>
+
+
+
+    <!-- SECRECY -->
+    <div class="info-item">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">السرية</span>
+        <span class="info-value secrecy-badge">
+          {{ transaction.secrecy }}
+        </span>
+      </div>
+
+    </div>
+
+
+
+    <!-- FROM -->
+    <div class="info-item">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-building"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">الجهة المرسلة</span>
+        <span class="info-value">
+          {{ transaction.from }}
+        </span>
+      </div>
+
+    </div>
+
+
+
+    <!-- TO -->
+    <div class="info-item">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-arrow-left"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">الجهة المستقبلة</span>
+        <span class="info-value">
+          {{ transaction.to }}
+        </span>
+      </div>
+
+    </div>
+
+
+
+    <!-- REFERRED -->
+    <div class="info-item" *ngIf="transaction.referredFrom">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-user-tie"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">المحال من</span>
+        <span class="info-value">
+          {{ transaction.referredFrom }}
+        </span>
+      </div>
+
+    </div>
+
+
+
+    <!-- PRIORITY -->
+    <div class="info-item" *ngIf="transaction.priority">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-flag"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">الأولوية</span>
+
+        <span class="info-value priority-badge"
+              [ngClass]="'priority-' + transaction.priorityClass">
+
+          {{ transaction.priority }}
+
+        </span>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- MAX DAYS -->
+    <div class="info-item full-width highlight">
+
+      <div class="info-icon">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+
+      <div class="info-content">
+        <span class="info-label">أقصى مدة للرد</span>
+        <span class="info-value highlight-value">
+          {{ transaction.maxDays }} أيام
+        </span>
+      </div>
+
+      <div class="highlight-bar">
+        <div class="highlight-fill"
+             [style.width.%]="(transaction.maxDays / 30) * 100">
+        </div>
+      </div>
+
+    </div>
+
+
+
+  </div>
+
+</div>
+
+    <!-- ── WORKFLOW ── -->
+    <!-- <div class="wf-wrapper" *ngIf="activeTab==='workflow'"> 
+
+      <div class="wf-header">
+        <div class="wf-header-title">
+          <mat-icon>account_tree</mat-icon>
+          <span>مسار المعاملة</span>
+        </div>
+        <div class="wf-progress-info">
+          <span class="wf-progress-label">
+            {{ activeIndex }} / {{ transaction.timeline.length }}
+          </span>
+          <div class="wf-progress-bar">
+            <div class="wf-progress-fill"
+                 [style.width.%]="transaction.timeline.length ? (activeIndex / transaction.timeline.length) * 100 : 0">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-track">
+        <ng-container *ngFor="let step of transaction.timeline; let i = index; trackBy: trackByStep">
+
+          <div class="wf-node"
+               [class.done]="i < activeIndex"
+               [class.active]="i === activeIndex"
+               [class.pending]="i > activeIndex">
+
+            <div class="wf-node-header">
+              <div class="wf-step-num">{{ i + 1 }}</div>
+              <span class="wf-status-chip">
+                <ng-container *ngIf="i < activeIndex">مكتمل</ng-container>
+                <ng-container *ngIf="i === activeIndex">جاري</ng-container>
+                <ng-container *ngIf="i > activeIndex">قيد الانتظار</ng-container>
+              </span>
+            </div>
+
+            <div class="wf-node-body">
+              <div class="wf-icon">
+                <mat-icon *ngIf="i === 0">description</mat-icon>
+                <mat-icon *ngIf="i === 1">inventory</mat-icon>
+                <mat-icon *ngIf="i === 2">forward</mat-icon>
+                <mat-icon *ngIf="i === 3">fact_check</mat-icon>
+                <mat-icon *ngIf="i === 4">verified</mat-icon>
+              </div>
+              <h4>{{ step.action }}</h4>
+              <p>{{ step.note }}</p>
+            </div>
+
+            <div class="wf-node-footer">
+              <div class="wf-avatar-wrap" [style.--avatar-color]="getAvatarColor(step.user)">
+                <div class="wf-avatar-person">
+                  <div class="avatar-head"></div>
+                  <div class="avatar-body"></div>
+                </div>
+              </div>
+              <div class="wf-user-info">
+                <span class="wf-username">{{ step.user }}</span>
+                <span class="wf-datetime">
+                  <mat-icon>schedule</mat-icon>
+                  {{ step.date | date:'d MMM y • hh:mm a' }}
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="wf-arrow"
+               *ngIf="i < transaction.timeline.length - 1"
+               [class.done]="i < activeIndex - 1"
+               [class.active]="i === activeIndex - 1"
+               [class.pending]="i >= activeIndex">
+            <svg viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 12 L18 2 L18 8 L0 8 L0 16 L18 16 L18 22 Z" fill="currentColor"/>
+            </svg>
+          </div>
+
+        </ng-container>
+      </div>
+
+    </div> -->
+
+      <!-- WORKFLOW TRACK -->
+  <div class="wf-wrapper" *ngIf="activeTab==='workflow'">
+
+
+    <!-- <button mat-raised-button color="primary" (click)="openVisualTracking()">
+      <mat-icon>account_tree</mat-icon>
+      تتبع بصري
+    </button> -->
+
+    <button
+      type="button"
+      class="visual-track-btn"
+      (click)="openVisualTracking()">
+      <span class="btn-text">تتبع بصري</span>
+      <!-- trailing icon (في الآخر) -->
+      <mat-icon class="btn-icon">hub</mat-icon>
+    </button>
+
+
+
+
+    <div class="wf-header">
+        <div class="card-header-title">
+          <div class="header-icon">
+          <mat-icon >account_tree</mat-icon>
+          </div>
+          <h3>مسار المعاملة</h3>
+        </div>
+        <div class="wf-progress-info">
+          <span class="wf-progress-label">
+            {{ activeIndex }} / {{ transaction.timeline.length }}
+          </span>
+          <div class="wf-progress-bar">
+            <div class="wf-progress-fill"
+                 [style.width.%]="transaction.timeline.length ? (activeIndex / transaction.timeline.length) * 100 : 0">
+            </div>
+          </div>
+        </div>
+      </div>
+   <div class="wf-track">
+
+    <ng-container *ngFor="let step of transaction.timeline; let i = index; trackBy: trackByStep">
+
+      <!-- STEP CARD -->
+      <div class="wf-node"
+           [class.done]="i < activeIndex"
+           [class.active]="i === activeIndex"
+           [class.pending]="i > activeIndex">
+
+        <!-- Card Header Band -->
+        <div class="wf-node-header">
+          <div class="wf-step-num">{{ i + 1 }}</div>
+          <span class="wf-status-chip">
+            <ng-container *ngIf="i < activeIndex">مكتمل</ng-container>
+            <ng-container *ngIf="i === activeIndex">جاري</ng-container>
+            <ng-container *ngIf="i > activeIndex">قيد الانتظار</ng-container>
+          </span>
+        </div>
+
+        <!-- Card Body -->
+        <div class="wf-node-body">
+
+          <!-- Icon -->
+          <div class="wf-icon">
+            <mat-icon *ngIf="i === 0">description</mat-icon>
+            <mat-icon *ngIf="i === 1">inventory</mat-icon>
+            <mat-icon *ngIf="i === 2">forward</mat-icon>
+            <mat-icon *ngIf="i === 3">fact_check</mat-icon>
+            <mat-icon *ngIf="i === 4">verified</mat-icon>
+          </div>
+
+          <!-- Title -->
+          <h4>{{ step.action }}</h4>
+
+          <!-- Note -->
+          <p>{{ step.note }}</p>
+
+        </div>
+
+        <!-- Card Footer -->
+        <div class="wf-node-footer">
+          <div class="wf-avatar-wrap" [style.--avatar-color]="getAvatarColor(step.user)">
+            <div class="wf-avatar-person">
+              <div class="avatar-head"></div>
+              <div class="avatar-body"></div>
+            </div>
+          </div>
+          <div class="wf-user-info">
+            <span class="wf-username">{{ step.user }}</span>
+            <span class="wf-datetime">
+              <mat-icon>schedule</mat-icon>
+              {{ step.date | date:'d MMM y • hh:mm a' }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+      <!-- END CARD -->
+
+      <!-- ARROW CONNECTOR (between cards) -->
+      <div class="wf-arrow"
+           *ngIf="i < transaction.timeline.length - 1"
+           [class.done]="i < activeIndex - 1"
+           [class.active]="i === activeIndex - 1"
+           [class.pending]="i >= activeIndex">
+        <svg viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 12 L18 2 L18 8 L0 8 L0 16 L18 16 L18 22 Z" fill="currentColor"/>
+        </svg>
+      </div>
+
+    </ng-container>
+  </div>
+
+  </div>
+  <!-- END TRACK -->
+
+
+    <!-- ── EDITOR ── -->
+    <div class="card full-width" *ngIf="activeTab==='editor'">
+
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+          <h3>محرر محتوى المعاملة</h3>
+        </div>
+        <div class="card-header-actions">
+          <button class="btn secondary btn-sm" (click)="saveDraft()">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ مسودة
+          </button>
+          <button class="btn primary btn-sm" (click)="sendReply()">
+            <i class="fa-solid fa-paper-plane"></i> إرسال
+          </button>
+        </div>
+      </div>
+
+      <div class="editor-wrapper">
+        <form [formGroup]="form">
+          <editor
+            apiKey="m8mo94ce7rdxoycw5zot9erbthyjuh7fkywki3cjqulrs9p9"
+            formControlName="letterContent"
+            [init]="editorInit">
+          </editor>
+        </form>
+      </div>
+
+    </div>
+
+
+    <!-- ── ATTACHMENTS ── -->
+    <div class="card full-width" *ngIf="activeTab==='attachments'">
+
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-paperclip"></i></div>
+          <h3>المرفقات</h3>
+          <span class="count-badge">{{ transaction.attachments?.length || 0 }}</span>
+        </div>
+        <button class="btn secondary btn-sm" (click)="addAttachment()">
+          <i class="fa-solid fa-plus"></i> إضافة مرفق
+        </button>
+      </div>
+
+      <div class="attachments">
+
+        <div class="attachment" *ngFor="let att of transaction.attachments">
+          <div class="att-icon" [ngClass]="'att-' + att.type.toLowerCase()">
+            <i class="fa-solid fa-file-pdf"   *ngIf="att.type === 'PDF'"></i>
+            <i class="fa-solid fa-file-excel" *ngIf="att.type === 'Excel'"></i>
+            <i class="fa-solid fa-file-word"  *ngIf="att.type === 'Word'"></i>
+            <i class="fa-solid fa-file-image" *ngIf="att.type === 'Image'"></i>
+            <i class="fa-solid fa-file"
+               *ngIf="!['PDF','Excel','Word','Image'].includes(att.type)"></i>
+          </div>
+          <div class="att-info">
+            <h4>{{ att.name }}</h4>
+            <div class="meta">
+              <span>{{ att.type }}</span>
+              <span>{{ att.secrecy }}</span>
+              <span *ngIf="att.size">{{ att.size }}</span>
+              <span>{{ att.date }}</span>
+            </div>
+          </div>
+          <div class="att-actions">
+            <button class="icon-btn" title="معاينة" (click)="previewAttachment(att)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+            <button class="icon-btn" title="تحميل" (click)="downloadAttachment(att)">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button class="icon-btn danger" title="حذف" (click)="deleteAttachment(att)">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!transaction.attachments?.length">
+          <i class="fa-solid fa-paperclip empty-icon"></i>
+          <p>لا توجد مرفقات</p>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ── NOTES ── -->
+     <div *ngIf="activeTab==='notes'"> 
+    <div class="card full-width" *ngIf="'transaction.notes?.length || canAddNote'">
+
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-comments"></i></div>
+          <h3>الملاحظات والتعليقات</h3>
+          <span class="count-badge">{{ transaction.notes?.length || 0 }}</span>
+        </div>
+      </div>
+
+      <div class="notes-list">
+        <div class="note-item"
+             *ngFor="let note of transaction.notes"
+             [ngClass]="'note-' + note.typeClass">
+          <div class="note-avatar" [style.background]="getAvatarColor(note.author)">
+            {{ note.author | slice:0:1 }}
+          </div>
+          <div class="note-body">
+            <div class="note-header">
+              <span class="note-author">{{ note.author }}</span>
+              <span class="note-date">{{ note.date | date:'d MMM y • hh:mm a' }}</span>
+            </div>
+            <p class="note-text">{{ note.text }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="add-note" *ngIf="canAddNote">
+        <div class="add-note-input">
+          <input type="text"
+                 placeholder="أضف ملاحظة أو تعليقاً..."
+                 [(ngModel)]="newNote"
+                 (keyup.enter)="submitNote()" />
+          <button class="btn primary btn-sm"
+                  (click)="submitNote()"
+                  [disabled]="!newNote?.trim()">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+     </div>
+
+
+    <!-- ── RELATED ── -->
+   <div *ngIf="activeTab==='related'"> 
+    <div class="card full-width" *ngIf="relatedTransactions?.length">
+
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-link"></i></div>
+          <h3>المعاملات المرتبطة</h3>
+          <span class="count-badge">{{ relatedTransactions.length }}</span>
+        </div>
+      </div>
+
+      <div class="related-list">
+        <div class="related-item"
+             *ngFor="let rel of relatedTransactions"
+             (click)="navigateToTransaction(rel.id)">
+          <div class="related-icon"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="related-info">
+            <span class="related-title">{{ rel.subject }}</span>
+            <span class="related-meta">
+              {{ rel.id }} · {{ rel.created | date:'d MMM y' : '' : 'en' }}
+            </span>
+          </div>
+          <span class="status-badge sm" [ngClass]="'badge-' + rel.statusClass">
+            {{ rel.status }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="transaction-actionbar">
+
+
+   <button class="action-btn gray">
+    <i class="fa-solid fa-reply"></i>
+   رد بخطاب
+  </button>
+
+  <button class="action-btn gray">
+    <i class="fa-solid fa-image"></i>
+    تحويل صور
+  </button>
+
+  <button class="action-btn gray">
+    <i class="fa-solid fa-share"></i>
+    نموذج إحالة
+  </button>
+
+  <button class="action-btn blue">
+    <i class="fa-solid fa-right-left"></i>
+    تحويل
+  </button>
+
+  <button class="action-btn orange">
+    <i class="fa-solid fa-reply"></i>
+    رد المعاملة
+  </button>
+
+  <button class="action-btn yellow">
+    <i class="fa-solid fa-envelope"></i>
+    إرسال البريد
+  </button>
+
+  <button class="action-btn gray">
+    <i class="fa-solid fa-xmark"></i>
+    إلغاء
+  </button>
+
+  <button class="action-btn green">
+    <i class="fa-solid fa-print"></i>
+    طباعة الباركود
+  </button>
+
+</div>
+
+
+
+  </div><!-- /details-main -->
+
+
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="details-sidebar">
+    <div class="quick-info-card">
+
+      <div class="quick-info-header">
+        <h3>ملخص سريع</h3>
+        <p>نظرة عامة على حالة المعاملة</p>
+      </div>
+
+      <div class="quick-info-body">
+
+        <div class="qi-row">
+          <span class="qi-label">الحالة</span>
+          <span class="status-badge sm" [ngClass]="'badge-' + transaction.statusClass">
+            {{ transaction.status }}
+          </span>
+        </div>
+
+        <div class="qi-row">
+          <span class="qi-label">رقم المعاملة</span>
+          <span class="qi-value">{{ transaction.id }}</span>
+        </div>
+
+        <div class="qi-row">
+          <span class="qi-label">تاريخ الاستحقاق</span>
+          <span class="qi-value" [class.overdue]="isOverdue">
+            {{ transaction.dueDate | date:'d/M/yyyy' : '' : 'en' }}
+          </span>
+        </div>
+
+        <div class="qi-row">
+          <span class="qi-label">المرحلة الحالية</span>
+          <span class="qi-value">{{ currentStepName }}</span>
+        </div>
+
+        <div class="qi-row">
+          <span class="qi-label">المسؤول الحالي</span>
+          <span class="qi-value">{{ transaction.currentHandler }}</span>
+        </div>
+
+        <div class="qi-divider"></div>
+
+        <div class="mini-timeline">
+          <p class="mini-timeline-title">السجل الزمني</p>
+
+          <div class="mini-tl-item"
+               *ngFor="let step of transaction.timeline; let i = index"
+               [class.done]="i < activeIndex"
+               [class.active]="i === activeIndex"
+               [class.pending]="i > activeIndex">
+            <div class="mini-tl-dot">
+              <i class="fa-solid fa-check"          *ngIf="i < activeIndex"></i>
+              <i class="fa-solid fa-spinner fa-spin" *ngIf="i === activeIndex"></i>
+              <i class="fa-solid fa-ellipsis"        *ngIf="i > activeIndex"></i>
+            </div>
+            <div class="mini-tl-content">
+              <span class="mini-tl-action">{{ step.action }}</span>
+              <span class="mini-tl-user">{{ step.user }}</span>
+              <span class="mini-tl-date" *ngIf="step.date">
+                <i class="fa-regular fa-clock fa-xs"></i>
+                {{ step.date | date:'d MMM • hh:mm a' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="qi-divider"></div>
+
+        <div class="qi-priority" *ngIf="transaction.priority">
+          <p class="qi-label">مستوى الأولوية</p>
+          <div class="priority-bar">
+            <div class="priority-fill"
+                 [style.width.%]="transaction.priorityPercent"
+                 [ngClass]="'priority-' + transaction.priorityClass">
+            </div>
+          </div>
+          <span class="priority-badge" [ngClass]="'priority-' + transaction.priorityClass">
+            {{ transaction.priority }}
+          </span>
+        </div>
+
+      </div>
+
+      <div class="quick-info-footer">
+        <button class="btn primary full-width" (click)="approveTransaction()">
+          <i class="fa-solid fa-circle-check"></i> اعتماد المعاملة
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+</div><!-- /details-layout -->

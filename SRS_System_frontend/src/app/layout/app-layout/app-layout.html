@@ -1,0 +1,13 @@
+<div class="app page"
+     [class.sidebar-collapsed]="collapsed">
+  <app-sidebar></app-sidebar>
+
+  <main class="main">
+    <app-topbar></app-topbar>
+
+    <router-outlet></router-outlet>
+
+    <app-chat-bubble></app-chat-bubble>
+  </main>
+
+</div>

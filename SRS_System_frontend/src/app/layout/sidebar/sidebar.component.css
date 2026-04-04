@@ -1,0 +1,173 @@
+/* ================================
+   PREMIUM SIDEBAR FIXED VERSION
+================================ */
+
+.sidebar {
+  width: 230px;
+  height: 100vh;
+  background: linear-gradient(180deg,#0B6E4F,#064635);
+  color: white;
+  padding: 30px 14px;
+  display: flex;
+  flex-direction: column;
+  transition: width .3s ease;
+  direction: rtl;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  position: relative;
+}
+
+/* Collapsed */
+.sidebar.collapsed {
+  width: 78px;
+}
+
+/* ================= Toggle Button ================= */
+
+.collapse-btn {
+  position: absolute;
+  top: 18px;
+  right: 14px;   /* 👈 على الجنب */
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,.15);
+  color: #D4AF37;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all .25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* لما يبقى collapsed */
+.sidebar.collapsed .collapse-btn {
+  right: auto;          /* نلغي اليمين */
+  left: 50%;            /* نحطه في النص */
+  transform: translateX(-50%);
+}
+
+.collapse-btn:hover {
+  background: rgba(255,255,255,.3);
+  transform: rotate(90deg);
+}
+
+/* ================= BRAND ================= */
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.collapse-btn {
+  margin-bottom: 8px;
+}
+
+.logo {
+  width: 75px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));
+  transition: all .3s ease;
+}
+
+.sidebar.collapsed .logo {
+  width: 55px;
+  transform: scale(.9);
+  margin-top: 15px;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+/* ================= Divider ================= */
+
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,.25);
+  margin: 10px 0;
+}
+
+/* ================= NAV ================= */
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ITEM */
+
+.nav .item {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* 👈 حل مشكلة المسافة */
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,.9);
+  transition: all .25s ease;
+  position: relative;
+  justify-content: flex-start;
+}
+
+/* Hover */
+
+.nav .item:hover {
+  background: rgba(255,255,255,.12);
+}
+
+/* ICON */
+
+.nav .icon {
+  font-size: 20px;
+  color: #D4AF37;
+  width: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ================= SELECTED PREMIUM ================= */
+
+.nav .item.active {
+  background: linear-gradient(135deg,rgba(117, 83, 4, 0.07),rgba(234, 163, 21, 0.201));
+  backdrop-filter: blur(6px);
+  border: 0.5px solid rgba(237, 180, 11, 0.074);
+  /* box-shadow:
+    0 8px 10px rgba(245, 165, 16, 0.144),
+    inset 0 0 0 1px rgba(234, 159, 11, 0.2); */
+  transform: translateX(-3px);
+}
+
+/* Glow Accent Line */
+
+.nav .item.active::before {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 20%;
+  height: 60%; 
+  border-radius: 2px;
+  background: #D4AF37;
+  box-shadow: 0 0 8px #D4AF37;
+}
+
+/* ================= COLLAPSED ================= */
+
+.sidebar.collapsed .label {
+  display: none;
+}
+
+.sidebar.collapsed .item {
+  justify-content: center;
+  padding: 14px 0;
+}
+
+.sidebar.collapsed .item.active::before {
+  display: none; /* 👈 حل مشكلة الخط اللي بيظهر فوق */
+}

@@ -1,0 +1,287 @@
+{
+  "common": {
+    "all": "الكل",
+    "apply": "تطبيق",
+    "clear": "مسح",
+    "open": "فتح",
+    "previous": "السابق",
+    "next": "التالي",
+    "dash": "—",
+    "moreInfo": "المزيد من المعلومات",
+    "results": "نتيجة",
+    "showing": "عرض",
+    "of": "من",
+    "phoneNA": "—",
+    "roleNA": "—",
+    "empty": "لا توجد بيانات",
+    "toastOk": "تم",
+    "close": "إغلاق"
+  },
+  "nav": {
+    "dashboard": "لوحـــــة التحكـــم",
+    "transactions": "إدارة المعامــــلات",
+    "users": "إدارة المستخدمـين",
+    "roles": "الأدوار والصلاحيـات",
+    "reports": "التقارير والإحصاءات",
+    "badge": {
+      "kpis": "KPIs",
+      "list": "قائمة",
+      "rbac": "RBAC",
+      "matrix": "Matrix",
+      "charts": "Charts"
+    }
+  },
+  "sidebar": {
+    "demoUser": "مستخدم تجريبي",
+    "demoRole": "موظف"
+  },
+  "transactions": {
+    "pageTitle": "إدارة المعاملات",
+    "searchTitle": "بحث المعاملات",
+    "searchSubtitle": "فلترة سريعة",
+    "refNo": "رقم المعاملة",
+    "subject": "الموضوع",
+    "fromEntity": "الجهة المرسلة",
+    "type": "نوع المعاملة",
+    "status": "حالة المعاملة",
+    "listTitle": "قائمة المعاملات",
+    "resultsCount": "{{n}} نتيجة",
+    "pagerLine": "عرض {{a}} من {{b}} نتيجة",
+    "card": {
+      "all": "كل المعاملات",
+      "outbound": "معاملات الصادر",
+      "inbound": "معاملات الوارد",
+      "archive": "معاملات الأرشيف"
+    },
+    "table": {
+      "no": "رقم",
+      "type": "النوع",
+      "subject": "الموضوع",
+      "entity": "الجهة",
+      "sla": "SLA",
+      "secrecy": "السرية",
+      "attachments": "المرفقات",
+      "status": "الحالة"
+    },
+    "toPrefix": "إلى"
+  },
+  "transactionsList": {
+    "title": "قائمة معاملات",
+    "entity": "الجهة",
+    "search": "بحث",
+    "back": "رجوع",
+    "refNo": "رقم المعاملة",
+    "subject": "الموضوع",
+    "open": "فتح"
+  },
+  "dashboard": {
+    "pageTitle": "لوحة التحكم",
+    "slaCardTitle": "ملخص تنفيذي — SLA",
+    "slaKpiLabel": "مؤشر الالتزام العام آخر 30 يوم",
+    "slaOnTime": "ضمن الوقت",
+    "slaLate": "متأخر",
+    "slaAction": "يتطلب إجراء",
+    "slaAlertsTitle": "تنبيهات SLA",
+    "slaAlert1Text": "اقتربت مدة الرد",
+    "slaAlert2Text": "معادة وتتطلب استكمال",
+    "slaAlert3Text": "قيد الإجراء لدى الإدارة",
+    "badgeToday": "اليوم",
+    "badge24h": "24 ساعة",
+    "badgeFollow": "متابعة",
+    "viewAllAlerts": "عرض كل التنبيهات",
+    "statusChartTitle": "حالات المعاملات",
+    "statusChartHint": "عرض نسب الحالات (جديدة/قيد الإجراء/معادة/منجزة).",
+    "deptChartTitle": "إنتاجية الإدارات (Top)",
+    "deptChartHint": "مقارنة مختصرة لتوزيع الإنجاز.",
+    "kpiTotal": "إجمالي المعاملات",
+    "kpiTotalDesc": "خلال آخر 30 يوم",
+    "kpiDone": "منجزة",
+    "kpiDoneDesc": "ضمن الإجراءات المعتمدة",
+    "kpiProgress": "قيد الإجراء",
+    "kpiProgressDesc": "تحتاج متابعة تنفيذية",
+    "kpiInbound": "وارد",
+    "kpiInboundDesc": "معاملات واردة للجهة",
+    "recentTitle": "آخر المعاملات",
+    "thRef": "رقم المعاملة",
+    "thType": "النوع",
+    "thSubject": "الموضوع",
+    "thCreated": "تاريخ الإنشاء",
+    "thStatus": "الحالة",
+    "thActions": "إجراءات",
+    "noTransactions": "لا توجد معاملات",
+    "aiTitle": "لوحة تحليلات AI",
+    "aiRisk": "مؤشر المخاطر",
+    "aiRiskTag": "(تجريبي)",
+    "aiConfidence": "ثقة التوقع",
+    "aiConfidenceTag": "(Demo)",
+    "aiForecast": "توقع حجم المعاملات الشهر القادم",
+    "aiDisclaimer": "التنبؤات مبنية على بيانات محلية داخل المتصفح ولا تمثل قراراً رسمياً.",
+    "aiSplitTitle": "توزيع حسب الحالة/الأولوية",
+    "chart": {
+      "count": "عدد",
+      "priorityAxis": "الأولوية"
+    }
+  },
+  "users": {
+    "pageTitle": "إدارة المستخدمين",
+    "addUser": "إضافة مستخدم",
+    "searchPlaceholder": "بحث...",
+    "filterStatusAll": "كل الحالات",
+    "statusActive": "نشط",
+    "statusSuspended": "موقوف",
+    "thName": "الاسم",
+    "thUsername": "اسم الدخول",
+    "thRole": "الدور",
+    "thDept": "القسم",
+    "thEmail": "البريد",
+    "thPhone": "الهاتف",
+    "thStatus": "الحالة",
+    "thActions": "إجراءات",
+    "pagerCount": "عدد المستخدمين",
+    "msg": {
+      "mutationsViaApi": "تعديل المستخدمين يتم عبر واجهات الخادم عند توفرها."
+    },
+    "action": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "suspend": "تعليق الحساب",
+      "activate": "تفعيل الحساب"
+    },
+    "pagerLabel": "عدد المستخدمين: {{n}}"
+  },
+  "notifications": {
+    "markAllRead": "تحديد الكل كمقروء",
+    "filterAll": "الكل",
+    "filterUnread": "غير مقروء",
+    "filterRead": "مقروء",
+    "emptyTitle": "لا توجد إشعارات",
+    "emptyAll": "لا توجد إشعارات حالياً",
+    "emptyUnread": "جميع الإشعارات مقروءة",
+    "newBadge": "جديد",
+    "important": "هام",
+    "deleteTitle": "حذف",
+    "viewTxTitle": "عرض المعاملة",
+    "deleteConfirm": "هل أنت متأكد من حذف هذا الإشعار؟",
+    "defaultTitle": "إشعار",
+    "type": {
+      "new-transaction": "معاملة جديدة",
+      "approval": "اعتماد",
+      "reminder": "تذكير",
+      "system": "النظام"
+    },
+    "agoMinutes": "منذ {{m}} دقيقة",
+    "agoHours": "منذ {{h}} ساعة",
+    "agoDays": "منذ {{d}} يوم"
+  },
+  "roles": {
+    "pageTitle": "إدارة الأدوار والصلاحيات",
+    "usersCount": "مستخدم",
+    "viewPerms": "عرض الصلاحيات التفصيلية",
+    "modalTitle": "صلاحيات دور",
+    "permsHeading": "الصلاحيات:",
+    "permsEmpty": "تفاصيل الصلاحيات لكل دور ستُعرض عند توفر واجهة برمجية من الخادم (مصفوفة الصلاحيات حالياً فارغة).",
+    "enabled": "مفعّل",
+    "disabled": "معطّل",
+    "close": "إغلاق"
+  },
+  "reports": {
+    "title": "التقارير والإحصاءات",
+    "exportPdf": "تصدير PDF",
+    "exportExcel": "تصدير Excel",
+    "movementTitle": "حركة المعاملات",
+    "statusDone": "منجزة",
+    "statusLate": "متأخرة"
+  },
+  "createTx": {
+    "pageTitle": "إنشاء معاملة جديدة",
+    "wizard": {
+      "step1": "البيانات الأساسية للمعاملة",
+      "step2": "المستلم",
+      "step3": "الخطاب",
+      "step4": "المرفقات",
+      "step5": "تم"
+    },
+    "subject": "الموضوع",
+    "descriptionShort": "وصف مختصر (اختياري)",
+    "recipients": "الجهات المستلمة",
+    "recipientsPlaceholder": "اضغط لاختيار الجهات",
+    "cc": "نسخة إلى (اختياري)",
+    "ccPlaceholder": "اضغط لاختيار الجهات",
+    "maxDays": "مدة الرد (أيام)",
+    "maxDaysPlaceholder": "عدد الأيام",
+    "letterTemplatesHeading": "أنواع الخطابات",
+    "summary": {
+      "ref": "رقم المعاملة:",
+      "type": "نوع المعاملة:",
+      "secrecy": "مستوى السرية:",
+      "maxDays": "مدة الرد:"
+    },
+    "done": {
+      "title": "تم إنشاء المعاملة بنجاح",
+      "subtitle": "تم تسجيل المعاملة في النظام ويمكنك متابعتها من لوحة التحكم.",
+      "viewTx": "عرض المعاملة",
+      "createAnother": "إنشاء معاملة جديدة",
+      "printLetter": "طباعة الخطاب",
+      "finish": "إنهاء"
+    },
+    "daysUnit": " يوم",
+    "nav": {
+      "prev": "السابق",
+      "next": "التالي"
+    },
+    "validation": {
+      "required": "يرجى ملء جميع الحقول المطلوبة"
+    },
+    "submit": {
+      "success": "تم إنشاء المعاملة بنجاح",
+      "errorGeneric": "حدث خطأ أثناء إنشاء المعاملة",
+      "notImplementedDetail": "واجهة الإنشاء الكاملة قيد التفعيل على الخادم",
+      "unauthorized": "غير مصرح لك بهذا الإجراء",
+      "badRequest": "بيانات غير صحيحة",
+      "serverError": "خطأ في الخادم، يرجى المحاولة لاحقاً"
+    },
+    "letterTemplate": {
+      "default": "خطاب رسمي عام",
+      "reminder": "خطاب تذكير",
+      "approval": "خطاب موافقة",
+      "rejection": "خطاب اعتذار / رفض",
+      "admin-circular": "تعميم إداري",
+      "ministerial-circular": "تعميم وزاري",
+      "no-letter": "بدون خطاب"
+    }
+  },
+  "login": {
+    "title": "تسجيل الدخول",
+    "subtitle": "نظام الاتصالات الإدارية",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "submit": "دخول",
+    "demo": "تجربة سريعة"
+  },
+  "auth": {
+    "logout": "تسجيل الخروج"
+  },
+  "topbar": {
+    "markAllRead": "تعيين الكل كمقروء",
+    "notificationsTitle": "الإشعارات",
+    "notificationsIconTitle": "الإشعارات",
+    "unreadCount": "{{n}} غير مقروء",
+    "demoUserName": "بدوي",
+    "viewAllNotifications": "عرض كل الإشعارات"
+  },
+  "departmentTree": {
+    "title": "اختيار الجهات",
+    "selectAll": "اختيار الكل",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء"
+  },
+  "genericSelect": {
+    "placeholder": "اختر..."
+  },
+  "errors": {
+    "http": {
+      "generic": "حدث خطأ",
+      "notImplemented": "غير مطبّق بعد"
+    }
+  }
+}

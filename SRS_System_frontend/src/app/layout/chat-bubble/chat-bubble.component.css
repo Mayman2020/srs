@@ -1,0 +1,526 @@
+/* ======================================================
+   AI ASSISTANT VARIABLES
+====================================================== */
+
+:root{
+
+--ai-primary:#0B6E4F;
+--ai-primary-light:#E7F4EF;
+--ai-border:#E5E7EB;
+/* --ai-text:#374151; */
+/* --ai-muted:#6B7280; */
+--ai-bg:#F7F9F8;
+
+--radius-lg:18px;
+--radius-md:12px;
+--radius-sm:8px;
+
+}
+
+
+/* ======================================================
+   ROOT RTL SUPPORT
+====================================================== */
+
+.ai-panel,
+.ai-body,
+.ai-msg,
+.ai-bubble,
+.ai-actions,
+.ai-foot,
+.ai-tx-card{
+
+direction:rtl;
+text-align:right;
+
+}
+
+
+/* ======================================================
+   FLOATING BUTTON
+====================================================== */
+
+.ai-fab{
+
+position:fixed;
+bottom:25px;
+left:25px;
+
+border:none;
+background:transparent;
+
+/* إزالة الشكل الدائري */
+border-radius:0;
+
+padding:0;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+cursor:pointer;
+
+box-shadow:none;
+
+transition:transform .2s;
+
+z-index:9999;
+
+}
+
+.ai-fab:hover{
+transform:scale(1.08);
+}
+
+
+/* ======================================================
+   ICON
+====================================================== */
+
+.ai-icon{
+
+width:60px;
+height:auto;
+
+object-fit:contain;
+
+pointer-events:none;
+
+/* ظل ذهبي خفيف فقط للصورة */
+filter:drop-shadow(0 3px 6px rgba(212,175,55,.6));
+
+}
+/* ======================================================
+   PANEL
+====================================================== */
+
+.ai-panel{
+
+position:fixed;
+
+bottom:100px;
+left:30px;
+
+width:420px;
+height:600px;
+
+background:white;
+
+border-radius:22px;
+
+box-shadow:0 30px 70px rgba(0,0,0,.25);
+
+display:none;
+flex-direction:column;
+
+overflow:hidden;
+
+z-index:9999;
+
+}
+
+.ai-panel.show{
+display:flex;
+}
+
+
+
+/* ======================================================
+   HEADER
+====================================================== */
+
+.ai-head{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+padding:14px 16px;
+
+border-bottom:1px solid var(--ai-border);
+
+background:#FAFBFB;
+
+}
+
+.ai-brand{
+
+display:flex;
+gap:10px;
+align-items:center;
+
+}
+
+.ai-badge{
+
+width:40px;
+height:40px;
+
+background:var(--ai-primary);
+color:white;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+border-radius:50%;
+
+font-weight:700;
+
+}
+
+.ai-title span{
+
+font-size:12px;
+color:var(--ai-muted);
+
+display:block;
+
+}
+
+.ai-close{
+
+border:none;
+background:none;
+
+font-size:18px;
+cursor:pointer;
+
+opacity:.7;
+
+}
+
+
+
+/* ======================================================
+   CHAT AREA
+====================================================== */
+
+.ai-body{
+
+flex:1;
+
+overflow:auto;
+
+padding:16px;
+
+background:var(--ai-bg);
+
+display:flex;
+flex-direction:column;
+
+gap:14px;
+
+}
+
+
+
+/* ======================================================
+   MESSAGE BUBBLES
+====================================================== */
+
+.ai-msg{
+
+display:flex;
+width:100%;
+
+}
+
+.ai-msg.me{
+justify-content:flex-start;
+}
+
+.ai-msg.bot{
+justify-content:flex-end;
+}
+
+.ai-bubble{
+
+max-width:80%;
+
+background:white;
+
+padding:12px 14px;
+
+border-radius:14px;
+
+box-shadow:0 3px 8px rgba(0,0,0,.08);
+
+line-height:1.6;
+
+}
+
+.ai-msg.me .ai-bubble{
+
+background:var(--ai-primary);
+color:white;
+
+}
+
+.ai-time{
+
+font-size:11px;
+opacity:.6;
+
+display:block;
+
+margin-top:6px;
+
+}
+
+
+
+/* ======================================================
+   QUICK ACTIONS
+====================================================== */
+
+.ai-actions{
+
+display:flex;
+flex-wrap:wrap;
+
+gap:8px;
+
+padding:10px;
+
+border-top:1px solid var(--ai-border);
+
+background:#fafafa;
+
+}
+
+.ai-action{
+
+border:1px solid #d1e7dd;
+
+background:var(--ai-primary-light);
+
+padding:6px 12px;
+
+border-radius:20px;
+
+font-size:12px;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.ai-action:hover{
+background:#dff3ea;
+}
+
+
+
+/* ======================================================
+   INPUT
+====================================================== */
+
+.ai-foot{
+
+display:flex;
+gap:8px;
+
+padding:12px;
+
+border-top:1px solid var(--ai-border);
+
+}
+
+.ai-foot input{
+
+flex:1;
+
+padding:10px;
+
+border-radius:10px;
+
+border:1px solid #ddd;
+
+outline:none;
+
+}
+
+.ai-send{
+
+background:var(--ai-primary);
+
+border:none;
+
+color:white;
+
+padding:8px 18px;
+
+border-radius:10px;
+
+cursor:pointer;
+
+}
+
+
+
+/* ======================================================
+   TRANSACTION CARD
+====================================================== */
+
+.ai-tx-card{
+
+background:white;
+
+border:1px solid var(--ai-border);
+
+border-radius:16px;
+
+padding:14px;
+
+margin-top:12px;
+
+box-shadow:0 4px 10px rgba(0,0,0,.05);
+
+transition:.2s;
+
+}
+
+.ai-tx-card:hover{
+
+transform:translateY(-2px);
+
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+
+}
+
+
+
+/* ======================================================
+   TRANSACTION HEADER
+====================================================== */
+
+.ai-tx-head{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+margin-bottom:6px;
+
+}
+
+
+
+/* ======================================================
+   TRANSACTION ID
+====================================================== */
+
+.ai-tx-id{
+
+font-weight:700;
+
+color:var(--ai-primary);
+
+font-size:15px;
+
+}
+
+
+
+/* ======================================================
+   TYPE BADGE
+====================================================== */
+
+.ai-tx-type{
+
+background:var(--ai-primary-light);
+
+color:var(--ai-primary);
+
+padding:4px 10px;
+
+border-radius:20px;
+
+font-size:11px;
+
+font-weight:600;
+
+}
+
+
+
+/* ======================================================
+   SUBJECT
+====================================================== */
+
+.ai-tx-subject{
+
+font-size:14px;
+
+font-weight:600;
+
+margin:8px 0;
+
+color:var(--ai-text);
+
+}
+
+
+
+/* ======================================================
+   META GRID
+====================================================== */
+
+.ai-tx-meta{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:8px;
+
+font-size:12px;
+
+margin-top:6px;
+
+}
+
+.ai-tx-meta div{
+
+display:flex;
+gap:6px;
+
+align-items:center;
+
+}
+
+
+
+/* ======================================================
+   LABEL
+====================================================== */
+
+.label{
+
+color:var(--ai-muted);
+
+font-weight:500;
+
+}
+
+
+
+/* ======================================================
+   STATUS BADGE
+====================================================== */
+
+.status{
+
+background:#EEF2F7;
+
+padding:3px 8px;
+
+border-radius:12px;
+
+font-size:11px;
+
+}

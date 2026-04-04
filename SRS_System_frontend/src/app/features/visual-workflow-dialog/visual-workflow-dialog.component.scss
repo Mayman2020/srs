@@ -1,0 +1,35 @@
+
+
+.vwd { display: flex; flex-direction: column; height: 100%; }
+
+.vwd-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e6edf5;
+  background: #fff;
+}
+
+.vwd-title{
+  display:inline-flex; align-items:center; gap:8px; font-weight:800;
+}
+
+.vwd-tools{
+  display:inline-flex; align-items:center; gap:6px;
+}
+
+.vwd-body{
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+  background: #f8fafc;
+  overflow: hidden; // بدل auto
+}
+
+.vwd-actions{
+  padding: 10px 14px;
+  border-top: 1px solid #e6edf5;
+  background: #fff;
+  display:flex;
+  justify-content:flex-start;
+  gap:8px;
+}

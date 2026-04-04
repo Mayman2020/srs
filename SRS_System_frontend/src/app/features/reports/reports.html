@@ -1,0 +1,174 @@
+<div class="page-header-container">
+
+  <div class="page-header">
+    <div>
+      <h2>إدارة التقارير والإحصائيات</h2>
+    </div>
+  </div>
+
+  <div class="actions" topbar-actions>
+    <button class="btn" (click)="exportPdf()">تصدير PDF</button>
+    <button class="btn" (click)="exportExcel()">تصدير Excel</button>
+  </div>
+</div>
+
+
+
+
+  <!-- Top Section -->
+  <div class="top-grid">
+
+    <!-- KPIs -->
+    <div class="card">
+      <h3>ملخص النتائج</h3>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <span>إجمالي</span>
+          <b>{{kpis.total}}</b>
+        </div>
+
+        <div class="kpi success">
+          <span>منجزة</span>
+          <b>{{kpis.done}}</b>
+        </div>
+
+        <div class="kpi danger">
+          <span>متأخر</span>
+          <b>{{kpis.late}}</b>
+        </div>
+
+        <div class="kpi">
+          <span>متوسط الإنجاز</span>
+          <b>{{kpis.avg}} يوم</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+      <h3>بحث متقدم</h3>
+
+      <form [formGroup]="reportForm" class="filter-grid">
+
+        <div>
+          <label>من تاريخ</label>
+          <input type="date" formControlName="from">
+        </div>
+
+        <div>
+          <label>إلى تاريخ</label>
+          <input type="date" formControlName="to">
+        </div>
+
+        <div>
+          <label>النوع</label>
+          <select formControlName="type">
+            <option value="">الكل</option>
+            <option>وارد</option>
+            <option>صادر</option>
+          </select>
+        </div>
+
+        <div>
+          <label>الحالة</label>
+          <select formControlName="status">
+            <option value="">الكل</option>
+            <option>جديدة</option>
+            <option>منجزة</option>
+          </select>
+        </div>
+
+        <button class="btn primary" type="button" (click)="runReport()">
+          تشغيل التقرير
+        </button>
+
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Charts -->
+  <div class="bottom-grid">
+
+    <div class="card">
+      <h3>توزيع الحالات</h3>
+      <div class="chart-box">
+        <canvas #statusCanvas></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Trend زمني</h3>
+      <div class="chart-box">
+        <canvas #trendCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+  <div class="extra-grid">
+
+    <!-- SLA Heatmap -->
+    <div class="card">
+      <h3>SLA Heatmap</h3>
+
+      <div class="heatmap-header">
+        <span>1 أسبوع</span>
+        <span>2 أسبوع</span>
+        <span>3 أسبوع</span>
+        <span>4 أسبوع</span>
+      </div>
+
+      <div class="heatmap-row">
+        <div class="heat good">92%</div>
+        <div class="heat warning">88%</div>
+        <div class="heat good">95%</div>
+        <div class="heat warning">90%</div>
+        <div class="dept-name">الاتصالات الإدارية</div>
+      </div>
+
+      <div class="heatmap-row">
+        <div class="heat warning">85%</div>
+        <div class="heat bad">80%</div>
+        <div class="heat warning">82%</div>
+        <div class="heat bad">78%</div>
+        <div class="dept-name">الموارد البشرية</div>
+      </div>
+
+      <div class="heatmap-row">
+        <div class="heat good">97%</div>
+        <div class="heat good">93%</div>
+        <div class="heat good">94%</div>
+        <div class="heat good">96%</div>
+        <div class="dept-name">الشؤون القانونية</div>
+      </div>
+
+      <div class="heatmap-row">
+        <div class="heat good">92%</div>
+        <div class="heat warning">87%</div>
+        <div class="heat warning">91%</div>
+        <div class="heat warning">89%</div>
+        <div class="dept-name">المالية</div>
+      </div>
+
+      <div class="heatmap-row">
+        <div class="heat bad">81%</div>
+        <div class="heat warning">83%</div>
+        <div class="heat bad">79%</div>
+        <div class="heat warning">84%</div>
+        <div class="dept-name">المشتريات</div>
+      </div>
+
+    </div>
+
+    <!-- Department Productivity Chart -->
+    <div class="card">
+      <h3>إنتاجية الإدارات</h3>
+      <div class="chart-box">
+        <canvas #deptBarCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+
+

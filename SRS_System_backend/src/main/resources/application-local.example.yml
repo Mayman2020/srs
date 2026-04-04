@@ -1,0 +1,24 @@
+# -----------------------------------------------------------------------------
+# Local development template (optional)
+# -----------------------------------------------------------------------------
+# 1. Copy this file to: src/main/resources/application-local.yml
+#    (application-local.yml is gitignored — never commit it.)
+# 2. Run the API with the local profile, for example:
+#    mvn spring-boot:run -Dspring-boot.run.profiles=local
+#
+# Alternatively, set environment variables instead (see README.md).
+# -----------------------------------------------------------------------------
+
+spring:
+  datasource:
+    password: postgres
+
+camunda.bpm:
+  admin-user:
+    password: admin
+
+ac:
+  security:
+    jwt:
+      # Dev-only sample — use a unique secret per environment in production.
+      secret: "0123456789abcdef0123456789abcdef0123456789abcdef01"

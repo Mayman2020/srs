@@ -1,0 +1,84 @@
+
+     <div class="page-header">
+        <div>
+          <h2>{{ 'roles.pageTitle' | t }}</h2>
+        </div>
+    </div>
+
+  <div class="roles-grid">
+    <div *ngFor="let role of roles" class="role-card">
+      <div class="role-header">
+        <div class="role-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h3>{{ role.name }}</h3>
+      </div>
+
+      <p class="role-description">{{ role.description }}</p>
+
+      <div class="role-stats">
+        <div class="stat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+          </svg>
+          <span><strong>{{ role.usersCount }}</strong> {{ 'roles.usersCount' | t }}</span>
+        </div>
+
+        <div class="stat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-block" (click)="viewPermissions(role)">
+        {{ 'roles.viewPerms' | t }}
+      </button>
+    </div>
+  </div>
+
+<div class="modal-overlay" *ngIf="showPermissionsModal && selectedRole" (click)="closeModal()">
+  <div class="modal modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ 'roles.modalTitle' | t }}: {{ selectedRole.name }}</h2>
+      <button type="button" class="btn-close" (click)="closeModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="role-description">{{ selectedRole.description }}</p>
+      
+      <h4 style="margin: 1.5rem 0 1rem 0; color: var(--primary-dark);">{{ 'roles.permsHeading' | t }}</h4>
+
+      <p *ngIf="!selectedRole.permissions.length" class="role-description">
+        {{ 'roles.permsEmpty' | t }}
+      </p>
+      
+      <div class="permissions-list">
+        <div *ngFor="let permission of selectedRole.permissions" class="permission-item">
+          <span class="permission-name">{{ permission.name }}</span>
+          <span class="permission-status" [class.enabled]="permission.enabled" [class.disabled]="!permission.enabled">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="permission.enabled">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!permission.enabled">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            {{ (permission.enabled ? 'roles.enabled' : 'roles.disabled') | t }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeModal()">{{ 'roles.close' | t }}</button>
+    </div>
+  </div>
+</div>

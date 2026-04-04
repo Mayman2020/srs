@@ -1,0 +1,316 @@
+/**=====================
+    VARIABLES
+==========================**/
+$primary:       #0b6e4f;
+$primary-mid:   #178f63;
+$primary-light: #e8f5f0;
+$connector:     rgba(107, 114, 128, 0.35);
+$dot-parent:    #0b6e4f;
+$dot-child:     #9ca3af;
+$text-dark:     #374151;
+$border-light:  #e6ece9;
+$hover:         #f7fbf9;
+$radius:        14px;
+$radius-sm:     10px;
+$MARGIN:        19px;
+$PAD:           16px;
+$DOT:           8px;
+
+/**=====================
+    HOST
+==========================**/
+:host {
+  display:   block;
+  width:     540px;
+  min-width: 480px;
+}
+
+/**=====================
+    MATERIAL GLOBAL RESETS  (all via ::ng-deep)
+==========================**/
+:host ::ng-deep .mat-mdc-dialog-content {
+  max-height: 75vh  !important;
+  overflow-y: auto  !important;
+  padding:    0     !important;
+}
+
+:host ::ng-deep mat-tree,
+:host ::ng-deep .entity-tree {
+  background: transparent !important;
+  direction:  rtl         !important;   /* ← critical fix */
+}
+
+:host ::ng-deep mat-tree-node,
+:host ::ng-deep .mat-tree-node,
+:host ::ng-deep .mat-nested-tree-node {
+  min-height:    unset !important;
+  padding-left:  0     !important;
+  padding-right: 0     !important;
+  display:       block !important;
+  direction:     rtl   !important;   /* ← critical fix */
+}
+
+/**=====================
+    DIALOG LAYOUT
+==========================**/
+.dialog-title {
+  font-weight: 700 !important;
+  font-size: 1.2rem !important;
+  color: $primary !important;
+  padding: 22px 32px 18px !important;
+  margin: 0 !important;
+  position: relative;
+}
+
+.dialog-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 32px;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, $primary, $primary-mid);
+  border-radius: 3px;
+}
+
+.dialog-content {
+  padding: 18px 24px;
+  direction: rtl;
+}
+
+/**=====================
+    SELECT ALL ROW
+==========================**/
+.select-all-row {
+  display: flex;
+  justify-content: flex-end;  
+  margin-bottom: 12px;
+}
+
+.select-all-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba($primary, 0.06);
+  padding: 6px 14px;
+  border-radius: 18px;
+  font-size: 0.85rem;
+}
+.select-all-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $primary;
+}
+
+/**=====================
+    TREE WRAPPER
+==========================**/
+.tree-wrapper {
+  padding: 0px 8px !important;
+}
+
+/**=====================
+    PARENT GROUP
+==========================**/
+:host ::ng-deep .parent-group {
+  margin-bottom: 2px;
+}
+
+/**=====================
+    PARENT ROW
+==========================**/
+:host ::ng-deep .parent-row {
+  display:       flex           !important;
+  align-items:   center         !important;
+  gap:           10px;
+  direction:     rtl            !important;
+  padding:       4px 4px !important;
+  border-radius: $radius-sm;
+  min-height:    26px;
+  transition:    background .2s;
+
+  &:hover { background: $hover; }
+}
+
+/**=====================
+    CHILDREN CONTAINER  ←  VERTICAL LINE (real border)
+==========================**/
+:host ::ng-deep .children-container {
+  margin-right:  $MARGIN !important;
+  padding: $PAD    !important;
+  position: relative;
+  direction: rtl;
+  
+}
+
+:host ::ng-deep .children-container::before {
+  content: '';
+  position: absolute;
+  top: 10px;   // يبدأ من منتصف أول صف تقريباً
+  bottom: 40px; // ينتهي عند منتصف آخر صف
+  right: 0;
+  width: 2px;
+  background: $connector;
+}
+
+/**=====================
+    CHILD ROW
+==========================**/
+:host ::ng-deep .child-row {
+  display:       flex     !important;
+  align-items:   center   !important;
+  direction:     rtl      !important;
+  gap:           10px;
+  padding:       4px 4px  !important;
+  border-radius: $radius-sm;
+  min-height:    28px;
+  transition:    background .2s;
+  position: relative;
+
+  &:hover { background: $hover; }
+
+
+}
+
+
+:host ::ng-deep .child-row::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -#{$PAD};   
+
+
+  width: $PAD;
+  height: 2px;
+  background: $connector;
+  transform: translateY(-50%);
+}
+
+
+/**=====================
+    DOTS
+==========================**/
+:host ::ng-deep .node-dot {
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+
+:host ::ng-deep .parent-dot {
+  width:      10px            !important;
+  height:     10px            !important;
+  background: $dot-parent     !important;
+  box-shadow: 0 0 0 3px rgba($dot-parent, .15);
+}
+
+/* child dot ON the border-right line
+   margin-right = -(PAD - DOT/2) = -(16 - 4) = -12px          */
+:host ::ng-deep .child-dot {
+  width:        $DOT                                          !important;
+  height:       $DOT                                          !important;
+  background:   #fff                                          !important;
+  border:       2px solid $dot-child                          !important;
+  border-radius: 50%                                          !important;
+  flex-shrink:  0                                             !important;
+  position:     relative;
+  z-index:      1;
+  margin-right: calc(-1 * #{$PAD} + #{$DOT} / 2)             !important;
+}
+
+/**=====================
+    LABELS
+==========================**/
+:host ::ng-deep .node-label {
+  font-size:   0.92rem;
+  line-height: 1.5;
+  text-align:  right;
+  margin-inline-start: 6px;
+}
+
+:host ::ng-deep .parent-label {
+  font-weight: 700        !important;
+  color:       $primary   !important;
+}
+
+:host ::ng-deep .child-label {
+  color: $text-dark;
+}
+
+/**=====================
+    TOGGLE BUTTON
+==========================**/
+:host ::ng-deep .toggle-btn {
+  background:  transparent !important;
+  border:      none        !important;
+  padding:     0           !important;
+  cursor:      pointer;
+  line-height: 1;
+}
+
+:host ::ng-deep .toggle-icon {
+  font-size:  18px;
+  color:      $primary;
+  transition: transform .25s ease;
+
+  &.open { transform: rotate(-90deg); }
+}
+
+/**=====================
+    CHECKBOXES
+==========================**/
+:host ::ng-deep .mdc-checkbox__background {
+  border-radius: 6px                 !important;
+  border:        1.5px solid #d1d5db !important;
+}
+
+:host ::ng-deep .mat-mdc-checkbox-checked .mdc-checkbox__background {
+  background-color: $primary !important;
+  border-color:     $primary !important;
+}
+
+:host ::ng-deep .mat-mdc-checkbox-checked .mdc-checkbox__checkmark-path {
+  stroke:       #fff !important;
+  stroke-width: 3px  !important;
+}
+
+:host ::ng-deep .mdc-checkbox__ripple { display: none; }
+
+
+
+/**=====================
+    DIALOG ACTIONS
+==========================**/
+.dialog-actions {
+  display:        flex        !important;
+  justify-content: flex-end     !important;  
+gap:           12px         !important;
+  padding:        16px 26px  !important;
+  border-top:     1px solid $border-light;
+}
+
+/**=====================
+    BUTTONS
+==========================**/
+.btn-primary {
+  background:    linear-gradient(135deg, $primary, $primary-mid) !important;
+  color:         #fff     !important;
+  border-radius: $radius  !important;
+  padding:       9px 24px !important;
+  font-weight:   600      !important;
+  box-shadow:    0 4px 14px rgba($primary, .25) !important;
+  transition:    box-shadow .2s, transform .15s !important;
+  border: none !important;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba($primary, .35) !important;
+    transform:  translateY(-1px)               !important;
+  }
+}
+
+.btn-outline {
+  border:        1px solid #d6d6d6 !important;
+  border-radius: $radius           !important;
+  padding:       9px 20px          !important;
+  transition:    background .2s    !important;
+
+  &:hover { background: #f5f5f5 !important; }
+}

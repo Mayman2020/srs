@@ -1,0 +1,123 @@
+
+  <!-- Header -->
+  <div class="page-header-container">
+
+    <div class="page-header">
+        <div>
+          <h2>{{ 'users.pageTitle' | t }}</h2>
+        </div>
+    </div>
+
+    <button type="button" class="btn primary" (click)="openAddModal()">
+      {{ 'users.addUser' | t }}
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-modern">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange()"
+      [attr.placeholder]="'users.searchPlaceholder' | t"
+    />
+
+    <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()">
+      <option value="all">{{ 'users.filterStatusAll' | t }}</option>
+      <option value="active">{{ 'users.statusActive' | t }}</option>
+      <option value="suspended">{{ 'users.statusSuspended' | t }}</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'users.thName' | t }}</th>
+          <th>{{ 'users.thUsername' | t }}</th>
+          <th>{{ 'users.thRole' | t }}</th>
+          <th>{{ 'users.thDept' | t }}</th>
+          <th>{{ 'users.thEmail' | t }}</th>
+          <th>{{ 'users.thPhone' | t }}</th>
+          <th>{{ 'users.thStatus' | t }}</th>
+          <th>{{ 'users.thActions' | t }}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>
+            <div class="user-info">
+              <div class="user-avatar">
+                {{ user.name.charAt(0) }}
+              </div>
+              {{ user.name }}
+            </div>
+          </td>
+
+          <td>{{ user.username }}</td>
+
+          <td>
+            <span class="type-badge in">{{ 'common.roleNA' | t }}</span>
+          </td>
+
+          <td>{{ user.departmentCode }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ 'common.phoneNA' | t }}</td>
+
+          <td>
+            <span
+              class="type-badge"
+              [ngClass]="user.active ? 'in' : 'out'">
+              {{ statusLabel(user.active) }}
+            </span>
+          </td>
+
+          <td>
+            <div class="actions-modern">
+              <button type="button" class="action-btn edit"
+                      (click)="openEditModal(user)"
+                      [attr.title]="'users.action.edit' | t">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+
+              <button type="button" class="action-btn toggle"
+                      (click)="toggleUserStatus(user)"
+                      [attr.title]="(user.active ? 'users.action.suspend' : 'users.action.activate') | t">
+                <i class="fa-solid"
+                  [ngClass]="user.active ? 'fa-user-slash' : 'fa-user-check'">
+                </i>
+              </button>
+
+              <button type="button" class="action-btn delete"
+                      (click)="deleteUser(user)"
+                      [attr.title]="'users.action.delete' | t">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredUsers.length === 0">
+          <td colspan="8" class="empty-cell">
+            {{ 'common.empty' | t }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pager-modern">
+    <div class="pager-info">
+      {{ 'users.pagerLabel' | t: { n: filteredUsers.length } }}
+    </div>
+
+    <div class="pager-controls">
+      <button type="button" class="nav-btn">{{ 'common.previous' | t }}</button>
+      <button type="button" class="page-btn active">1</button>
+      <button type="button" class="nav-btn">{{ 'common.next' | t }}</button>
+    </div>
+  </div>
+

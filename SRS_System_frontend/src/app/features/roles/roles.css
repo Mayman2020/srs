@@ -1,0 +1,198 @@
+.roles-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ========================= */
+/* Page Header */
+/* ========================= */
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  color: var(--primary-dark);
+  margin-bottom: 0.5rem;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+}
+
+/* ========================= */
+/* Roles Grid */
+/* ========================= */
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+/* ========================= */
+/* Role Card */
+/* ========================= */
+
+.role-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border-top: 4px solid var(--primary-green);
+}
+
+.role-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Role Header */
+
+.role-card .role-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.role-card .role-header .role-icon {
+  width: 56px;
+  height: 56px;
+  background: var(--primary-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-green);
+}
+
+.role-card .role-header h3 {
+  color: var(--primary-dark);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* Description */
+
+.role-card .role-description {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* Stats */
+
+.role-card .role-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.role-card .role-stats .stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-dark);
+}
+
+.role-card .role-stats .stat svg {
+  color: var(--primary-green);
+}
+
+/* Button Block */
+
+.role-card .btn-block {
+  width: 100%;
+}
+
+/* ========================= */
+/* Permissions List */
+/* ========================= */
+
+.permissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.permission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.permission-item:hover {
+  background: var(--primary-light);
+}
+
+.permission-item .permission-name {
+  font-weight: 500;
+  color: var(--primary-dark);
+}
+
+/* Permission Status */
+
+.permission-item .permission-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+/* Enabled */
+
+.permission-item .permission-status.enabled {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.permission-item .permission-status.enabled svg {
+  color: var(--success);
+}
+
+/* Disabled */
+
+.permission-item .permission-status.disabled {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.permission-item .permission-status.disabled svg {
+  color: var(--danger);
+}
+
+/* ========================= */
+/* Modal */
+/* ========================= */
+
+.modal-large {
+  max-width: 700px;
+}
+
+/* ========================= */
+/* Responsive */
+/* ========================= */
+
+@media (max-width: 768px) {
+
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .role-card .role-stats {
+    flex-direction: column;
+  }
+
+}

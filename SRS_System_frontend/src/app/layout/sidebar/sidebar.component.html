@@ -1,0 +1,36 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+
+  <!-- HEADER -->
+  <div class="brand">
+
+    <button class="collapse-btn" (click)="toggleSidebar()">
+      <i class="fa-solid"
+              [ngClass]="collapsed ? 'fa-bars' : 'fa-layer-group'">
+      </i>
+    </button>
+
+    <img src="assets/img/logo.png" class="logo">
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- NAV -->
+  <nav class="nav">
+
+    <button
+      class="item"
+      *ngFor="let item of NAV_ITEMS"
+      [class.active]="isActive(item)"
+      (click)="router.navigate([item.route])">
+
+      <span class="icon" [innerHTML]="item.icon"></span>
+      <span class="label" *ngIf="!collapsed">
+        {{ item.labelKey | t }}
+      </span>
+
+    </button>
+
+  </nav>
+
+</aside>
