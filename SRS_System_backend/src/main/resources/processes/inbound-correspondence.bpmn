@@ -9,7 +9,7 @@
                   targetNamespace="http://ac.gov/bpmn"
                   exporter="Cursor"
                   exporterVersion="1.0">
-  <bpmn:process id="inbound-correspondence" name="Inbound Correspondence" isExecutable="true">
+  <bpmn:process id="inbound-correspondence" name="Inbound Correspondence" isExecutable="true" camunda:historyTimeToLive="180">
     <bpmn:startEvent id="StartEvent_1" name="Started"/>
     <bpmn:userTask id="Task_register" name="Register inbound" camunda:assignee="${initiator}">
       <bpmn:extensionElements>

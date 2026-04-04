@@ -99,17 +99,14 @@ function Get-ProcessOnPort {
     try {
         $conn = Get-NetTCPConnection -LocalPort $PortListen -State Listen -ErrorAction SilentlyContinue
         if ($conn) {
-            $owning = @($conn | ForEach-Object { $_.OwningProcess } | Select-Object -Unique)
-            foreach ($op in $owning) {
-                $proc = Get-Process -Id $op -ErrorAction SilentlyContinue
-                if ($proc) { return @{ Process = $proc; Connection = $conn } }
-            }
+            $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+            return @{ Process = $proc; Connection = $conn }
         }
     } catch { }
     try {
         $line = netstat -ano 2>$null | Select-String ":$PortListen\s+.*LISTENING" | Select-Object -First 1
         if ($line) {
-            $parts = ($line.ToString() -split '\s+') | Where-Object { $_ -ne '' }
+            $parts = ($line -split '\s+')
             $pidVal = $parts[-1]
             if ($pidVal -match '^\d+$') {
                 $proc = Get-Process -Id $pidVal -ErrorAction SilentlyContinue
@@ -183,29 +180,42 @@ $ErrorActionPreference = 'Continue'
 & java -version 2>&1 | ForEach-Object { Write-Info "  $_" }
 $ErrorActionPreference = $prevErr
 
-# Maven: wrapper preferred, else mvn on PATH
-$UseMvnw = Test-Path $MvnwPath
-if (-not $UseMvnw) {
-    $mvnCmd = Get-Command mvn -ErrorAction SilentlyContinue
-    if (-not $mvnCmd) {
-        Write-Err "Neither mvnw.cmd nor 'mvn' on PATH found. Add Maven to PATH or add Maven Wrapper to the project."
-        exit 1
-    }
-    Write-Info "Using Maven from PATH: $($mvnCmd.Source)"
+# Maven wrapper (required)
+if (-not (Test-Path $MvnwPath)) {
+    Write-Err "Maven wrapper not found: $MvnwPath"
+    exit 1
 }
 Set-Location $ProjectRoot
 
-# Pre-flight: PostgreSQL
+# Pre-flight: PostgreSQL - ensure DB exists
 $DbName = "ac_communications"
+$DbUser = 'postgres'
+if ($env:SPRING_DATASOURCE_USERNAME) { $DbUser = $env:SPRING_DATASOURCE_USERNAME }
 $pgPort = 5432
 try {
     $pgListen = Get-NetTCPConnection -LocalPort $pgPort -State Listen -ErrorAction SilentlyContinue
     if (-not $pgListen) {
         Write-Warn "PostgreSQL does not appear to be listening on port $pgPort. Start PostgreSQL before running."
-        Write-Info "  Database required: $DbName (see application.yml / README)."
-        Write-Info "  Create: psql -U postgres -c `"CREATE DATABASE $DbName`""
     }
 } catch { }
+
+$psqlCmd = Get-Command psql -ErrorAction SilentlyContinue
+if ($psqlCmd) {
+    $dbCheck = & psql -U $DbUser -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$DbName'" 2>$null
+    if ($dbCheck -and $dbCheck.Trim() -eq '1') {
+        Write-Info "Database '$DbName' already exists."
+    } else {
+        Write-Step "Creating database '$DbName'..." "Cyan"
+        & psql -U $DbUser -d postgres -c "CREATE DATABASE $DbName" 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Database '$DbName' created."
+        } else {
+            Write-Info "psql CREATE DATABASE returned non-zero; Spring Boot will auto-create on startup."
+        }
+    }
+} else {
+    Write-Info "psql not on PATH - Spring Boot will auto-create database if missing."
+}
 
 # Restart: stop old backend on port
 Write-Step "Checking port $DefaultPort..." "Cyan"
@@ -218,18 +228,9 @@ if (-not (Stop-ProcessOnPort -PortListen $DefaultPort -ExpectedName $ExpectedPro
 $env:SERVER_PORT = "$DefaultPort"
 
 # Maven build
-function Invoke-Maven {
-    param([string[]]$Arguments)
-    if ($UseMvnw) {
-        & $MvnwPath @Arguments
-    } else {
-        & mvn @Arguments
-    }
-}
-
 if (-not $SkipBuild) {
     Write-Step "Maven build started..." "Cyan"
-    Invoke-Maven @("clean", "install", "-U")
+    & $MvnwPath clean install -U
     if ($LASTEXITCODE -ne 0) {
         Write-Err "Maven build FAILED."
         exit $LASTEXITCODE
@@ -249,7 +250,7 @@ if ($Profile) {
 }
 Write-Info "  API base: $BaseUrl"
 Write-Info "  Swagger UI: http://localhost:$DefaultPort/swagger-ui.html"
-Write-Info "  Database (default URL): $DbName @ localhost:$pgPort"
+Write-Info "  Database (default URL): ${DbName} at localhost:${pgPort}"
 Write-Info "  Stop with Ctrl+C"
 Write-Host ""
 
@@ -258,7 +259,7 @@ if ($Profile) {
     $runArgs += "-Dspring-boot.run.profiles=$Profile"
 }
 
-Invoke-Maven @runArgs
+& $MvnwPath @runArgs
 $exitCode = $LASTEXITCODE
 
 Write-Host ""
@@ -266,6 +267,6 @@ if ($exitCode -eq 0) {
     Write-Success "Backend stopped normally."
 } else {
     Write-Err "Backend exited with failure (exit code $exitCode)."
-    Write-Info "Common causes: DB password missing (SCRAM), wrong password, AC_JWT_SECRET unset, port in use."
+    Write-Info "Common causes: DB password missing (SCRAM), wrong password, AC_JWT_SECRET unset, port in use, or invalid BPMN/Camunda config."
 }
 exit $exitCode
