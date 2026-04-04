@@ -22,16 +22,26 @@ function resolveMessage(err: HttpErrorResponse, i18n: I18nService): string {
     return i18n.instant('errors.network');
   }
   if (err.status === 401) {
+    if (err.url?.includes('/auth/login')) {
+      return i18n.instant('errors.badCredentials');
+    }
     return i18n.instant('errors.unauthorized');
   }
   if (err.status === 403) {
-    const b = err.error;
-    if (typeof b === 'string' && b.trim()) return b;
+    const body = extractErrorBodyText(err);
+    if (body && isCorsOrSecurityNoise(body)) {
+      return i18n.instant('errors.cors');
+    }
+    if (body && !isTechnicalJargon(body)) {
+      return body;
+    }
     return i18n.instant('errors.forbidden');
   }
   if (err.status === 404) {
-    const b = err.error;
-    if (typeof b === 'string' && b.trim()) return b;
+    const body = extractErrorBodyText(err);
+    if (body && !isTechnicalJargon(body)) {
+      return body;
+    }
     return i18n.instant('errors.notFound');
   }
   if (err.status === 400) {
@@ -39,10 +49,47 @@ function resolveMessage(err: HttpErrorResponse, i18n: I18nService): string {
       const vals = Object.values(err.error as Record<string, string>);
       if (vals.length) return vals.join(' ');
     }
-    if (typeof err.error === 'string') return err.error;
+    const body = extractErrorBodyText(err);
+    if (body && !isTechnicalJargon(body)) {
+      return body;
+    }
   }
   if (err.status >= 500) {
     return i18n.instant('errors.server');
   }
+  const fallback = extractErrorBodyText(err);
+  if (fallback && !isTechnicalJargon(fallback)) {
+    return fallback;
+  }
   return i18n.instant('errors.generic');
+}
+
+function extractErrorBodyText(err: HttpErrorResponse): string | null {
+  const e = err.error;
+  if (typeof e === 'string' && e.trim()) {
+    return e.trim();
+  }
+  if (e && typeof e === 'object' && !Array.isArray(e)) {
+    const o = e as Record<string, unknown>;
+    const msg = o['message'];
+    const errField = o['error'];
+    if (typeof msg === 'string' && msg.trim()) {
+      return msg.trim();
+    }
+    if (typeof errField === 'string' && errField.trim()) {
+      return errField.trim();
+    }
+  }
+  return null;
+}
+
+/** Hide Spring / infra phrases from end users. */
+function isTechnicalJargon(s: string): boolean {
+  return /cors|csrf|xss|forbidden|unauthorized|nullpointer|stack trace|exception|internal server/i.test(
+    s
+  );
+}
+
+function isCorsOrSecurityNoise(s: string): boolean {
+  return /cors|invalid cors|cross-origin/i.test(s);
 }

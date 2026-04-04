@@ -37,7 +37,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   ngOnDestroy(): void {
-    document.body.classList.remove('login-page');
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.remove('login-page');
+    }
   }
 
   ngOnInit(): void {
@@ -45,7 +47,9 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       username: ['', Validators.required],
       password: ['', Validators.required]
     });
-    document.body.classList.add('login-page');
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.classList.add('login-page');
+    }
   }
 
   ngAfterViewInit(): void {
@@ -104,7 +108,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         this.submitting = false;
         const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-        this.showToast(this.i18n.instant('errors.generic'), msg);
+        this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg);
       }
     });
   }

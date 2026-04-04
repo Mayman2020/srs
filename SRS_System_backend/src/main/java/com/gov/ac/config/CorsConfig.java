@@ -4,21 +4,27 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
+/**
+ * CORS for local Angular dev on any localhost / 127.0.0.1 port (4200, 1200, etc.).
+ * Used by Spring Security via {@code http.cors(Customizer.withDefaults())}.
+ */
 @Configuration
 public class CorsConfig {
 
   @Bean
-  CorsFilter corsFilter() {
+  CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:4200", "http://127.0.0.1:4200"));
+    config.setAllowedOriginPatterns(
+        List.of("http://localhost:*", "http://127.0.0.1:*"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
+    config.setMaxAge(3600L);
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/api/**", config);
-    return new CorsFilter(source);
+    return source;
   }
 }

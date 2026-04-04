@@ -7,14 +7,15 @@ import {
 import { Title } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/api/auth.interceptor';
 import { httpErrorInterceptor } from './core/api/http-error.interceptor';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 
 import { routes } from './app.routes';
 import { I18nService, AppLang } from './core/i18n/i18n.service';
 import { LookupLabelsService } from './core/lookup/lookup-labels.service';
+import { AuthTokenService } from './core/auth/auth-token.service';
 
 function readStoredLang(): AppLang {
   try {
@@ -31,13 +32,38 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideAnimations(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor, httpErrorInterceptor])),
-    provideAppInitializer(async () => {
+    provideHttpClient(withInterceptors([authInterceptor, httpErrorInterceptor])),
+    // inject() must run synchronously in the initializer — not after await (NG0203).
+    provideAppInitializer(() => {
       const i18n = inject(I18nService);
-      await firstValueFrom(i18n.loadLang(readStoredLang()));
-      inject(Title).setTitle(i18n.instant('app.title'));
+      const title = inject(Title);
+      const authToken = inject(AuthTokenService);
       const lookups = inject(LookupLabelsService);
-      await firstValueFrom(lookups.load());
+
+      return (async () => {
+        try {
+          await firstValueFrom(
+            i18n.loadLang(readStoredLang()).pipe(catchError(() => of(undefined)))
+          );
+        } catch {
+          /* ignore */
+        }
+        try {
+          title.setTitle(i18n.instant('app.title'));
+        } catch {
+          title.setTitle('Admin Communications');
+        }
+
+        if (!authToken.getToken()) {
+          return;
+        }
+
+        try {
+          await firstValueFrom(lookups.load().pipe(catchError(() => of(undefined))));
+        } catch {
+          /* ignore */
+        }
+      })();
     })
   ]
 };

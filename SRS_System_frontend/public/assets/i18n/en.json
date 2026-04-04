@@ -21,12 +21,14 @@
     "close": "Close"
   },
   "errors": {
-    "network": "Could not reach the server.",
-    "unauthorized": "Please sign in again.",
-    "forbidden": "You do not have permission.",
-    "notFound": "Not found.",
-    "server": "Server error. Try again later.",
-    "generic": "Something went wrong.",
+    "network": "Could not reach the server. Check that the API is running and your connection.",
+    "cors": "The browser blocked the request for security reasons. Make sure the frontend and API are configured together, then restart the API if needed.",
+    "badCredentials": "Invalid username or password.",
+    "unauthorized": "Your session expired or you are not signed in. Please sign in again.",
+    "forbidden": "You do not have permission to do this.",
+    "notFound": "The requested resource was not found.",
+    "server": "The server is temporarily unavailable. Please try again shortly.",
+    "generic": "We could not complete this action. If it keeps happening, contact support.",
     "http": {
       "generic": "Something went wrong",
       "notImplemented": "Not implemented yet"
@@ -474,6 +476,7 @@
     "logout": "Sign out",
     "loginSuccessTitle": "Welcome",
     "loginSuccessMessage": "Signed in successfully.",
+    "loginErrorTitle": "Sign-in failed",
     "validationRequired": "Please enter username and password.",
     "forgotPasswordMessage": "Please contact IT support to reset your password.",
     "forgotPasswordTitle": "Password recovery"
