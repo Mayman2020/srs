@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, takeUntil } from 'rxjs/operators';
+import { catchError, take, takeUntil } from 'rxjs/operators';
 
 import { CorrespondenceCommentDetailDto, CorrespondenceDetailResponse, WorkflowHistoryEntryDto } from '../../core/api/api-types';
 import { TransactionService } from '../../services/transaction.service';
+import { PlatformWorkflowApiService } from '../../core/api/platform-workflow-api.service';
 import { AttachmentApiService } from '../../core/api/attachment-api.service';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -18,7 +19,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { EditorModule } from '@tinymce/tinymce-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { VisualWorkflowDialogComponent } from '../visual-workflow-dialog/visual-workflow-dialog.component';
+import { TextInputDialogComponent, TextInputDialogData } from '../../shared/dialogs/text-input-dialog.component';
+import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog.component';
+import {
+  SendMailDialogComponent,
+  SendMailDialogData,
+} from '../../shared/dialogs/send-mail-dialog.component';
 
 
 
@@ -57,6 +65,25 @@ export interface RelatedTransaction {
   created: Date | string;
   status: string;
   statusClass: 'active' | 'done' | 'pending' | 'rejected';
+}
+
+/** Maps file name / MIME to `attachment_content_type.code` (see V2__lookup_tables). */
+function guessAttachmentContentTypeCode(fileName: string, mimeType: string | undefined): string {
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith('.pdf')) return 'PDF';
+  if (lower.endsWith('.docx')) return 'DOCX';
+  if (lower.endsWith('.doc')) return 'DOCX';
+  if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) return 'XLSX';
+  if (lower.endsWith('.pptx') || lower.endsWith('.ppt')) return 'PPTX';
+  if (/\.(jpe?g|png|tiff?|gif|webp|bmp)$/i.test(lower)) return 'IMAGE';
+  if (lower.endsWith('.msg')) return 'MSG';
+  const m = (mimeType ?? '').toLowerCase();
+  if (m.includes('pdf')) return 'PDF';
+  if (m.includes('word') || m.includes('msword')) return 'DOCX';
+  if (m.includes('sheet') || m.includes('excel')) return 'XLSX';
+  if (m.includes('presentation') || m.includes('powerpoint')) return 'PPTX';
+  if (m.startsWith('image/')) return 'IMAGE';
+  return '';
 }
 
 export interface Transaction {
@@ -100,11 +127,14 @@ export interface Transaction {
     MatIconModule,
     MatDialogModule,
     MatButtonModule,
+    MatSnackBarModule,
     TranslatePipe,
   ],
   standalone: true,
 })
 export class TransactionDetailsComponent implements OnInit, OnDestroy {
+
+  @ViewChild('attachmentInput') attachmentInput?: ElementRef<HTMLInputElement>;
 
   // ── Data ────────────────────────────────────
   transaction!: Transaction;
@@ -146,9 +176,11 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private dialog: MatDialog,
     private transactionService: TransactionService,
+    private platformWorkflow: PlatformWorkflowApiService,
     private attachmentApi: AttachmentApiService,
     private tokens: AuthTokenService,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private snackBar: MatSnackBar
   ) {}
 
   // ══════════════════════════════════════════════
@@ -209,6 +241,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.activeIndex = steps > 0 ? steps - 1 : 0;
           this.checkOverdue();
           this.canAddNote = true;
+          const draft = (d.replyDraftHtml ?? '').trim();
+          this.form.patchValue({ letterContent: draft });
         },
         error: () => {
           this.canAddNote = false;
@@ -356,8 +390,12 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ACTION HANDLERS
   // ══════════════════════════════════════════════
 
+  private toast(msg: string, duration = 5000): void {
+    this.snackBar.open(msg, this.i18n.instant('common.close'), { duration });
+  }
+
   private runWorkflowAction(
-    action: 'APPROVE' | 'REJECT' | 'RETURN',
+    action: 'APPROVE' | 'REJECT' | 'RETURN' | 'REFER',
     comment?: string | null
   ): void {
     if (!this.correspondenceUuid) {
@@ -368,9 +406,38 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => this.loadTransaction(),
         error: (err: HttpErrorResponse & { userMessage?: string }) => {
-          const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-          window.alert(msg);
+          this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
         },
+      });
+  }
+
+  private promptCommentThenAction(
+    action: 'RETURN' | 'REJECT' | 'REFER',
+    titleKey: string
+  ): void {
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(480px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        titleKey,
+        labelKey: 'transactionDetails.workflowCommentPrompt',
+        confirmKey: 'common.apply',
+        required: true,
+        multiline: true,
+      } satisfies TextInputDialogData,
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((comment) => {
+        if (comment === undefined) {
+          return;
+        }
+        if (!comment.trim()) {
+          this.toast(this.i18n.instant('transactionDetails.workflowCommentRequired'));
+          return;
+        }
+        this.runWorkflowAction(action, comment);
       });
   }
 
@@ -384,31 +451,123 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   }
 
   returnTransaction(): void {
-    const c = window.prompt(this.i18n.instant('transactionDetails.workflowCommentPrompt'));
-    if (c === null) {
-      return;
-    }
-    if (!c.trim()) {
-      window.alert(this.i18n.instant('transactionDetails.workflowCommentRequired'));
-      return;
-    }
-    this.runWorkflowAction('RETURN', c);
+    this.promptCommentThenAction('RETURN', 'transactionDetails.dialogReturnTitle');
   }
 
+  /** Referral / إحالة — distinct Camunda decision REFER (status → in progress). */
   referTransaction(): void {
-    this.returnTransaction();
+    this.promptCommentThenAction('REFER', 'transactionDetails.dialogReferralTitle');
   }
 
   rejectTransaction(): void {
-    const c = window.prompt(this.i18n.instant('transactionDetails.workflowCommentPrompt'));
-    if (c === null) {
+    this.promptCommentThenAction('REJECT', 'transactionDetails.dialogRejectTitle');
+  }
+
+  /** Delegates the current user’s Camunda task to another user (UUID). */
+  delegateWorkflow(): void {
+    if (!this.correspondenceUuid) {
       return;
     }
-    if (!c.trim()) {
-      window.alert(this.i18n.instant('transactionDetails.workflowCommentRequired'));
+    this.dialog
+      .open(TextInputDialogComponent, {
+        width: 'min(440px, 94vw)',
+        autoFocus: 'dialog',
+        data: {
+          titleKey: 'transactionDetails.workflowDelegate',
+          labelKey: 'transactionDetails.workflowDelegatePrompt',
+          confirmKey: 'common.apply',
+          required: true,
+          multiline: false,
+        } satisfies TextInputDialogData,
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((delegateeUserId) => {
+        if (!delegateeUserId?.trim()) {
+          return;
+        }
+        const id = this.correspondenceUuid;
+        if (!id) {
+          return;
+        }
+        this.platformWorkflow
+          .delegateCorrespondence(id, {
+            delegateeUserId: delegateeUserId.trim(),
+          })
+          .subscribe({
+            next: () => {
+              this.toast(this.i18n.instant('transactionDetails.workflowDelegateSuccess'));
+              this.loadTransaction();
+            },
+            error: (err: HttpErrorResponse & { userMessage?: string }) => {
+              this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+            },
+          });
+      });
+  }
+
+  openSendMailDialog(): void {
+    if (!this.transaction) {
       return;
     }
-    this.runWorkflowAction('REJECT', c);
+    const defaultSubject = `[${this.transaction.referenceNumber}] ${this.transaction.subject}`;
+    const defaultBody = this.i18n.instant('transactionDetails.sendMailBodyDefault', {
+      ref: this.transaction.referenceNumber,
+      url: typeof window !== 'undefined' ? window.location.href : '',
+    });
+    this.dialog
+      .open(SendMailDialogComponent, {
+        width: 'min(480px, 94vw)',
+        data: {
+          defaultSubject,
+          defaultBody,
+        } satisfies SendMailDialogData,
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((ok) => {
+        if (ok) {
+          this.toast(this.i18n.instant('transactionDetails.sendMailSuccess'));
+        }
+      });
+  }
+
+  openCancelDialog(): void {
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    const cid = this.correspondenceUuid;
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: 'min(400px, 92vw)',
+        data: {
+          titleKey: 'transactionDetails.cancelDialogTitle',
+          messageKey: 'transactionDetails.cancelDialogMessage',
+          confirmKey: 'transactionDetails.cancelConfirm',
+          cancelKey: 'common.close',
+          warn: true,
+        },
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((ok) => {
+        if (!ok) {
+          return;
+        }
+        this.transactionService.cancelCorrespondence(cid).subscribe({
+          next: () => {
+            this.toast(this.i18n.instant('transactionDetails.cancelSuccess'));
+            this.router.navigate(['/transactions']);
+          },
+          error: (err: HttpErrorResponse & { userMessage?: string }) => {
+            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+          },
+        });
+      });
+  }
+
+  showImageTransferPending(): void {
+    this.openAttachmentFilePicker();
   }
 
   printTransaction(): void {
@@ -424,11 +583,37 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   saveDraft(): void {
-    /* Persisted via correspondence APIs when available */
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    const html = (this.form.get('letterContent')?.value ?? '') as string;
+    this.transactionService.saveReplyDraft(this.correspondenceUuid, html).subscribe({
+      next: () => this.toast(this.i18n.instant('transactionDetails.saveDraftSuccess')),
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+      },
+    });
   }
 
   sendReply(): void {
-    /* Outbound reply via correspondence APIs when available */
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    const html = ((this.form.get('letterContent')?.value ?? '') as string).trim();
+    if (!html) {
+      this.toast(this.i18n.instant('transactionDetails.sendReplyEmpty'));
+      return;
+    }
+    this.transactionService.sendCorrespondenceReply(this.correspondenceUuid, html).subscribe({
+      next: () => {
+        this.toast(this.i18n.instant('transactionDetails.sendReplySuccess'));
+        this.form.patchValue({ letterContent: '' });
+        this.loadTransaction();
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+      },
+    });
   }
 
   // ══════════════════════════════════════════════
@@ -436,7 +621,48 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════
 
   addAttachment(): void {
-    /* Upload wired when correspondence attachment API is exposed for existing items */
+    this.openAttachmentFilePicker();
+  }
+
+  openAttachmentFilePicker(): void {
+    const el = this.attachmentInput?.nativeElement;
+    if (el) {
+      el.value = '';
+      el.click();
+    }
+  }
+
+  onAttachmentPicked(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.item(0);
+    if (!file || !this.correspondenceUuid) {
+      return;
+    }
+    this.attachmentApi.upload(file).subscribe({
+      next: (res) => {
+        const contentTypeCode = guessAttachmentContentTypeCode(file.name, res.mimeType);
+        this.transactionService
+          .addCorrespondenceAttachment(this.correspondenceUuid!, {
+            displayName: file.name,
+            storageKey: res.storageKey,
+            byteSize: res.byteSize,
+            mimeType: res.mimeType,
+            ...(contentTypeCode ? { contentTypeCode } : {}),
+          })
+          .subscribe({
+            next: () => {
+              this.toast(this.i18n.instant('transactionDetails.addAttachmentSuccess'));
+              this.loadTransaction();
+            },
+            error: (err: HttpErrorResponse & { userMessage?: string }) => {
+              this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+            },
+          });
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+      },
+    });
   }
 
   previewAttachment(att: Attachment): void {
@@ -474,14 +700,38 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
       })
       .catch(() => {
-        window.alert(this.i18n.instant('errors.generic'));
+        this.toast(this.i18n.instant('errors.generic'));
       });
   }
 
   deleteAttachment(att: Attachment): void {
-    if (!this.transaction) return;
-    this.transaction.attachments =
-      this.transaction.attachments.filter(a => a.id !== att.id);
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: 'min(400px, 92vw)',
+        data: {
+          titleKey: 'transactionDetails.deleteAttachmentTitle',
+          messageKey: 'transactionDetails.deleteAttachmentConfirm',
+          confirmKey: 'transactionDetails.deleteAttachmentConfirmBtn',
+          cancelKey: 'common.close',
+          warn: true,
+        },
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((ok) => {
+        if (!ok) {
+          return;
+        }
+        this.attachmentApi.delete(att.id).subscribe({
+          next: () => {
+            this.toast(this.i18n.instant('transactionDetails.deleteAttachmentSuccess'));
+            this.loadTransaction();
+          },
+          error: (err: HttpErrorResponse & { userMessage?: string }) => {
+            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+          },
+        });
+      });
   }
 
   // ══════════════════════════════════════════════
@@ -499,7 +749,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         this.loadTransaction();
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        window.alert(err.userMessage ?? this.i18n.instant('errors.generic'));
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
       },
     });
   }
@@ -514,24 +764,21 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
 
 
   openVisualTracking(): void {
-  if (!this.transaction) return;
+    if (!this.transaction) {
+      return;
+    }
 
-  this.dialog.open(VisualWorkflowDialogComponent, {
-    data: {
-      transaction: this.transaction,
-      activeIndex: this.activeIndex,
-    },
-    width: 'min(1100px, 96vw)',
-    maxWidth: '96vw',
-    height: 'min(85vh, 900px)',
-    panelClass: 'visual-tracking-dialog',
-    autoFocus: false,
-  });
+    this.dialog.open(VisualWorkflowDialogComponent, {
+      data: {
+        transaction: this.transaction,
+        activeIndex: this.activeIndex,
+      },
+      width: 'min(1100px, 96vw)',
+      maxWidth: '96vw',
+      height: 'min(85vh, 900px)',
+      panelClass: 'visual-tracking-dialog',
+      autoFocus: false,
+    });
+  }
 }
-
-
-  
-}
-
-
 

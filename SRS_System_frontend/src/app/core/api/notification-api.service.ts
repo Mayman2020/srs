@@ -19,4 +19,8 @@ export class NotificationApiService {
   markRead(id: string): Observable<void> {
     return this.http.patch<void>(`${this.base}/notifications/${id}/read`, {});
   }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/notifications/${id}`);
+  }
 }

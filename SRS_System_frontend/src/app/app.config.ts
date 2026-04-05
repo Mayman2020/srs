@@ -10,6 +10,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/api/auth.interceptor';
 import { httpErrorInterceptor } from './core/api/http-error.interceptor';
+import { systemIssueReporterInterceptor } from './core/api/system-issue-reporter.interceptor';
 import { catchError, firstValueFrom, of } from 'rxjs';
 
 import { routes } from './app.routes';
@@ -32,7 +33,9 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideAnimations(),
-    provideHttpClient(withInterceptors([authInterceptor, httpErrorInterceptor])),
+    provideHttpClient(
+      withInterceptors([authInterceptor, httpErrorInterceptor, systemIssueReporterInterceptor])
+    ),
     // inject() must run synchronously in the initializer — not after await (NG0203).
     provideAppInitializer(() => {
       const i18n = inject(I18nService);

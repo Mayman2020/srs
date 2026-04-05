@@ -1,5 +1,6 @@
 package com.gov.ac.correspondence.security;
 
+import com.gov.ac.persistence.RoleRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class CorrespondenceWorkflowParticipationChecker {
   private final RuntimeService runtimeService;
   private final TaskService taskService;
   private final HistoryService historyService;
+  private final RoleRepository roleRepository;
 
   /**
    * True if the user is process initiator (variable), task assignee/candidate, historic assignee, or
@@ -56,6 +58,18 @@ public class CorrespondenceWorkflowParticipationChecker {
             .count()
         > 0) {
       return true;
+    }
+
+    List<String> roleCodes = roleRepository.findActiveRoleCodesByUserId(userId);
+    for (String role : roleCodes) {
+      if (taskService
+              .createTaskQuery()
+              .processInstanceBusinessKey(businessKey)
+              .taskCandidateGroup(role)
+              .count()
+          > 0) {
+        return true;
+      }
     }
 
     if (historyService

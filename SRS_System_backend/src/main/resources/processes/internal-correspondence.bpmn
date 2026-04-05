@@ -13,6 +13,7 @@
     <bpmn:startEvent id="StartEvent_1" name="Started"/>
     <bpmn:userTask id="Task_route" name="Initial routing" camunda:assignee="${initiator}">
       <bpmn:extensionElements>
+        <camunda:taskListener delegateExpression="${correspondenceTaskAssignmentListener}" event="create"/>
         <camunda:taskListener delegateExpression="${correspondenceWorkflowPersistenceTaskListener}" event="complete"/>
         <camunda:taskListener delegateExpression="${correspondenceWorkflowNotificationTaskListener}" event="complete"/>
       </bpmn:extensionElements>

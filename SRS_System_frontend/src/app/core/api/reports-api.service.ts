@@ -37,4 +37,8 @@ export class ReportsApiService {
       `${this.base}/reports/department-sla-heatmap`
     );
   }
+
+  exportExcelBlob(): Observable<Blob> {
+    return this.http.get(`${this.base}/reports/export/excel`, { responseType: 'blob' });
+  }
 }

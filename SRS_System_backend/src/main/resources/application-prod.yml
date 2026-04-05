@@ -1,0 +1,32 @@
+# Production — activate with spring.profiles.active=prod.
+# AC_JWT_SECRET, SPRING_DATASOURCE_*, AC_CORS_ALLOWED_ORIGIN_PATTERNS, CAMUNDA_BPM_ADMIN_PASSWORD are mandatory via environment / secret store.
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+ac:
+  security:
+    cors:
+      allowed-origin-patterns: ${AC_CORS_ALLOWED_ORIGIN_PATTERNS}
+    headers:
+      # When TLS terminates at Nginx/Ingress, set AC_SECURITY_HSTS_ENABLED=false here and enforce HSTS at the edge.
+      hsts-enabled: ${AC_SECURITY_HSTS_ENABLED:true}
+
+management:
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    root: INFO
+    com.gov.ac: INFO

@@ -1,0 +1,37 @@
+<div class="circular-page">
+  <header class="page-head">
+    <div>
+      <h1>{{ 'circularInbox.title' | t }}</h1>
+      <p class="sub">{{ 'circularInbox.subtitle' | t }}</p>
+    </div>
+    <button type="button" class="btn-refresh" (click)="load()" [disabled]="loading">
+      {{ 'circularInbox.refresh' | t }}
+    </button>
+  </header>
+
+  <p class="alert" *ngIf="errorText">{{ errorText }}</p>
+
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | t }}</div>
+
+  <ul class="list" *ngIf="!loading && !errorText && rows.length">
+    <li *ngFor="let r of rows" [class.unread]="!r.read">
+      <div class="meta">
+        <span class="title">{{ r.title }}</span>
+        <span class="chip" *ngIf="r.broadcast">{{ 'circularInbox.broadcast' | t }}</span>
+        <span class="date">{{ r.createdAt | date : 'medium' }}</span>
+      </div>
+      <div class="by">{{ r.createdBy }}</div>
+      <button
+        type="button"
+        class="btn-mark"
+        *ngIf="!r.read"
+        (click)="markRead(r)">
+        {{ 'circularInbox.markRead' | t }}
+      </button>
+    </li>
+  </ul>
+
+  <p class="empty" *ngIf="!loading && !errorText && !rows.length">
+    {{ 'circularInbox.empty' | t }}
+  </p>
+</div>

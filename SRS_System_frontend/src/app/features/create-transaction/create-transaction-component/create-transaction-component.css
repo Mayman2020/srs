@@ -698,3 +698,10 @@ angular-editor {
   font-size:14px;
   letter-spacing:1px;
 }
+
+.field-hint.muted {
+  font-size: 0.85rem;
+  opacity: 0.78;
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
+}

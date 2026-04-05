@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
 
+  long countByCorrespondence_IdAndDeletedAtIsNull(UUID correspondenceId);
+
   @EntityGraph(attributePaths = {"correspondence", "correspondence.ownerDepartment"})
   @Query("select a from Attachment a where a.id = :id and a.deletedAt is null")
   Optional<Attachment> findByIdAndDeletedAtIsNullWithCorrespondenceForAuth(@Param("id") Long id);

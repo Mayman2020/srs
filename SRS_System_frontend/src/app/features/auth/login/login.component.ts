@@ -107,7 +107,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         this.submitting = false;
-        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        let msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        if (err.status === 403 && err.error === 'MFA_REQUIRED') {
+          msg = this.i18n.instant('auth.mfaRequired');
+        }
         this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg);
       }
     });

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
-import { SpringPage, UserListDto } from './api-types';
+import { SpringPage, UserDetailDto, UserListDto } from './api-types';
 
 @Injectable({ providedIn: 'root' })
 export class UserDirectoryApiService {
@@ -15,5 +15,42 @@ export class UserDirectoryApiService {
     return this.http.get<SpringPage<UserListDto>>(`${this.base}/users`, {
       params: { page: String(page), size: String(size) }
     });
+  }
+
+  getOne(userId: string): Observable<UserDetailDto> {
+    return this.http.get<UserDetailDto>(`${this.base}/users/${userId}`);
+  }
+
+  create(body: {
+    username: string;
+    password: string;
+    fullNameAr: string;
+    fullNameEn: string;
+    email: string;
+    departmentId: number;
+  }): Observable<UserDetailDto> {
+    return this.http.post<UserDetailDto>(`${this.base}/users`, body);
+  }
+
+  update(
+    userId: string,
+    body: {
+      fullNameAr: string;
+      fullNameEn: string;
+      email: string;
+      departmentId: number;
+      active: boolean;
+      password?: string | null;
+    }
+  ): Observable<UserDetailDto> {
+    return this.http.put<UserDetailDto>(`${this.base}/users/${userId}`, body);
+  }
+
+  delete(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/users/${userId}`);
+  }
+
+  assignRole(userId: string, roleId: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/users/${userId}/roles`, { roleId });
   }
 }

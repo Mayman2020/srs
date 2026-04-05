@@ -29,7 +29,9 @@ run-backend.secrets.ps1
 .env
 .env.*
 !.env.example
+!deploy/env/.env.example
 application-local.yml
+!SRS_System_backend/src/main/resources/application-local.yml
 application-local.properties
 *.pem
 *.p12

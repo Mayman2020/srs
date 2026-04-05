@@ -14,6 +14,8 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
   Optional<Role> findByIdAndDeletedAtIsNullAndActiveTrue(Long id);
 
+  Optional<Role> findByCodeIgnoreCaseAndDeletedAtIsNullAndActiveTrue(String code);
+
   @Query(
       value =
           "select r.code from role r "

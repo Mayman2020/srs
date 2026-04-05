@@ -227,7 +227,9 @@ export class CreateTransactionComponent implements OnInit {
       from: [''],
       to: this.fb.array<number>([]),
       cc: this.fb.array<number>([]),
-      maxDays: [5, [Validators.required, Validators.min(1), Validators.max(30)]]
+      maxDays: [5, [Validators.required, Validators.min(1), Validators.max(30)]],
+      workflowFirstAssigneeUserId: [''],
+      workflowFirstCandidateGroup: ['']
     });
 
     // Step 3
@@ -634,6 +636,13 @@ export class CreateTransactionComponent implements OnInit {
 
     uploads$.subscribe({
       next: (flat) => {
+        const wfUser = (this.secondaryForm.value.workflowFirstAssigneeUserId ?? '')
+          .toString()
+          .trim();
+        const wfRole = (this.secondaryForm.value.workflowFirstCandidateGroup ?? '')
+          .toString()
+          .trim();
+
         const body: CorrespondenceCreateRequest = {
           correspondenceTypeCode: this.basicForm.value.type,
           priorityCode: this.basicForm.value.priority,
@@ -644,7 +653,9 @@ export class CreateTransactionComponent implements OnInit {
           bodyHtml: (this.letterForm.value.letterContent ?? '') || null,
           ownerDepartmentId: ownerDepartmentId ?? null,
           dueDate: due.toISOString(),
-          attachments: flat.length ? flat : undefined
+          attachments: flat.length ? flat : undefined,
+          ...(wfUser ? { workflowFirstAssigneeUserId: wfUser } : {}),
+          ...(wfRole ? { workflowFirstCandidateGroup: wfRole } : {})
         };
 
         this.transactionService.create(body).subscribe({
@@ -675,7 +686,11 @@ export class CreateTransactionComponent implements OnInit {
 
   resetForms(): void {
     this.basicForm.reset();
-    this.secondaryForm.reset({ maxDays: 5 });
+    this.secondaryForm.reset({
+      maxDays: 5,
+      workflowFirstAssigneeUserId: '',
+      workflowFirstCandidateGroup: ''
+    });
     this.letterForm.reset({
       letterContent: this.letterTemplates[0]?.getHtml() ?? this.defaultTemplate()
     });

@@ -185,6 +185,27 @@
               />
             </div>
 
+            <div class="form-group">
+              <label class="field-label">{{ 'createTx.workflow.firstAssigneeUserId' | t }}</label>
+              <input
+                class="custom-input"
+                type="text"
+                formControlName="workflowFirstAssigneeUserId"
+                [attr.placeholder]="'createTx.workflow.firstAssigneeUserIdPh' | t"
+              />
+              <p class="field-hint muted">{{ 'createTx.workflow.hintExclusive' | t }}</p>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label">{{ 'createTx.workflow.firstCandidateGroup' | t }}</label>
+              <input
+                class="custom-input"
+                type="text"
+                formControlName="workflowFirstCandidateGroup"
+                [attr.placeholder]="'createTx.workflow.firstCandidateGroupPh' | t"
+              />
+            </div>
+
           </div>
 
 

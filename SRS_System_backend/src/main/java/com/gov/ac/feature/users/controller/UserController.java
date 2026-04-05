@@ -1,6 +1,9 @@
 package com.gov.ac.feature.users.controller;
 
 import com.gov.ac.feature.users.dto.AssignRoleRequest;
+import com.gov.ac.feature.users.dto.CreateAppUserRequest;
+import com.gov.ac.feature.users.dto.UpdateAppUserRequest;
+import com.gov.ac.feature.users.dto.UserDetailDto;
 import com.gov.ac.feature.users.dto.UserListDto;
 import com.gov.ac.feature.users.service.UserAdminService;
 import com.gov.ac.security.SecurityUtils;
@@ -12,9 +15,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -32,6 +37,29 @@ public class UserController {
   @GetMapping
   public Page<UserListDto> page(@PageableDefault(size = 50) Pageable pageable) {
     return userAdminService.listUsers(pageable);
+  }
+
+  @GetMapping("/{userId}")
+  public UserDetailDto getOne(@PathVariable UUID userId) {
+    return userAdminService.getUserDetail(userId);
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public UserDetailDto create(@Valid @RequestBody CreateAppUserRequest body) {
+    return userAdminService.createUser(SecurityUtils.requireCurrentUserId(), body);
+  }
+
+  @PutMapping("/{userId}")
+  public UserDetailDto update(
+      @PathVariable UUID userId, @Valid @RequestBody UpdateAppUserRequest body) {
+    return userAdminService.updateUser(SecurityUtils.requireCurrentUserId(), userId, body);
+  }
+
+  @DeleteMapping("/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable UUID userId) {
+    userAdminService.deleteUser(SecurityUtils.requireCurrentUserId(), userId);
   }
 
   @PostMapping("/{userId}/roles")

@@ -1,12 +1,6 @@
 # -----------------------------------------------------------------------------
-# Local development template (optional)
-# -----------------------------------------------------------------------------
-# 1. Copy this file to: src/main/resources/application-local.yml
-#    (application-local.yml is gitignored — never commit it.)
-# 2. Run the API: run-backend.ps1 / run-backend.cmd auto-activates profile "local"
-#    when this file exists as application-local.yml. Or: mvn spring-boot:run -Dspring-boot.run.profiles=local
-#
-# Alternatively, set environment variables instead (see README.md).
+# Optional: backup template — committed defaults live in application-local.yml.
+# If you remove application-local.yml, run-backend.ps1 recreates it from this file.
 # -----------------------------------------------------------------------------
 
 spring:
@@ -17,8 +11,28 @@ camunda.bpm:
   admin-user:
     password: admin
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
 ac:
   security:
+    cors:
+      allowed-origin-patterns: "http://localhost:*,http://127.0.0.1:*"
+    headers:
+      hsts-enabled: false
     jwt:
-      # Dev-only sample — use a unique secret per environment in production.
       secret: "0123456789abcdef0123456789abcdef0123456789abcdef01"

@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { CorrespondenceApiService, CorrespondenceListParams } from '../core/api/correspondence-api.service';
 import {
+  CorrespondenceAttachmentDetailDto,
+  CorrespondenceAttachmentFormDto,
   CorrespondenceCommentDetailDto,
   CorrespondenceCreateRequest,
   CorrespondenceCreatedResponse,
@@ -43,12 +45,31 @@ export class TransactionService {
 
   workflowAction(
     id: string,
-    opts?: { action?: 'APPROVE' | 'REJECT' | 'RETURN'; comment?: string | null }
+    opts?: { action?: 'APPROVE' | 'REJECT' | 'RETURN' | 'REFER'; comment?: string | null }
   ): Observable<void> {
     return this.correspondenceApi.workflowAction(id, {
       action: opts?.action,
       comment: opts?.comment ?? undefined
     });
+  }
+
+  cancelCorrespondence(id: string, reason?: string | null): Observable<void> {
+    return this.correspondenceApi.cancel(id, { reason: reason ?? undefined });
+  }
+
+  saveReplyDraft(id: string, bodyHtml: string): Observable<void> {
+    return this.correspondenceApi.saveDraft(id, bodyHtml);
+  }
+
+  sendCorrespondenceReply(id: string, bodyHtml: string): Observable<void> {
+    return this.correspondenceApi.sendReply(id, bodyHtml);
+  }
+
+  addCorrespondenceAttachment(
+    id: string,
+    payload: CorrespondenceAttachmentFormDto
+  ): Observable<CorrespondenceAttachmentDetailDto> {
+    return this.correspondenceApi.addAttachment(id, payload);
   }
 
   addComment(

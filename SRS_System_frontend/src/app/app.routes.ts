@@ -46,22 +46,41 @@ export const routes: Routes = [
             .then(m => m.NotificationsComponent)
       },
       {
+        path: 'circulars',
+        loadComponent: () =>
+          import('./features/circular-inbox/circular-inbox.component').then(
+            (m) => m.CircularInboxComponent
+          ),
+      },
+      {
         path: 'reports',
         loadComponent: () =>
           import('./features/reports/reports')
             .then(m => m.ReportsComponent)
       },
       {
-        path: 'roles',
+        path: 'admin-communications-main',
         loadComponent: () =>
-          import('./features/roles/roles')
-            .then(m => m.RolesComponent)
+          import('./features/admin-communications-main/administration.component').then(
+            (m) => m.AdministrationComponent
+          ),
+        data: { defaultAdminTab: 'users' }
       },
       {
         path: 'users',
         loadComponent: () =>
-          import('./features/users/users')
-            .then(m => m.UsersComponent)
+          import('./features/admin-communications-main/administration.component').then(
+            (m) => m.AdministrationComponent
+          ),
+        data: { defaultAdminTab: 'users' }
+      },
+      {
+        path: 'roles',
+        loadComponent: () =>
+          import('./features/admin-communications-main/administration.component').then(
+            (m) => m.AdministrationComponent
+          ),
+        data: { defaultAdminTab: 'roles' }
       },
 
 

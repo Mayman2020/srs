@@ -3,10 +3,12 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import {
+  CorrespondenceAttachmentFormDto,
   CorrespondenceCreateRequest,
   CorrespondenceCreatedResponse,
   CorrespondenceDetailResponse,
   CorrespondenceCommentDetailDto,
+  CorrespondenceAttachmentDetailDto,
   CorrespondenceListItemDto,
   SpringPage,
   WorkflowHistoryEntryDto
@@ -75,5 +77,27 @@ export class CorrespondenceApiService {
     return this.http.get<WorkflowHistoryEntryDto[]>(
       `${this.base}/correspondence/${correspondenceId}/workflow-history`
     );
+  }
+
+  cancel(id: string, body: { reason?: string | null } = {}): Observable<void> {
+    return this.http.post<void>(`${this.base}/correspondence/${id}/cancel`, body);
+  }
+
+  addAttachment(
+    id: string,
+    payload: CorrespondenceAttachmentFormDto
+  ): Observable<CorrespondenceAttachmentDetailDto> {
+    return this.http.post<CorrespondenceAttachmentDetailDto>(
+      `${this.base}/correspondence/${id}/attachments`,
+      payload
+    );
+  }
+
+  saveDraft(id: string, bodyHtml: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/correspondence/${id}/draft`, { bodyHtml });
+  }
+
+  sendReply(id: string, bodyHtml: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/correspondence/${id}/reply`, { bodyHtml });
   }
 }

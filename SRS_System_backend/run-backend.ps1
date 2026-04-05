@@ -1,35 +1,35 @@
 <#
 .SYNOPSIS
-    Build and run the admin-communications Spring Boot backend (restart-safe).
+    Build and run the admin-communications Spring Boot backend (restart-safe) in LOCAL mode by default.
 
 .DESCRIPTION
-    Production-style local startup script that:
-    - Stops any existing Java process listening on the API port (default 8081; avoids Oracle TNSLSNR on 8080)
-    - Resolves JDK 17 (JAVA_HOME or common install paths)
-    - Runs Maven clean install (optional skip)
-    - Starts Spring Boot with optional Spring profile (e.g. local)
+    Developer-first defaults:
+    - Sets SPRING_PROFILES_ACTIVE=local (override with -Profile for staging/prod experiments)
+    - Default port 8080 (matches SRS_System_frontend\proxy.conf.json)
+    - Ensures application-local.yml exists (copies from application-local.example.yml if missing)
+    - Stops any existing Java process listening on the API port
+    - Resolves JDK 17, runs Maven (optional skip)
 
 .PARAMETER Profile
-    Spring profile (e.g. "local" for application-local.yml). Default "" = if application-local.yml exists, "local" is used automatically; otherwise application.yml + env vars.
+    Spring profile. Default is local (application-local.yml). Use staging or prod only when you intend to.
 
 .PARAMETER SkipBuild
     Skip Maven build; only run the application.
 
 .PARAMETER Port
-    Server port to free before start and to show in URLs. Default 8081 (8080 often taken by Oracle TNSLSNR). Use -Port 8080 if free.
+    Server port. Default 8080. If Oracle TNSLSNR uses 8080 on your machine, use -Port 8081 and point proxy.conf.json to the same port.
 
 .EXAMPLE
     .\run-backend.ps1
     .\run-backend.ps1 -SkipBuild
-    .\run-backend.ps1 -Profile local
-    .\run-backend.ps1 -Port 8080
+    .\run-backend.ps1 -Port 8081
 #>
 
 [CmdletBinding()]
 param(
-    [string]$Profile = "",
+    [string]$Profile = "local",
     [switch]$SkipBuild,
-    [int]$Port = 8081
+    [int]$Port = 8080
 )
 
 $ErrorActionPreference = 'Stop'
@@ -44,6 +44,7 @@ $ProjectRoot = $ScriptDir
 $MvnwPath = Join-Path $ProjectRoot "mvnw.cmd"
 $SecretsFile = Join-Path $ProjectRoot "run-backend.secrets.ps1"
 $LocalYml = Join-Path $ProjectRoot "src\main\resources\application-local.yml"
+$ExampleYml = Join-Path $ProjectRoot "src\main\resources\application-local.example.yml"
 
 # Logging helpers
 function Write-Step {
@@ -57,41 +58,39 @@ function Write-Warn { param([string]$Message) Write-Step $Message "Yellow" }
 function Write-Err { param([string]$Message) Write-Step $Message "Red" }
 function Write-Info { param([string]$Message) Write-Step $Message "Gray" }
 
-# Prefer local profile when the gitignored file exists (avoids missing DB password / JWT when double-clicking run-backend.cmd)
-if ([string]::IsNullOrWhiteSpace($Profile) -and (Test-Path $LocalYml)) {
-    $Profile = "local"
-    Write-Info "Spring profile: local (found application-local.yml)."
+if ($Profile -eq 'local' -and -not (Test-Path $LocalYml)) {
+    if (Test-Path $ExampleYml) {
+        Copy-Item -Path $ExampleYml -Destination $LocalYml -Force
+        Write-Success "Created application-local.yml from application-local.example.yml (LOCAL defaults)."
+    } else {
+        Write-Err "Profile 'local' requires $LocalYml and template $ExampleYml is missing."
+        exit 1
+    }
 }
+
 $useLocalYml = ($Profile -eq "local") -and (Test-Path $LocalYml)
 
-# Local secrets (not committed). Example: run-backend.secrets.EXAMPLE.ps1 -> run-backend.secrets.ps1
-#   $env:AC_JWT_SECRET = '...'   (>= 32 UTF-8 bytes)
-#   $env:SPRING_DATASOURCE_PASSWORD = 'your_postgres_password'   # required for SCRAM unless using -Profile local + application-local.yml
-#   $env:CAMUNDA_BPM_ADMIN_PASSWORD = 'admin'
-$jwtWeak = (-not $env:AC_JWT_SECRET) -or ($env:AC_JWT_SECRET.Trim().Length -lt 32)
+# Optional overrides (gitignored): run-backend.secrets.ps1
+$jwtWeak = $false
+if ($env:AC_JWT_SECRET -and $env:AC_JWT_SECRET.Trim().Length -lt 32) { $jwtWeak = $true }
 $dbPassUnset = [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD)
 if ((Test-Path $SecretsFile) -and ($jwtWeak -or $dbPassUnset)) {
     Write-Info "Loading local secrets: $SecretsFile"
     . $SecretsFile
-    $jwtWeak = (-not $env:AC_JWT_SECRET) -or ($env:AC_JWT_SECRET.Trim().Length -lt 32)
+    $jwtWeak = ($env:AC_JWT_SECRET -and $env:AC_JWT_SECRET.Trim().Length -lt 32)
     $dbPassUnset = [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD)
 }
-if ($jwtWeak -and -not $useLocalYml) {
-    Write-Warn "AC_JWT_SECRET is missing or shorter than 32 bytes. Spring Boot will fail JWT setup."
-    Write-Info "  Fix: create run-backend.secrets.ps1 (gitignored) or set AC_JWT_SECRET before running."
-    Write-Info "  Example: `$env:AC_JWT_SECRET = '0123456789abcdef0123456789abcdef0123456789abcdef01'"
+if ($jwtWeak) {
+    Write-Warn "AC_JWT_SECRET is set but shorter than 32 bytes. Spring Boot will fail JWT setup."
+    Write-Info "  Unset AC_JWT_SECRET to use application-local.yml dev secret, or set a 32+ byte value."
+}
+if ($dbPassUnset -and (-not $useLocalYml)) {
+    Write-Err "SPRING_DATASOURCE_PASSWORD is not set and profile is not 'local' (no application-local.yml merge)."
+    Write-Info "  Fix: use -Profile local, or set SPRING_DATASOURCE_PASSWORD / run-backend.secrets.ps1"
+    exit 1
 }
 
-if ($dbPassUnset -and (-not $useLocalYml)) {
-    Write-Err "SPRING_DATASOURCE_PASSWORD is not set. PostgreSQL answered: SCRAM authentication - a password is required."
-    Write-Info "  Fix A: copy run-backend.secrets.EXAMPLE.ps1 to run-backend.secrets.ps1 and set SPRING_DATASOURCE_PASSWORD (and AC_JWT_SECRET)."
-    Write-Info "  Fix B: copy application-local.example.yml to application-local.yml, set spring.datasource.password; run-backend then uses profile local automatically."
-    exit 1
-}
-if ($Profile -eq 'local' -and -not (Test-Path $LocalYml)) {
-    Write-Err "Profile 'local' requires $LocalYml (copy from application-local.example.yml)."
-    exit 1
-}
+Write-Step "LOCAL mode: SPRING_PROFILES_ACTIVE=$Profile | API http://localhost:$Port$ApiPrefix" "Cyan"
 
 # Port and process (restart behavior)
 function Get-ProcessOnPort {
@@ -131,7 +130,7 @@ function Stop-ProcessOnPort {
     if (-not $match) {
         Write-Warn "Port $PortListen is in use by $procName (PID $pidVal), not $ExpectedName. Skipping kill for safety."
         if ($procName -match 'TNSLSNR|oracle') {
-            Write-Info "  (Oracle listener often uses 8080. Use .\run-backend.ps1 -Port 8081 and proxy.conf.json target http://localhost:8081.)"
+            Write-Info "  (Oracle listener often uses 8080. Use .\run-backend.ps1 -Port 8081 and set SRS_System_frontend\proxy.conf.json target to http://localhost:8081.)"
         }
         return $false
     }
@@ -220,7 +219,7 @@ if ($psqlCmd) {
 # Restart: stop old backend on port
 Write-Step "Checking port $DefaultPort..." "Cyan"
 if (-not (Stop-ProcessOnPort -PortListen $DefaultPort -ExpectedName $ExpectedProcess)) {
-    Write-Err "Pick a free port, e.g. .\run-backend.ps1 -Port 8081 (default). If you change the port, set SRS_System_frontend\proxy.conf.json `"target`" to the same URL."
+    Write-Err "Pick a free port, e.g. .\run-backend.ps1 -Port 8081. If you change the port, set SRS_System_frontend\proxy.conf.json `"target`" to the same URL."
     exit 1
 }
 
@@ -240,24 +239,17 @@ if (-not $SkipBuild) {
     Write-Info "Skipping build (-SkipBuild)."
 }
 
-# Start backend
-if ($Profile) {
-    $env:SPRING_PROFILES_ACTIVE = $Profile
-    Write-Step "Starting backend (profile: $Profile)..." "Cyan"
-} else {
-    if (Test-Path Env:SPRING_PROFILES_ACTIVE) { Remove-Item Env:SPRING_PROFILES_ACTIVE }
-    Write-Step "Starting backend (default config + environment variables)..." "Cyan"
-}
+# Start backend — always set active profile for this process (LOCAL default = local)
+$env:SPRING_PROFILES_ACTIVE = $Profile
+Write-Step "Starting Spring Boot (spring.profiles.active=$Profile)..." "Cyan"
 Write-Info "  API base: $BaseUrl"
 Write-Info "  Swagger UI: http://localhost:$DefaultPort/swagger-ui.html"
+Write-Info "  Actuator: http://localhost:$DefaultPort/actuator/health"
 Write-Info "  Database (default URL): ${DbName} at localhost:${pgPort}"
 Write-Info "  Stop with Ctrl+C"
 Write-Host ""
 
-$runArgs = @("spring-boot:run")
-if ($Profile) {
-    $runArgs += "-Dspring-boot.run.profiles=$Profile"
-}
+$runArgs = @("spring-boot:run", "-Dspring-boot.run.profiles=$Profile")
 
 & $MvnwPath @runArgs
 $exitCode = $LASTEXITCODE

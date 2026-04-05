@@ -1,6 +1,9 @@
 spring:
   application:
     name: admin-communications-api
+  profiles:
+    # When SPRING_PROFILES_ACTIVE is unset, use local developer defaults (application-local.yml).
+    default: local
   servlet:
     multipart:
       max-file-size: 50MB
@@ -23,6 +26,11 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    properties:
+      mail.smtp.auth: false
 
 server:
   port: ${SERVER_PORT:8080}
@@ -42,13 +50,38 @@ camunda.bpm:
   job-execution:
     enabled: true
 
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+
 ac:
+  security:
+    cors:
+      # Comma-separated Ant-style origin patterns. Prod profile requires AC_CORS_ALLOWED_ORIGIN_PATTERNS (no localhost).
+      allowed-origin-patterns: ${AC_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+    headers:
+      # HSTS should be true only when the app is served over HTTPS (or behind TLS-terminating proxy that sets X-Forwarded-Proto).
+      hsts-enabled: ${AC_SECURITY_HSTS_ENABLED:false}
+    jwt:
+      # HS256 — minimum 32 UTF-8 bytes. Local profile sets a dev secret in application-local.yml; prod uses AC_JWT_SECRET.
+      secret: ${AC_JWT_SECRET:}
+  auth:
+    refresh-ttl-seconds: ${AUTH_REFRESH_TTL_SECONDS:604800}
+    mfa-otp-ttl-seconds: ${MFA_OTP_TTL_SECONDS:300}
+  workflow:
+    escalation:
+      unassigned-after-minutes: ${WF_ESCALATION_MINUTES:120}
+      poll-ms: ${WF_ESCALATION_POLL_MS:120000}
   storage:
     root: ${AC_STORAGE_ROOT:./data/attachments}
-  security:
-    jwt:
-      # HS256 — minimum 32 UTF-8 bytes; set AC_JWT_SECRET (see README)
-      secret: ${AC_JWT_SECRET:}
 
 logging:
   level:

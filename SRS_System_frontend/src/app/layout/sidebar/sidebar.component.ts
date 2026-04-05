@@ -77,25 +77,24 @@ toggleSidebar() {
         `)
       },
       {
-        key: 'users',
-        route: '/users',
-        labelKey: 'nav.users',
+        key: 'circulars',
+        route: '/circulars',
+        labelKey: 'nav.circularInbox',
         icon: this.svg(`
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5
-                   a4 4 0 0 0-4 4v2"/>
-          <circle cx="8.5" cy="7" r="4"/>
-          <path d="M20 8v6"/>
-          <path d="M23 11h-6"/>
+          <path d="M4 4h16v12H4z"/>
+          <path d="M8 20h8M12 16v4"/>
         `)
       },
       {
-        key: 'roles',
-        route: '/roles',
-        labelKey: 'nav.roles',
+        key: 'admin',
+        route: '/admin-communications-main',
+        labelKey: 'nav.adminHub',
         icon: this.svg(`
           <path d="M12 1l3 5 5 1-3.5 4
                    1 6-5.5-3-5.5 3
                    1-6L4 7l5-1 3-5z"/>
+          <circle cx="8.5" cy="12" r="1.5"/>
+          <circle cx="15.5" cy="12" r="1.5"/>
         `)
       },
       {

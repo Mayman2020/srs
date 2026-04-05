@@ -7,6 +7,15 @@
   </div>
 </div>
 
+<input
+  #attachmentInput
+  type="file"
+  class="sr-only"
+  tabindex="-1"
+  aria-hidden="true"
+  (change)="onAttachmentPicked($event)"
+/>
+
 <!-- ══════════════════════════════════════════
      STATS BAR
 ══════════════════════════════════════════ -->
@@ -400,13 +409,22 @@
   <div class="wf-wrapper" *ngIf="activeTab==='workflow'">
 
 
-    <button
-      type="button"
-      class="visual-track-btn"
-      (click)="openVisualTracking()">
-      <span class="btn-text">{{ 'transactionDetails.visualTrack' | t }}</span>
-      <mat-icon class="btn-icon">hub</mat-icon>
-    </button>
+    <div class="wf-top-actions">
+      <button
+        type="button"
+        class="visual-track-btn"
+        (click)="openVisualTracking()">
+        <span class="btn-text">{{ 'transactionDetails.visualTrack' | t }}</span>
+        <mat-icon class="btn-icon">hub</mat-icon>
+      </button>
+      <button
+        type="button"
+        class="visual-track-btn wf-delegate-btn"
+        (click)="delegateWorkflow()">
+        <span class="btn-text">{{ 'transactionDetails.workflowDelegate' | t }}</span>
+        <mat-icon class="btn-icon">person_add</mat-icon>
+      </button>
+    </div>
 
 
 
@@ -683,12 +701,12 @@
    {{ 'transactionDetails.actionReplyLetter' | t }}
   </button>
 
-  <button type="button" class="action-btn gray">
+  <button type="button" class="action-btn gray" (click)="showImageTransferPending()">
     <i class="fa-solid fa-image"></i>
     {{ 'transactionDetails.actionImageTransfer' | t }}
   </button>
 
-  <button type="button" class="action-btn gray" (click)="rejectTransaction()">
+  <button type="button" class="action-btn gray" (click)="referTransaction()">
     <i class="fa-solid fa-share"></i>
     {{ 'transactionDetails.actionReferralForm' | t }}
   </button>
@@ -703,12 +721,17 @@
     {{ 'transactionDetails.actionReplyTx' | t }}
   </button>
 
-  <button type="button" class="action-btn yellow">
+  <button type="button" class="action-btn red-outline" (click)="rejectTransaction()">
+    <i class="fa-solid fa-ban"></i>
+    {{ 'transactionDetails.actionRejectWorkflow' | t }}
+  </button>
+
+  <button type="button" class="action-btn yellow" (click)="openSendMailDialog()">
     <i class="fa-solid fa-envelope"></i>
     {{ 'transactionDetails.actionSendMail' | t }}
   </button>
 
-  <button type="button" class="action-btn gray">
+  <button type="button" class="action-btn gray" (click)="openCancelDialog()">
     <i class="fa-solid fa-xmark"></i>
     {{ 'transactionDetails.actionCancel' | t }}
   </button>

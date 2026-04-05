@@ -15,6 +15,8 @@ public final class CorrespondenceLookupCodes {
   /** {@code workflow_instance_status} — Camunda bridge row while the process is active. */
   public static final String WORKFLOW_INSTANCE_RUNNING = "RUNNING";
 
+  public static final String WORKFLOW_INSTANCE_TERMINATED = "TERMINATED";
+
   /**
    * {@code workflow_history_event_type} and {@code workflow_action_type} — first timeline entry for
    * create (see Flyway V8).

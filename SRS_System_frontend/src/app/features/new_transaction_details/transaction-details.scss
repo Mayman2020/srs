@@ -1338,6 +1338,17 @@ background:#f57c00;
 background:#f59e0b;
 }
 
+.action-btn.red-outline{
+  background: #fff;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+.action-btn.red-outline:hover{
+  background: #fef2f2;
+}
+
 
 /* hover */
 
@@ -1353,6 +1364,13 @@ opacity:.9;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
 }
 
+
+.wf-top-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
 
 .visual-track-btn{
   width: 100%;
@@ -1417,4 +1435,14 @@ opacity:.9;
 /* لو أضفت سهم */
 .visual-track-btn .btn-chevron{
   color: #94a3b8;
+}
+
+.wf-delegate-btn .btn-icon {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+.wf-delegate-btn:hover {
+  border-color: rgba(124, 58, 237, 0.35);
+  box-shadow: 0 14px 34px rgba(124, 58, 237, 0.12);
 }

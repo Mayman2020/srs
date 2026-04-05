@@ -78,16 +78,16 @@ From `SRS_System_backend`:
 
 ```powershell
 cd SRS_System_backend
-# Optional: copy secrets template — create run-backend.secrets.ps1 (gitignored) with AC_JWT_SECRET, DB password, etc.
+# Optional: run-backend.secrets.ps1 (gitignored) to override DB password / JWT for special setups
 .\run-backend.ps1
 .\run-backend.ps1 -SkipBuild
-.\run-backend.ps1 -Profile local
+.\run-backend.ps1 -Port 8081   # only if Oracle TNSLSNR blocks 8080
 ```
 
 If `.\run-backend.ps1` says scripts are disabled, run once:  
 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
 
-Default port for **`run-backend.ps1` is 8081** (avoids Oracle **TNSLSNR** on 8080). **`proxy.conf.json`** targets **8081** to match. Manual `mvn spring-boot:run` without `SERVER_PORT` still uses **8080** — then set proxy back to `http://localhost:8080` or export `SERVER_PORT=8081`. The repo includes **Maven Wrapper** (`mvnw.cmd`); Maven on PATH is optional.
+**LOCAL defaults:** `SPRING_PROFILES_ACTIVE=local`, **`application-local.yml`** (committed dev settings: CORS, Swagger, Actuator, JWT, DB password), **port 8080** (matches `SRS_System_frontend/proxy.conf.json`). `spring.profiles.default=local` in `application.yml` so `mvn spring-boot:run` without env also loads local config. Use **`-Port 8081`** if 8080 is taken. The repo includes **Maven Wrapper** (`mvnw.cmd`).
 
 ### Manual Maven
 
@@ -97,9 +97,8 @@ cd SRS_System_backend
 mvn spring-boot:run
 ```
 
-- API base: `http://localhost:8080` (default `application.yml`; use **8081** if you run `run-backend.ps1`, which defaults to 8081 to avoid Oracle on 8080)
-- OpenAPI: `http://localhost:8081/api/v1/api-docs` when using the script default port
-- Swagger UI: `http://localhost:8081/swagger-ui.html` (or `:8080` if you start the JAR without `SERVER_PORT`)
+- API base: `http://localhost:8080/api/v1` with default `run-backend.ps1` (port **8080**)
+- OpenAPI / Swagger UI: `http://localhost:8080/swagger-ui.html` (same port unless you override `-Port`)
 
 Ensure PostgreSQL is running and Flyway can apply migrations on startup.
 
@@ -109,9 +108,10 @@ Ensure PostgreSQL is running and Flyway can apply migrations on startup.
 cd SRS_System_frontend
 npm install
 npm start
+# or: .\run-frontend.ps1  → ng serve --configuration=development
 ```
 
-Use the project’s `proxy.conf.json` (or configured API URL) so the dev server forwards `/api` to the backend.
+`npm start` runs **`ng serve --configuration=development`**. `proxy.conf.json` forwards `/api` to **`http://localhost:8080`** (backend default).
 
 ## Architecture overview
 

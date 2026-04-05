@@ -18,7 +18,8 @@
     "roleNA": "—",
     "empty": "لا توجد بيانات",
     "toastOk": "تم",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "loading": "جاري التحميل…"
   },
   "errors": {
     "network": "تعذّر الاتصال بالخادم. تحقق من تشغيل الخادم ومن اتصال الشبكة.",
@@ -47,6 +48,8 @@
     "pageTitle": "التقارير والإحصائيات",
     "exportPdf": "تصدير PDF",
     "exportExcel": "تصدير Excel",
+    "exportExcelSuccess": "تم تنزيل ملف Excel.",
+    "exportExcelError": "تعذّر تصدير Excel. أعد المحاولة أو تواصل مع الدعم.",
     "kpiTitle": "ملخص النتائج",
     "kpiTotal": "إجمالي",
     "kpiDone": "منجزة",
@@ -71,6 +74,8 @@
     "transactions": "إدارة المعامــــلات",
     "users": "إدارة المستخدمـين",
     "roles": "الأدوار والصلاحيـات",
+    "adminHub": "إدارة النظام",
+    "circularInbox": "التعميمات",
     "reports": "التقارير والإحصاءات",
     "badge": {
       "kpis": "KPIs",
@@ -83,6 +88,16 @@
   "sidebar": {
     "demoUser": "مستخدم تجريبي",
     "demoRole": "موظف"
+  },
+  "circularInbox": {
+    "title": "التعميمات",
+    "subtitle": "التعميمات الرسمية الخاصة بحسابك",
+    "refresh": "تحديث",
+    "markRead": "تعليم كمقروء",
+    "empty": "لا توجد تعميمات في صندوق الوارد.",
+    "loadError": "تعذّر تحميل التعميمات.",
+    "noUserId": "يرجى تسجيل الدخول مرة أخرى لعرض التعميمات.",
+    "broadcast": "عام"
   },
   "transactions": {
     "createButton": "إنشاء معاملة",
@@ -221,6 +236,7 @@
     "deleteTitle": "حذف",
     "viewTxTitle": "عرض المعاملة",
     "deleteConfirm": "هل أنت متأكد من حذف هذا الإشعار؟",
+    "deleteSuccess": "تم حذف الإشعار.",
     "defaultTitle": "إشعار",
     "type": {
       "new-transaction": "معاملة جديدة",
@@ -249,14 +265,6 @@
     "disabled": "معطّل",
     "close": "إغلاق"
   },
-  "reports": {
-    "title": "التقارير والإحصاءات",
-    "exportPdf": "تصدير PDF",
-    "exportExcel": "تصدير Excel",
-    "movementTitle": "حركة المعاملات",
-    "statusDone": "منجزة",
-    "statusLate": "متأخرة"
-  },
   "createTx": {
     "pageTitle": "إنشاء معاملة جديدة",
     "wizard": {
@@ -274,6 +282,13 @@
     "ccPlaceholder": "اضغط لاختيار الجهات",
     "maxDays": "مدة الرد (أيام)",
     "maxDaysPlaceholder": "عدد الأيام",
+    "workflow": {
+      "firstAssigneeUserId": "سير العمل: تعيين المهمة الأولى لمستخدم (اختياري)",
+      "firstAssigneeUserIdPh": "معرّف المستخدم UUID — اتركه فارغاً لاستخدام المنشئ أو مجموعة الدور",
+      "firstCandidateGroup": "سير العمل: المهمة الأولى لمجموعة دور (اختياري)",
+      "firstCandidateGroupPh": "رمز الدور من النظام، مثل STAFF",
+      "hintExclusive": "استخدم إما معرّف المستخدم أو رمز الدور، وليس الاثنين معاً."
+    },
     "attachmentsTitle": "المرفقات",
     "attachmentsHint": "اسحب الملفات هنا أو اضغط للاختيار",
     "attachmentsAllowed": "المسموح: PDF وWord وExcel والصور",
@@ -417,6 +432,7 @@
     "actionSendMail": "إرسال البريد",
     "actionCancel": "إلغاء",
     "actionPrintBarcode": "طباعة الباركود",
+    "actionRejectWorkflow": "رفض",
     "quickSummary": "ملخص سريع",
     "quickSummarySubtitle": "نظرة عامة على حالة المعاملة",
     "qiStatus": "الحالة",
@@ -431,8 +447,35 @@
     "legacyTimelineTitle": "الجدول الزمني للمعاملة",
     "wfApprove": "اعتماد",
     "wfReturn": "إرجاع",
+    "wfRefer": "إحالة",
     "wfReject": "رفض",
-    "visualCurrentHandler": "المعالج الحالي"
+    "visualCurrentHandler": "المعالج الحالي",
+    "workflowDelegate": "تفويض المهمة",
+    "workflowDelegatePrompt": "أدخل معرّف المستخدم (UUID) لتفويض مهمتك الحالية إليه:",
+    "workflowDelegateSuccess": "تم تفويض المهمة.",
+    "dialogReturnTitle": "إرجاع المعاملة",
+    "dialogReferralTitle": "إحالة — السبب أو الملاحظات",
+    "dialogRejectTitle": "رفض المعاملة",
+    "sendMailTitle": "إرسال بريد إلكتروني",
+    "sendMailTo": "البريد المستلم",
+    "sendMailSubject": "الموضوع",
+    "sendMailBody": "نص الرسالة",
+    "sendMailSubmit": "إرسال",
+    "sendMailSuccess": "تم إرسال طلب البريد.",
+    "sendMailError": "تعذّر إرسال البريد.",
+    "sendMailBodyDefault": "معاملة {{ref}}\nالرابط: {{url}}",
+    "cancelDialogTitle": "إلغاء المعاملة؟",
+    "cancelDialogMessage": "سيتم إلغاء المعاملة على الخادم وإيقاف سير العمل والعودة إلى قائمة المعاملات. يُسجَّل الإجراء في سجل التدقيق.",
+    "cancelConfirm": "إلغاء المعاملة",
+    "cancelSuccess": "تم إلغاء المعاملة.",
+    "saveDraftSuccess": "تم حفظ المسودة.",
+    "sendReplySuccess": "تم إرسال الرد وتسجيله.",
+    "sendReplyEmpty": "أدخل نص الرد قبل الإرسال.",
+    "addAttachmentSuccess": "تمت إضافة المرفق.",
+    "deleteAttachmentTitle": "حذف المرفق؟",
+    "deleteAttachmentConfirm": "سيتم إزالة الملف من المعاملة.",
+    "deleteAttachmentConfirmBtn": "حذف",
+    "deleteAttachmentSuccess": "تم حذف المرفق."
   },
   "login": {
     "title": "تسجيل الدخول",
@@ -479,7 +522,8 @@
     "loginErrorTitle": "تعذّر تسجيل الدخول",
     "validationRequired": "يرجى إدخال اسم المستخدم وكلمة المرور.",
     "forgotPasswordMessage": "يرجى التواصل مع الدعم الفني لاستعادة كلمة المرور.",
-    "forgotPasswordTitle": "استعادة كلمة المرور"
+    "forgotPasswordTitle": "استعادة كلمة المرور",
+    "mfaRequired": "هذا الحساب يستخدم التحقق الثنائي. اطلب رمز OTP ثم أكمل الدخول عبر خطوة التحقق من MFA."
   },
   "topbar": {
     "markAllRead": "تعيين الكل كمقروء",
@@ -487,7 +531,21 @@
     "notificationsIconTitle": "الإشعارات",
     "unreadCount": "{{n}} غير مقروء",
     "demoUserName": "بدوي",
-    "viewAllNotifications": "عرض كل الإشعارات"
+    "viewAllNotifications": "عرض كل الإشعارات",
+    "roleMenuAria": "تغيير الدور الحالي",
+    "roleSwitchErrorTitle": "تعذّر تبديل الدور",
+    "roleSwitchError": "تعذّر تبديل الدور. تحقق من الصلاحيات أو أعد المحاولة."
+  },
+  "roles": {
+    "codes": {
+      "SYS_ADMIN": "مدير النظام",
+      "CORRESP_MGR": "مدير الاتصالات",
+      "CORRESP_CLERK": "موظف اتصالات إدارية",
+      "DEPT_MANAGER": "مدير إدارة",
+      "STAFF": "موظف",
+      "APPROVER": "معتمد",
+      "AUDITOR": "مدقق"
+    }
   },
   "departmentTree": {
     "title": "اختيار الجهات",
@@ -497,5 +555,71 @@
   },
   "genericSelect": {
     "placeholder": "اختر..."
+  },
+  "admin": {
+    "pageTitle": "إدارة النظام",
+    "pageSubtitle": "المستخدمون، الصلاحيات، الشاشات، ربط الأدوار، ومشاكل النظام",
+    "tabUsers": "المستخدمون",
+    "tabPermissions": "الصلاحيات",
+    "tabScreens": "الشاشات",
+    "tabRolesMatrix": "الأدوار والربط",
+    "tabIssues": "مشاكل النظام",
+    "usersTitle": "قائمة المستخدمين",
+    "permsTitle": "تعريفات الصلاحيات",
+    "screensTitle": "سجل شاشات النظام",
+    "rolesCardsTitle": "الأدوار",
+    "matrixTitle": "ربط الصلاحيات بالدور",
+    "saveMatrix": "حفظ الربط",
+    "pickRole": "اختر دوراً من البطاقات أعلاه",
+    "matrixSaved": "تم حفظ صلاحيات الدور.",
+    "issuesTitle": "مشاكل النظام (أخطاء الواجهة والاتصال)",
+    "refresh": "تحديث",
+    "resolve": "إغلاق المشكلة",
+    "resolveIssue": "تسوية المشكلة",
+    "resolveNotePh": "ملاحظة اختيارية للتسوية",
+    "issueResolved": "تم تسجيل التسوية.",
+    "add": "إضافة",
+    "view": "عرض",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "assignRole": "تعيين دور",
+    "colName": "الاسم",
+    "colUsername": "اسم المستخدم",
+    "colEmail": "البريد",
+    "colDept": "الإدارة",
+    "colStatus": "الحالة",
+    "colActions": "إجراءات",
+    "colCode": "الرمز",
+    "colNameAr": "الاسم (ع)",
+    "colNameEn": "الاسم (إن)",
+    "colSort": "الترتيب",
+    "colActive": "نشط",
+    "colRoute": "المسار",
+    "colWhen": "الوقت",
+    "colSeverity": "الخطورة",
+    "colMessage": "الرسالة",
+    "colUrl": "الرابط",
+    "colHttp": "HTTP",
+    "colResolved": "تم الحل؟",
+    "description": "الوصف",
+    "password": "كلمة المرور",
+    "passwordOptional": "اتركها فارغة إن لم تتغير",
+    "userAdd": "مستخدم جديد",
+    "userEdit": "تعديل مستخدم",
+    "userView": "تفاصيل المستخدم",
+    "permAdd": "صلاحية جديدة",
+    "permEdit": "تعديل صلاحية",
+    "screenAdd": "شاشة جديدة",
+    "screenEdit": "تعديل شاشة",
+    "validationUser": "أكمل الحقول المطلوبة (اسم المستخدم، كلمة المرور، الإدارة).",
+    "saveFailed": "تعذّر حفظ التغييرات.",
+    "saved": "تم الحفظ.",
+    "deleted": "تم الحذف.",
+    "userCreated": "تم إنشاء المستخدم.",
+    "userUpdated": "تم تحديث المستخدم.",
+    "userDeleted": "تم حذف المستخدم.",
+    "roleAssigned": "تم تعيين الدور.",
+    "confirmDelete": "تأكيد الحذف؟",
+    "confirmDeleteUser": "حذف هذا المستخدم من النظام؟"
   }
 }

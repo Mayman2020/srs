@@ -1,6 +1,8 @@
 package com.gov.ac.security;
 
 import com.gov.ac.persistence.RoleRepository;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +15,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 /**
- * Principal is {@link UUID} app_user id (JWT {@code sub}); authorities are {@code ROLE_}{@code
- * <role.code>} for each active assignment from {@code user_role}.
+ * Principal is {@link UUID} app_user id (JWT {@code sub}). Exactly one authority {@code
+ * ROLE_&lt;currentRole&gt;} is granted, validated against live {@code user_role} assignments.
+ *
+ * <p>Tokens without {@code currentRole}/{@code active_role} (legacy) resolve to a single role: prefer {@code SYS_ADMIN}
+ * if assigned, else lexicographically first active role — still one authority.
  */
 @Component
 @RequiredArgsConstructor
@@ -34,10 +39,26 @@ public class AcJwtAuthenticationConverter implements Converter<Jwt, AbstractAuth
     } catch (IllegalArgumentException ex) {
       throw new BadCredentialsException("JWT sub must be a UUID");
     }
-    List<SimpleGrantedAuthority> authorities =
-        roleRepository.findActiveRoleCodesByUserId(userId).stream()
-            .map(code -> new SimpleGrantedAuthority("ROLE_" + code))
-            .toList();
-    return new UsernamePasswordAuthenticationToken(userId, jwt.getTokenValue(), authorities);
+    List<String> dbRoles = roleRepository.findActiveRoleCodesByUserId(userId);
+    if (dbRoles.isEmpty()) {
+      throw new BadCredentialsException("User has no active roles");
+    }
+    List<String> sorted = new ArrayList<>(dbRoles);
+    Collections.sort(sorted);
+
+    String active = jwt.getClaimAsString("currentRole");
+    if (active == null || active.isBlank()) {
+      active = jwt.getClaimAsString("active_role");
+    }
+    if (active == null || active.isBlank()) {
+      active = sorted.contains("SYS_ADMIN") ? "SYS_ADMIN" : sorted.get(0);
+    }
+    if (!dbRoles.contains(active)) {
+      throw new BadCredentialsException("Active role is not assigned to this user");
+    }
+    return new UsernamePasswordAuthenticationToken(
+        userId,
+        jwt.getTokenValue(),
+        List.of(new SimpleGrantedAuthority("ROLE_" + active)));
   }
 }

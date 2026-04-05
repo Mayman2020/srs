@@ -71,6 +71,7 @@ public class CorrespondenceDetailMapper {
         .subject(c.getSubject())
         .description(c.getDescription())
         .bodyHtml(c.getBodyHtml())
+        .replyDraftHtml(c.getReplyDraftHtml())
         .senderOrganization(toOrganization(c.getSenderOrganization()))
         .recipientOrganization(toOrganization(c.getRecipientOrganization()))
         .ownerDepartment(toDepartment(c.getOwnerDepartment()))
@@ -84,6 +85,19 @@ public class CorrespondenceDetailMapper {
         .attachments(attachmentDtos)
         .timeline(timeline)
         .comments(commentDtos)
+        .build();
+  }
+
+  public CorrespondenceAttachmentDetailDto toAttachmentDetail(
+      Attachment a, List<AttachmentVersion> versions) {
+    List<AttachmentVersionDto> versionDtos = versions.stream().map(this::toVersionDto).toList();
+    return CorrespondenceAttachmentDetailDto.builder()
+        .id(a.getId())
+        .displayName(a.getDisplayName())
+        .active(Boolean.TRUE.equals(a.getActive()))
+        .currentVersionId(a.getCurrentVersionId())
+        .contentType(toContentTypeLabel(a.getContentType()))
+        .versions(versionDtos)
         .build();
   }
 

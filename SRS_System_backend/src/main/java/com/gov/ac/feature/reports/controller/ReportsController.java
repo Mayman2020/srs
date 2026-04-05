@@ -8,6 +8,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,5 +47,17 @@ public class ReportsController {
   public List<DepartmentSlaRowDto> departmentSla(
       @RequestParam(required = false) Instant now) {
     return reportService.departmentSlaHeatmap(now != null ? now : Instant.now());
+  }
+
+  @GetMapping("/export/excel")
+  public ResponseEntity<byte[]> exportCorrespondencesExcel() {
+    byte[] data = reportService.exportCorrespondencesExcel();
+    return ResponseEntity.ok()
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"correspondences-export.xlsx\"")
+        .contentType(
+            MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+        .body(data);
   }
 }

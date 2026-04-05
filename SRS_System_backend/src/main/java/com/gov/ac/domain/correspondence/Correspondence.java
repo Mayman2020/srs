@@ -75,6 +75,9 @@ public class Correspondence extends SoftDeletableEntity {
   @Column(name = "body_html", columnDefinition = "text")
   private String bodyHtml;
 
+  @Column(name = "reply_draft_html", columnDefinition = "text")
+  private String replyDraftHtml;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "sender_organization_id")
   private Organization senderOrganization;

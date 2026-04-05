@@ -71,7 +71,10 @@ public class CorrespondenceWorkflowTaskPersistenceService {
     String decisionRaw = (String) task.getVariable(VAR_WF_DECISION);
     String decision =
         StringUtils.hasText(decisionRaw) ? decisionRaw.trim().toUpperCase() : "APPROVE";
-    if (!decision.equals("APPROVE") && !decision.equals("REJECT") && !decision.equals("RETURN")) {
+    if (!decision.equals("APPROVE")
+        && !decision.equals("REJECT")
+        && !decision.equals("RETURN")
+        && !decision.equals("REFER")) {
       log.warn("Workflow persistence: unknown wfDecision={}, defaulting to APPROVE", decisionRaw);
       decision = "APPROVE";
     }
@@ -146,6 +149,7 @@ public class CorrespondenceWorkflowTaskPersistenceService {
         switch (decision) {
           case "REJECT" -> "REJECTED";
           case "RETURN" -> "RETURNED";
+          case "REFER" -> "IN_PROGRESS";
           default -> "COMPLETED";
         };
     return lookups.requireActiveCorrespondenceStatus(code);

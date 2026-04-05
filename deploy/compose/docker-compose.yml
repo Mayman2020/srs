@@ -1,0 +1,83 @@
+# Administrative Communications — full stack (PostgreSQL + Spring Boot + Angular + Nginx gateway).
+# Run from this directory:
+#   docker compose --env-file ../env/.env up -d --build
+# Staging / prod overlays:
+#   docker compose -f docker-compose.yml -f docker-compose.staging.yml --env-file ../env/staging.env up -d --build
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file ../env/prod.env up -d --build
+
+name: ac-communications
+
+services:
+  postgres:
+    image: postgres:16.4-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-ac_communications}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ac_communications}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/backend/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-staging}
+      SERVER_PORT: "8080"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ac_communications}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      AC_JWT_SECRET: ${AC_JWT_SECRET:?AC_JWT_SECRET must be set (min 32 UTF-8 bytes)}
+      AC_CORS_ALLOWED_ORIGIN_PATTERNS: ${AC_CORS_ALLOWED_ORIGIN_PATTERNS:?AC_CORS_ALLOWED_ORIGIN_PATTERNS must be set}
+      CAMUNDA_BPM_ADMIN_USER: ${CAMUNDA_BPM_ADMIN_USER:-admin}
+      CAMUNDA_BPM_ADMIN_PASSWORD: ${CAMUNDA_BPM_ADMIN_PASSWORD:?CAMUNDA_BPM_ADMIN_PASSWORD must be set}
+      AC_STORAGE_ROOT: /data/attachments
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+    volumes:
+      - attachments:/data/attachments
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 150s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/frontend/Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ../docker/nginx/gateway.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  attachments:

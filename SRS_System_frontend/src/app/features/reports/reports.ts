@@ -27,13 +27,15 @@ import { TransactionService } from '../../services/transaction.service';
 import { Transaction } from '../../models/transaction.model';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { HttpErrorResponse } from '@angular/common/http';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, MatSnackBarModule],
   templateUrl: './reports.html',
   styleUrls: ['./reports.css']
 })
@@ -76,7 +78,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     private lookupService: LookupService,
     private reportsApi: ReportsApiService,
     private i18n: I18nService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private snackBar: MatSnackBar
   ) {
     this.reportForm = this.fb.group({
       from: [''],
@@ -343,7 +346,38 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   exportExcel() {
-    window.alert(this.i18n.instant('errors.http.notImplemented'));
+    this.reportsApi.exportExcelBlob().subscribe({
+      next: (blob) => {
+        if (blob.type?.includes('json')) {
+          blob.text().then(() => {
+            this.snackBar.open(
+              this.i18n.instant('reports.exportExcelError'),
+              this.i18n.instant('common.close'),
+              { duration: 5000 }
+            );
+          });
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'correspondences-export.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.snackBar.open(
+          this.i18n.instant('reports.exportExcelSuccess'),
+          this.i18n.instant('common.close'),
+          { duration: 3000 }
+        );
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.snackBar.open(
+          err.userMessage ?? this.i18n.instant('reports.exportExcelError'),
+          this.i18n.instant('common.close'),
+          { duration: 5000 }
+        );
+      },
+    });
   }
 
   lookupTypeLabel(code: string): string {

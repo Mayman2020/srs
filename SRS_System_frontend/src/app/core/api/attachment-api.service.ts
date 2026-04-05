@@ -20,4 +20,8 @@ export class AttachmentApiService {
   downloadUrl(attachmentId: number): string {
     return `${this.base}/attachments/${attachmentId}/download`;
   }
+
+  delete(attachmentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/attachments/${attachmentId}`);
+  }
 }

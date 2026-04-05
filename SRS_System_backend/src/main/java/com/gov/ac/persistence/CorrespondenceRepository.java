@@ -102,4 +102,10 @@ public interface CorrespondenceRepository
               + "order by d.sort_order, d.id",
       nativeQuery = true)
   List<Object[]> departmentSlaHeatmap(@Param("now") Instant now);
+
+  @Query(
+      "select c.referenceNumber, c.subject, t.code, st.code, c.createdAt, c.updatedAt "
+          + "from Correspondence c join c.correspondenceType t join c.correspondenceStatus st "
+          + "where c.deletedAt is null order by c.createdAt desc")
+  Page<Object[]> exportRows(Pageable pageable);
 }

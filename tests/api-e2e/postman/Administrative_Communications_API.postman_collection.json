@@ -1,0 +1,326 @@
+{
+  "info": {
+    "_postman_id": "ac-e2e-v1",
+    "name": "Administrative Communications API — E2E",
+    "description": "Run the folder **0 — RUN IN THIS ORDER** top-to-bottom.\n\n- Import `Local-8080.postman_environment.json`.\n- Apply `tests/api-e2e/seed-second-user.sql` for **clerk** (notification delete).\n- **Upload file**: Body → form-data → `file` → select a real file.\n- If backend uses port **8081**, set `baseUrl` to `http://localhost:8081/api/v1`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "adminUuid", "value": "b0000001-0000-4000-8000-000000000001" }
+  ],
+  "item": [
+    {
+      "name": "0 — RUN IN THIS ORDER",
+      "item": [
+        {
+          "name": "01 Login admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('accessToken present', () => pm.expect(j.accessToken).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('token', j.accessToken);",
+                  "if (j.refreshToken) pm.environment.set('refreshToken', j.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "02 Create correspondence (INBOUND)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('correspondenceId', j.id);",
+                  "pm.test('id UUID', () => pm.expect(j.id).to.be.a('string'));",
+                  "pm.test('referenceNumber', () => pm.expect(j.referenceNumber).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correspondenceTypeCode\": \"INBOUND\",\n  \"priorityCode\": \"NORMAL\",\n  \"confidentialityCode\": \"NORMAL\",\n  \"classificationCode\": \"GEN\",\n  \"subject\": \"Postman E2E {{$timestamp}}\",\n  \"description\": \"Ordered collection run\",\n  \"senderOrganizationId\": 1,\n  \"ownerDepartmentId\": 1,\n  \"workflowFirstAssigneeUserId\": \"{{adminUuid}}\"\n}"
+            },
+            "url": "{{baseUrl}}/correspondence"
+          }
+        },
+        {
+          "name": "03 Login clerk (inbox recipient)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('clerkToken', pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{clerkUsername}}\",\n  \"password\": \"{{clerkPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "04 Notifications list (clerk)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const page = pm.response.json();",
+                  "pm.test('page.content array', () => pm.expect(page.content).to.be.an('array'));",
+                  "if (page.content.length) pm.environment.set('notificationId', page.content[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clerkToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications?page=0&size=50"
+          }
+        },
+        {
+          "name": "05 Notifications delete (clerk)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clerkToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": "{{baseUrl}}/notifications/{{notificationId}}"
+          }
+        },
+        {
+          "name": "06 Get correspondence (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.json().id).to.eql(pm.environment.get('correspondenceId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/correspondence/{{correspondenceId}}"
+          }
+        },
+        {
+          "name": "07 Upload attachment (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('storageKey', j.storageKey);",
+                  "pm.environment.set('uploadByteSize', String(j.byteSize));",
+                  "pm.environment.set('uploadMime', j.mimeType || 'application/octet-stream');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "Select a small file before running",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/attachments/upload"
+          }
+        },
+        {
+          "name": "08 Link attachment to correspondence",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('storageKey')) throw new Error('Run 07 Upload first');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('attachmentId', String(j.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"postman-upload\",\n  \"storageKey\": \"{{storageKey}}\",\n  \"byteSize\": {{uploadByteSize}},\n  \"mimeType\": \"{{uploadMime}}\"\n}"
+            },
+            "url": "{{baseUrl}}/correspondence/{{correspondenceId}}/attachments"
+          }
+        },
+        {
+          "name": "09 Workflow action APPROVE (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"APPROVE\",\n  \"comment\": null\n}"
+            },
+            "url": "{{baseUrl}}/correspondence/{{correspondenceId}}/actions"
+          }
+        },
+        {
+          "name": "10 Delete attachment (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": "{{baseUrl}}/attachments/{{attachmentId}}"
+          }
+        },
+        {
+          "name": "11 Reports export Excel",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const ct = pm.response.headers.get('Content-Type') || '';",
+                  "pm.test('spreadsheet or octet-stream', () => {",
+                  "  pm.expect(ct.includes('spreadsheetml') || ct.includes('octet-stream')).to.be.true;",
+                  "});",
+                  "pm.test('body size', () => pm.expect(pm.response.responseSize).to.be.above(64));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/reports/export/excel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Optional — REFER (needs active task + comment)",
+      "item": [
+        {
+          "name": "Workflow REFER (run only when a task is waiting)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 or business error', () => pm.expect([204,400,403,404]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"REFER\",\n  \"comment\": \"Postman REFER\"\n}"
+            },
+            "url": "{{baseUrl}}/correspondence/{{correspondenceId}}/actions"
+          }
+        }
+      ]
+    }
+  ]
+}

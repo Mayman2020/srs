@@ -1,0 +1,2360 @@
+﻿<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head>
+<meta charset="utf-8" />
+<meta name="ProgId" content="Word.Document" />
+<title>Master QA Delivery Package - Administrative Communications System</title>
+<style type="text/css">
+body { font-family: "Segoe UI", "Traditional Arabic", Arial, sans-serif; font-size: 11pt; line-height: 1.35; margin: 2.5cm; color: #1a1a1a; }
+h1 { font-size: 22pt; text-align: center; margin-top: 0.5em; }
+h2 { font-size: 16pt; margin-top: 1.4em; page-break-after: avoid; border-bottom: 1pt solid #333; padding-bottom: 4px; }
+h3 { font-size: 13pt; margin-top: 1em; page-break-after: avoid; }
+h4 { font-size: 11pt; margin-top: 0.8em; font-weight: bold; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0 16px 0; font-size: 8.5pt; }
+th, td { border: 1px solid #444; padding: 4px 5px; vertical-align: top; }
+th { background: #e8eef5; font-weight: bold; }
+.cover { text-align: center; margin: 2.5cm 1.5cm; }
+.cover-box { border: 2px solid #1a365d; padding: 28px; margin: 20px auto; max-width: 560px; }
+.pagebreak { page-break-before: always; }
+p { margin: 0.45em 0; }
+ul { margin: 0.3em 0 0.6em 1.2em; }
+hr { border: none; border-top: 1px solid #ccc; margin: 20px 0; }
+code { font-family: Consolas, monospace; font-size: 8.5pt; background: #f5f5f5; padding: 1px 3px; }
+</style></head><body>
+<div class="cover"><div class="cover-box">
+<table>
+<tr>
+<th></th>
+<th></th>
+</tr>
+<tr>
+<td></td>
+<td><strong>وثيقة رسمية — Official QA Deliverable</strong></td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Classification / التصنيف:</strong> Internal — Quality Assurance</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>Reference SRS / مرجع المواصفات:</strong> <code>SRS_نظام_الاتصالات_الادارية.docx</code></td>
+</tr>
+</table>
+<h1 style="margin-top:0.2em;color:#1a365d">نظام الاتصالات الإدارية</h1>
+<h2>Government Administrative Communications System</h2>
+<h3>حزمة تسليم ضمان الجودة الموحّدة</h3>
+<h3>Master Quality Assurance (QA) Delivery Package</h3>
+<table>
+<tr>
+<td><strong>المشروع / Project</strong></td>
+<td>Administrative Communications Platform (Spring Boot &#183; Camunda &#183; Angular &#183; PostgreSQL)</td>
+</tr>
+<tr>
+<td><strong>إصدار الوثيقة / Document version</strong></td>
+<td><strong>1.0</strong></td>
+</tr>
+<tr>
+<td><strong>التاريخ / Date</strong></td>
+<td><strong>5 April 2026</strong></td>
+</tr>
+<tr>
+<td><strong>حالة الوثيقة / Status</strong></td>
+<td>Draft for official submission — جاهز للمراجعة والاعتماد</td>
+</tr>
+</table>
+<hr />
+<p><em>End of cover page — تنتهي صفحة الغلاف</em></p>
+</div></div>
+<p class="pagebreak"></p>
+<span id="sec-toc"></span>
+<h2>جدول المحتويات | Table of Contents</h2>
+<table>
+<tr>
+<th>#</th>
+<th>Section (AR)</th>
+<th>Section (EN)</th>
+<th>Anchor</th>
+</tr>
+<tr>
+<td>—</td>
+<td>[صفحة الغلاف](#نظام-الاتصالات-الإدارية)</td>
+<td>Cover</td>
+<td>(above)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>[المقدمة ونطاق الوثيقة](#sec-1)</td>
+<td>Scope &amp; conventions</td>
+<td><code>sec-1</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>[اختبارات قبول المستخدم (UAT)](#sec-2)</td>
+<td>User Acceptance Test cases</td>
+<td><code>sec-2</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>[سيناريوهات الحالات الحدية](#sec-3)</td>
+<td>Edge case scenarios</td>
+<td><code>sec-3</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>[سيناريوهات الفشل](#sec-4)</td>
+<td>Failure scenarios (network &#183; data &#183; permissions)</td>
+<td><code>sec-4</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>[سجل مخاطر الأداء](#sec-5)</td>
+<td>Performance risks register</td>
+<td><code>sec-5</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>[قائمة جاهزية الإنتاج (Go/No-Go)](#sec-6)</td>
+<td>Production readiness checklist</td>
+<td><code>sec-6</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td>[التوقيع والاعتماد الرسمي](#sec-7)</td>
+<td>Official sign-off (Business &#183; QA &#183; Technical Lead)</td>
+<td><code>sec-7</code></td>
+</tr>
+</table>
+<p><strong>ملاحظة للتصدير إلى Word/PDF:</strong></p>
+<p>1) افتح <code>word-export/QA_Master_ForWord.html</code> في Microsoft Word ثم <strong>حفظ باسم</strong> بصيغة <code>.docx</code> (موصى به).</p>
+<p>2) بعد أي تعديل على هذا الملف Markdown، نفّذ <code>word-export/Convert-MasterToWordHtml.ps1</code> لإعادة توليد الـ HTML.</p>
+<p><strong>Export:</strong> Open <code>word-export/QA_Master_ForWord.html</code> in Word → <strong>Save As</strong> <code>.docx</code>. After editing this <code>.md</code>, run <code>Convert-MasterToWordHtml.ps1</code> to refresh the HTML.</p>
+<hr />
+<span id="sec-1"></span>
+<h2>1. المقدمة ونطاق الوثيقة | Document scope and purpose</h2>
+<h3>1.1 الغرض | Purpose</h3>
+<p>توحّد هذه الوثيقة مخرجات ضمان الجودة الخاصة بنظام الاتصالات الإدارية وفق <strong>مواصفات المتطلبات البرمجية (SRS)</strong> المشار إليها، وتشمل: <strong>UAT</strong>، <strong>الحالات الحدية</strong>، <strong>سيناريوهات الفشل</strong>، <strong>مخاطر الأداء</strong>، و<strong>قائمة جاهزية الإنتاج</strong>.</p>
+<p>This master document consolidates all QA deliverables for the Government Administrative Communications System in line with the referenced SRS, including UAT cases, edge cases, failure scenarios, performance risks, and production readiness.</p>
+<h3>1.2 الجمهور المستهدف | Audience</h3>
+<table>
+<tr>
+<th>الجهة</th>
+<th>Role</th>
+</tr>
+<tr>
+<td>الأعمال / وحدات المراسلات</td>
+<td>Business / correspondence units</td>
+</tr>
+<tr>
+<td>ضمان الجودة</td>
+<td>QA / UAT</td>
+</tr>
+<tr>
+<td>الهندسة والتقنية</td>
+<td>Technical Lead / Engineering</td>
+</tr>
+<tr>
+<td>الأمن والامتثال</td>
+<td>Security / compliance (as applicable)</td>
+</tr>
+</table>
+<h3>1.3 الاصطلاحات | Conventions (UAT)</h3>
+<table>
+<tr>
+<th>المصطلح</th>
+<th>Definition</th>
+</tr>
+<tr>
+<td><strong>TC-ID</strong></td>
+<td>معرّف حالة الاختبار الفريد</td>
+</tr>
+<tr>
+<td><strong>Priority</strong></td>
+<td>P1 blocker &#183; P2 high &#183; P3 medium &#183; P4 low</td>
+</tr>
+<tr>
+<td><strong>SRS trace</strong></td>
+<td>ارتباط بـ FR / UC / NFR في الـ SRS</td>
+</tr>
+<tr>
+<td><strong>Expected result</strong></td>
+<td>معيار القبول لإغلاق UAT</td>
+</tr>
+</table>
+<hr />
+<span id="sec-2"></span>
+<h2>2. اختبارات قبول المستخدم (UAT) | User Acceptance Test Cases</h2>
+<p><em>المتطلبات الوظيفية مذكورة بصيغة SRS (FR-100 … FR-800) حيث ينطبق ذلك.</em></p>
+<h3>2.1 المصادقة والجلسة | Authentication &amp; session (SRS &#167;11.1, NFR-400)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>AUTH-001</td>
+<td>Successful login with valid credentials</td>
+<td>P1</td>
+<td>FR-*, NFR-401</td>
+<td>User exists, active, correct role</td>
+<td>Open app → enter valid username/password → submit</td>
+<td>JWT issued; landing/dashboard loads; no sensitive data in URL</td>
+</tr>
+<tr>
+<td>AUTH-002</td>
+<td>Login failure — invalid password</td>
+<td>P1</td>
+<td>&#167;11.1</td>
+<td>Known user</td>
+<td>Submit wrong password</td>
+<td>401/403; generic error; no user enumeration; audit event if configured</td>
+</tr>
+<tr>
+<td>AUTH-003</td>
+<td>Login failure — inactive / locked user</td>
+<td>P2</td>
+<td>&#167;11.1</td>
+<td>User <code>is_active=false</code> or locked</td>
+<td>Attempt login</td>
+<td>Access denied; message per policy</td>
+</tr>
+<tr>
+<td>AUTH-004</td>
+<td>Token refresh</td>
+<td>P1</td>
+<td>—</td>
+<td>Valid refresh flow if implemented</td>
+<td>Call refresh with valid token</td>
+<td>New access token; session continues</td>
+</tr>
+<tr>
+<td>AUTH-005</td>
+<td>Expired / revoked JWT</td>
+<td>P1</td>
+<td>—</td>
+<td>Token past TTL or revoked</td>
+<td>Call protected API</td>
+<td>401; UI prompts re-login</td>
+</tr>
+<tr>
+<td>AUTH-006</td>
+<td>MFA challenge &amp; verify (if enabled)</td>
+<td>P1</td>
+<td>&#167;11.1</td>
+<td>MFA enrolled</td>
+<td>Login → complete challenge → verify</td>
+<td>Access granted only after successful verify</td>
+</tr>
+<tr>
+<td>AUTH-007</td>
+<td>Role switch (authorized)</td>
+<td>P2</td>
+<td>RBAC</td>
+<td>User with multiple roles</td>
+<td><code>POST /auth/switch-role</code> with valid target</td>
+<td>Context updates; permissions match new role</td>
+</tr>
+<tr>
+<td>AUTH-008</td>
+<td>TLS-only access in production</td>
+<td>P1</td>
+<td>&#167;11.3</td>
+<td>Prod env</td>
+<td>HTTP to app</td>
+<td>Redirect to HTTPS or connection refused</td>
+</tr>
+</table>
+<h3>2.2 التحكم بالوصول حسب الدور (RBAC) | RBAC &amp; authorization (SRS &#167;11.2)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>RBAC-001</td>
+<td>Correspondence Clerk — create inbound</td>
+<td>P1</td>
+<td>UC-001, FR-101</td>
+<td>User = Clerk role</td>
+<td>Create inbound correspondence</td>
+<td>Created; reference matches BR-001 pattern where applicable</td>
+</tr>
+<tr>
+<td>RBAC-002</td>
+<td>Case Handler — task inbox &amp; actions</td>
+<td>P1</td>
+<td>UC-001</td>
+<td>User = Handler</td>
+<td>Open task list; complete workflow action</td>
+<td>State transitions per BPMN; history recorded</td>
+</tr>
+<tr>
+<td>RBAC-003</td>
+<td>Approver — approve / reject</td>
+<td>P1</td>
+<td>UC-002</td>
+<td>User = Approver</td>
+<td>Open pending approval; approve with comment</td>
+<td>Status updated; notification rules fire if configured</td>
+</tr>
+<tr>
+<td>RBAC-004</td>
+<td>Auditor — read-only audit</td>
+<td>P1</td>
+<td>دور المراجع في SRS</td>
+<td>User = Auditor</td>
+<td>Access audit endpoints / UI</td>
+<td>View only; no mutating actions</td>
+</tr>
+<tr>
+<td>RBAC-005</td>
+<td>System Admin — users &amp; permissions</td>
+<td>P1</td>
+<td>دور مسؤول النظام</td>
+<td>Admin</td>
+<td>CRUD user; assign roles; manage permissions</td>
+<td>Changes persist; least-privilege enforced</td>
+</tr>
+<tr>
+<td>RBAC-006</td>
+<td>Negative — Clerk cannot admin console</td>
+<td>P1</td>
+<td>&#167;11.2</td>
+<td>Clerk session</td>
+<td><code>GET/POST /admin/**</code></td>
+<td>403 Forbidden</td>
+</tr>
+<tr>
+<td>RBAC-007</td>
+<td>Negative — cross-dept / visibility</td>
+<td>P1</td>
+<td>BR-020–022</td>
+<td>User A in Dept X</td>
+<td>Access correspondence owned by Dept Y</td>
+<td>Denied or filtered per policy</td>
+</tr>
+</table>
+<h3>2.3 المراسلات الواردة | Inbound correspondence (FR-100)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>INB-001</td>
+<td>Create inbound with mandatory fields</td>
+<td>P1</td>
+<td>FR-101</td>
+<td>Lookups loaded</td>
+<td>Fill subject, type, classification, sender org → save</td>
+<td>Record persisted; <code>created_by</code> set</td>
+</tr>
+<tr>
+<td>INB-002</td>
+<td>Attach PDF within size limit</td>
+<td>P1</td>
+<td>FR-102</td>
+<td>File ≤ policy (50 MB single per SRS)</td>
+<td>Upload PDF</td>
+<td>Stored; checksum/metadata recorded; download works</td>
+</tr>
+<tr>
+<td>INB-003</td>
+<td>Multiple attachments — total size cap</td>
+<td>P1</td>
+<td>FR-102</td>
+<td>200 MB total per SRS</td>
+<td>Add files until limit</td>
+<td>Reject with clear message before corrupt state</td>
+</tr>
+<tr>
+<td>INB-004</td>
+<td>Supported types: DOCX, XLSX</td>
+<td>P1</td>
+<td>FR-102, &#167;14.1</td>
+<td>—</td>
+<td>Upload each allowed MIME</td>
+<td>Accepted or rejected per whitelist with message</td>
+</tr>
+<tr>
+<td>INB-005</td>
+<td>Scan ingest (TWAIN/WIA) — if integrated</td>
+<td>P2</td>
+<td>FR-103</td>
+<td>Scanner driver</td>
+<td>Scan to system</td>
+<td>Image attached; orientation/metadata OK</td>
+</tr>
+<tr>
+<td>INB-006</td>
+<td>Delegation while absent</td>
+<td>P1</td>
+<td>FR-105</td>
+<td>Delegation configured</td>
+<td>Delegate to user B</td>
+<td>B receives tasks per rules</td>
+</tr>
+<tr>
+<td>INB-007</td>
+<td>Barcode / QR association</td>
+<td>P3</td>
+<td>FR-106</td>
+<td>Feature on</td>
+<td>Link barcode</td>
+<td>Searchable; print label if UI supports</td>
+</tr>
+</table>
+<h3>2.4 المراسلات الصادرة | Outbound correspondence (FR-200)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>OUT-001</td>
+<td>Create outbound</td>
+<td>P1</td>
+<td>FR-201</td>
+<td>—</td>
+<td>Create outbound</td>
+<td>Reference BR-002 pattern where applicable</td>
+</tr>
+<tr>
+<td>OUT-002</td>
+<td>Use letter template</td>
+<td>P2</td>
+<td>FR-202</td>
+<td>Template exists</td>
+<td>Select template; generate body</td>
+<td>Merged content correct</td>
+</tr>
+<tr>
+<td>OUT-003</td>
+<td>Routing — sequential path</td>
+<td>P1</td>
+<td>FR-203</td>
+<td>BPMN sequential</td>
+<td>Advance workflow</td>
+<td>Order of assignments respected</td>
+</tr>
+<tr>
+<td>OUT-004</td>
+<td>Routing — parallel branches</td>
+<td>P1</td>
+<td>FR-203</td>
+<td>BPMN parallel</td>
+<td>Complete parallel tasks</td>
+<td>Join behavior correct</td>
+</tr>
+<tr>
+<td>OUT-005</td>
+<td>Routing — conditional gateway</td>
+<td>P1</td>
+<td>FR-203</td>
+<td>BPMN with condition</td>
+<td>Trigger each branch</td>
+<td>Correct path per variables</td>
+</tr>
+<tr>
+<td>OUT-006</td>
+<td>PKI digital signature (if integrated)</td>
+<td>P1</td>
+<td>FR-204</td>
+<td>PKI available</td>
+<td>Sign outbound</td>
+<td>Signature valid; verification passes</td>
+</tr>
+<tr>
+<td>OUT-007</td>
+<td>Outbound reply / linkage</td>
+<td>P1</td>
+<td>FR-205</td>
+<td>Parent exists</td>
+<td><code>POST .../reply</code></td>
+<td>Threading/reference preserved</td>
+</tr>
+</table>
+<h3>2.5 التداول الداخلي | Internal circulation (FR-300)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>INT-001</td>
+<td>Create internal memo</td>
+<td>P1</td>
+<td>FR-301</td>
+<td>—</td>
+<td>Create internal</td>
+<td>BR-003 reference pattern</td>
+</tr>
+<tr>
+<td>INT-002</td>
+<td>Route internally across departments</td>
+<td>P1</td>
+<td>FR-302</td>
+<td>Users in two depts</td>
+<td>Forward</td>
+<td>Both see appropriate visibility</td>
+</tr>
+<tr>
+<td>INT-003</td>
+<td>Internal announcement / circular</td>
+<td>P2</td>
+<td>FR-303</td>
+<td>—</td>
+<td>Use circular/broadcast APIs if present</td>
+<td>Recipients notified</td>
+</tr>
+</table>
+<h3>2.6 سير العمل — Workflow (Camunda) | Workflow engine (FR-400)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>WF-001</td>
+<td>Process starts on submit</td>
+<td>P1</td>
+<td>FR-402</td>
+<td>BPMN deployed</td>
+<td>Submit correspondence</td>
+<td><code>workflow_instance</code> linked; Camunda instance id stored</td>
+</tr>
+<tr>
+<td>WF-002</td>
+<td>SLA / escalation (e.g. BR-011 context)</td>
+<td>P1</td>
+<td>FR-403, BR-011</td>
+<td>Timer/escalation in model</td>
+<td>Wait past threshold</td>
+<td>Escalation task or notification</td>
+</tr>
+<tr>
+<td>WF-003</td>
+<td>Return to previous step</td>
+<td>P1</td>
+<td>FR-404</td>
+<td>Process allows</td>
+<td>Reject / send back</td>
+<td>Correct activity; history line</td>
+</tr>
+<tr>
+<td>WF-004</td>
+<td>Workflow delegate</td>
+<td>P1</td>
+<td>FR-105</td>
+<td>API <code>workflow-delegate</code></td>
+<td>Delegate task</td>
+<td>Assignee updated; audit trail</td>
+</tr>
+<tr>
+<td>WF-005</td>
+<td>Workflow history API</td>
+<td>P1</td>
+<td>—</td>
+<td>Existing instance</td>
+<td><code>GET</code> workflow history</td>
+<td>Ordered events; matches Camunda</td>
+</tr>
+</table>
+<h3>2.7 البحث والسجل | Search &amp; registry (FR-500, FR-700)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>SRCH-001</td>
+<td>Filter list — status, type, date range</td>
+<td>P1</td>
+<td>FR-501</td>
+<td>Seed data</td>
+<td><code>GET /correspondence?filters</code></td>
+<td>Correct subset; paging stable</td>
+</tr>
+<tr>
+<td>SRCH-002</td>
+<td>Full-text / advanced search</td>
+<td>P2</td>
+<td>FR-502, FR-701</td>
+<td>Elasticsearch if used</td>
+<td>Query subject/body</td>
+<td>Relevant hits; performance within NFR-102</td>
+</tr>
+<tr>
+<td>SRCH-003</td>
+<td>Search by reference number</td>
+<td>P1</td>
+<td>BR-001–003</td>
+<td>Known ref</td>
+<td>Search exact</td>
+<td>Single match</td>
+</tr>
+</table>
+<h3>2.8 لوحة المعلومات والتقارير | Dashboard &amp; reports (FR-600)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>DASH-001</td>
+<td>Dashboard KPIs load</td>
+<td>P1</td>
+<td>FR-601</td>
+<td>Data exists</td>
+<td>Open dashboard</td>
+<td>Charts/tiles match DB aggregates</td>
+</tr>
+<tr>
+<td>DASH-002</td>
+<td>Drill-down to correspondence</td>
+<td>P2</td>
+<td>FR-602</td>
+<td>—</td>
+<td>Click KPI</td>
+<td>Navigates to filtered list</td>
+</tr>
+<tr>
+<td>DASH-003</td>
+<td>SLA / overdue view</td>
+<td>P1</td>
+<td>FR-603</td>
+<td>Items past <code>due_date</code></td>
+<td>Open overdue widget</td>
+<td>List accurate</td>
+</tr>
+</table>
+<h3>2.9 التصدير | Export (FR-705)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>EXP-001</td>
+<td>Export Excel — reports</td>
+<td>P1</td>
+<td>FR-705</td>
+<td>Permission</td>
+<td><code>GET .../export/excel</code></td>
+<td>File opens; columns match spec</td>
+</tr>
+<tr>
+<td>EXP-002</td>
+<td>Export CSV / PDF (if implemented)</td>
+<td>P1</td>
+<td>FR-705</td>
+<td>—</td>
+<td>Export</td>
+<td>Encoding UTF-8; Arabic renders</td>
+</tr>
+</table>
+<h3>2.10 الإشعارات | Notifications (FR-800)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>NOTIF-001</td>
+<td>In-app notification on assignment</td>
+<td>P1</td>
+<td>FR-801</td>
+<td>—</td>
+<td>Assign task</td>
+<td>Notification created; mark read works</td>
+</tr>
+<tr>
+<td>NOTIF-002</td>
+<td>Email dispatch (if configured)</td>
+<td>P1</td>
+<td>FR-801</td>
+<td>SMTP</td>
+<td>Trigger email path</td>
+<td>Received; no secrets in body</td>
+</tr>
+<tr>
+<td>NOTIF-003</td>
+<td>SMS dispatch</td>
+<td>P2</td>
+<td>FR-801</td>
+<td>SMS provider</td>
+<td><code>dispatch/sms</code></td>
+<td>Delivery receipt or logged failure</td>
+</tr>
+<tr>
+<td>NOTIF-004</td>
+<td>Notification preferences</td>
+<td>P1</td>
+<td>FR-802</td>
+<td>User prefs</td>
+<td>Toggle channel</td>
+<td>Behavior respects prefs</td>
+</tr>
+</table>
+<h3>2.11 المرفقات | Attachments (API + security)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>ATT-001</td>
+<td>Upload multipart</td>
+<td>P1</td>
+<td>FR-102</td>
+<td>Auth</td>
+<td><code>POST</code> upload</td>
+<td>201 + id</td>
+</tr>
+<tr>
+<td>ATT-002</td>
+<td>Download authorized only</td>
+<td>P1</td>
+<td>&#167;11.3</td>
+<td>User without access</td>
+<td><code>GET .../download</code></td>
+<td>403</td>
+</tr>
+<tr>
+<td>ATT-003</td>
+<td>Delete attachment</td>
+<td>P2</td>
+<td>—</td>
+<td>Owner/admin</td>
+<td><code>DELETE</code></td>
+<td>Removed; audit</td>
+</tr>
+</table>
+<h3>2.12 الإدارة والبيانات المرجعية | Admin &amp; master data</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>ADM-001</td>
+<td>Lookup lists (priority, types, etc.)</td>
+<td>P1</td>
+<td>Data model</td>
+<td>—</td>
+<td><code>GET /lookups</code></td>
+<td>Codes + <code>name_ar</code> / <code>name_en</code></td>
+</tr>
+<tr>
+<td>ADM-002</td>
+<td>Departments list</td>
+<td>P1</td>
+<td>—</td>
+<td>—</td>
+<td><code>GET /departments</code></td>
+<td>Active depts</td>
+</tr>
+<tr>
+<td>ADM-003</td>
+<td>Roles list</td>
+<td>P1</td>
+<td>—</td>
+<td>—</td>
+<td><code>GET /roles</code></td>
+<td>Matches RBAC matrix</td>
+</tr>
+<tr>
+<td>ADM-004</td>
+<td>Permissions matrix CRUD</td>
+<td>P1</td>
+<td>—</td>
+<td>Admin</td>
+<td>CRUD permissions &amp; role-permissions</td>
+<td>Consistent with SecurityConfig</td>
+</tr>
+<tr>
+<td>ADM-005</td>
+<td>System issue report</td>
+<td>P2</td>
+<td>—</td>
+<td>User</td>
+<td><code>POST /report</code></td>
+<td>Ticket stored; admin can resolve</td>
+</tr>
+</table>
+<h3>2.13 التدقيق والامتثال | Audit &amp; compliance</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>AUD-001</td>
+<td>Correspondence lifecycle audited</td>
+<td>P1</td>
+<td>AuditLog model</td>
+<td>—</td>
+<td>Create → action → complete</td>
+<td>Events in <code>POST/GET /audit/events</code> or DB</td>
+</tr>
+<tr>
+<td>AUD-002</td>
+<td>Immutable audit — no delete by non-admin</td>
+<td>P1</td>
+<td>—</td>
+<td>Auditor</td>
+<td>Attempt delete audit</td>
+<td>Denied</td>
+</tr>
+</table>
+<h3>2.14 المتطلبات غير الوظيفية — قبول مختصر | Non-functional acceptance (SRS &#167;5)</h3>
+<table>
+<tr>
+<th>TC-ID</th>
+<th>Title</th>
+<th>Priority</th>
+<th>SRS trace</th>
+<th>Preconditions</th>
+<th>Steps</th>
+<th>Expected result</th>
+</tr>
+<tr>
+<td>NFR-001</td>
+<td>Page/API response P95 ≤ 3s</td>
+<td>P1</td>
+<td>NFR-101</td>
+<td>Load tool</td>
+<td>Typical user journeys</td>
+<td>Meets threshold</td>
+</tr>
+<tr>
+<td>NFR-002</td>
+<td>List 10k rows P95 ≤ 5s</td>
+<td>P1</td>
+<td>NFR-102</td>
+<td>Volume data</td>
+<td>Open large list</td>
+<td>Meets threshold</td>
+</tr>
+<tr>
+<td>NFR-003</td>
+<td>RTL + Arabic UI</td>
+<td>P1</td>
+<td>NFR-402</td>
+<td>—</td>
+<td>Switch locale</td>
+<td>Layout correct</td>
+</tr>
+<tr>
+<td>NFR-004</td>
+<td>WCAG 2.1 AA spot check</td>
+<td>P2</td>
+<td>NFR-403</td>
+<td>—</td>
+<td>Keyboard + screen reader sample</td>
+<td>No critical violations</td>
+</tr>
+</table>
+<h3>2.15 معايير إغلاق UAT | UAT exit criteria</h3>
+<ul><li>اجتياز جميع حالات <strong>P1</strong>؛ ومعالجة <strong>P2</strong> بتصحيح أو تنازل رسمي أو تأجيل مع توثيق.</li></ul>
+<ul><li>All <strong>P1</strong> cases passed; <strong>P2</strong> items closed, waived with approval, or deferred with documented plan.</li></ul>
+<hr />
+<span id="sec-3"></span>
+<h2>3. سيناريوهات الحالات الحدية | Edge case scenarios</h2>
+<h3>3.1 حدود البيانات والتنسيق | Data boundary &amp; format</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Area</th>
+<th>Scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-D-01</td>
+<td>Subject / text</td>
+<td>Subject exactly 500 chars (SRS <code>VARCHAR(500)</code>)</td>
+<td>Accept; no truncation without warning</td>
+</tr>
+<tr>
+<td>EC-D-02</td>
+<td>Subject / text</td>
+<td>Subject 501+ chars</td>
+<td>Reject or truncate with validation message</td>
+</tr>
+<tr>
+<td>EC-D-03</td>
+<td>Reference</td>
+<td>Duplicate <code>reference_number</code> collision</td>
+<td>Unique constraint; user-friendly error</td>
+</tr>
+<tr>
+<td>EC-D-04</td>
+<td>Dates</td>
+<td><code>due_date</code> before <code>created_at</code></td>
+<td>Validation per BR</td>
+</tr>
+<tr>
+<td>EC-D-05</td>
+<td>Dates</td>
+<td>Timezone: user in UTC+3 vs server UTC</td>
+<td>Stored instant consistent; display localized</td>
+</tr>
+<tr>
+<td>EC-D-06</td>
+<td>UUID</td>
+<td>Malformed <code>id</code> in path (<code>not-a-uuid</code>)</td>
+<td>400 Bad Request</td>
+</tr>
+<tr>
+<td>EC-D-07</td>
+<td>UUID</td>
+<td>Valid UUID non-existent</td>
+<td>404 Not Found</td>
+</tr>
+<tr>
+<td>EC-D-08</td>
+<td>Filters</td>
+<td>Empty string vs null query params</td>
+<td>Consistent semantics (ignore vs match empty)</td>
+</tr>
+<tr>
+<td>EC-D-09</td>
+<td>Filters</td>
+<td>SQL/wildcard <code>%</code> and <code>_</code> in search</td>
+<td>Escaped or documented behavior</td>
+</tr>
+<tr>
+<td>EC-D-10</td>
+<td>Pagination</td>
+<td><code>page=-1</code>, <code>size=0</code>, <code>size=999999</code></td>
+<td>Bounded page size; safe defaults</td>
+</tr>
+<tr>
+<td>EC-D-11</td>
+<td>Sort</td>
+<td>Sort by non-whitelisted column</td>
+<td>Ignored or 400</td>
+</tr>
+<tr>
+<td>EC-D-12</td>
+<td>JSON</td>
+<td>Extra unknown fields in POST body</td>
+<td>Ignored (forward compatible) or strict 400</td>
+</tr>
+</table>
+<h3>3.2 المرفقات | Attachments</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-A-01</td>
+<td>File name 255+ chars, Arabic / Unicode</td>
+<td>Sanitized storage name; original preserved in metadata if supported</td>
+</tr>
+<tr>
+<td>EC-A-02</td>
+<td>Double extension <code>report.pdf.exe</code></td>
+<td>Blocked by MIME + extension policy</td>
+</tr>
+<tr>
+<td>EC-A-03</td>
+<td>Polyglot file (valid PDF + script)</td>
+<td>Content inspection if policy requires</td>
+</tr>
+<tr>
+<td>EC-A-04</td>
+<td>Zero-byte file</td>
+<td>Reject with clear reason</td>
+</tr>
+<tr>
+<td>EC-A-05</td>
+<td>Single file 49 MB / 51 MB vs 50 MB SRS</td>
+<td>Hard limit at policy</td>
+</tr>
+<tr>
+<td>EC-A-06</td>
+<td>Concurrent uploads same correspondence</td>
+<td>No lost updates; versioning if designed</td>
+</tr>
+<tr>
+<td>EC-A-07</td>
+<td>Download interrupted (range request)</td>
+<td>Resumable or clean error</td>
+</tr>
+<tr>
+<td>EC-A-08</td>
+<td>MSG / TIFF (&#167;14.1)</td>
+<td>Accept or reject per whitelist</td>
+</tr>
+</table>
+<h3>3.3 سير العمل (Camunda) | Workflow</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-W-01</td>
+<td>Complete task twice (double submit)</td>
+<td>Idempotent or second call fails safely</td>
+</tr>
+<tr>
+<td>EC-W-02</td>
+<td>Process definition updated mid-flight</td>
+<td>Running instances follow deployed version</td>
+</tr>
+<tr>
+<td>EC-W-03</td>
+<td>External task timeout</td>
+<td>Retry or incident; operator visibility</td>
+</tr>
+<tr>
+<td>EC-W-04</td>
+<td>Delegate after task already completed</td>
+<td>409 / business error</td>
+</tr>
+<tr>
+<td>EC-W-05</td>
+<td>Cancel correspondence mid-process</td>
+<td>BPMN cancel; compensating actions</td>
+</tr>
+<tr>
+<td>EC-W-06</td>
+<td>Parallel branch — one assignee on leave</td>
+<td>Reassignment / escalation per BR</td>
+</tr>
+<tr>
+<td>EC-W-07</td>
+<td>Message correlation duplicate</td>
+<td>Single subscription match</td>
+</tr>
+</table>
+<h3>3.4 التزامن والاتساق | Concurrency &amp; consistency</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-C-01</td>
+<td>Two users edit same correspondence</td>
+<td>Optimistic lock or last-write policy documented</td>
+</tr>
+<tr>
+<td>EC-C-02</td>
+<td>Admin disables user mid-active session</td>
+<td>Next API call 401/403</td>
+</tr>
+<tr>
+<td>EC-C-03</td>
+<td>Role permissions changed mid-session</td>
+<td>Next request reflects new matrix (or forced re-login)</td>
+</tr>
+<tr>
+<td>EC-C-04</td>
+<td>Bulk import + UI edit same record</td>
+<td>Serialization; no orphan rows</td>
+</tr>
+</table>
+<h3>3.5 التعريب وإتاحة الوصول | Internationalization &amp; accessibility</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-I-01</td>
+<td>Mixed Arabic / English / numerals in subject</td>
+<td>Correct shaping and storage</td>
+</tr>
+<tr>
+<td>EC-I-02</td>
+<td>RTL form with LTR email / URL inside</td>
+<td>Bidirectional layout correct</td>
+</tr>
+<tr>
+<td>EC-I-03</td>
+<td>PDF export with Arabic</td>
+<td>Embedded fonts; searchable text</td>
+</tr>
+<tr>
+<td>EC-I-04</td>
+<td>Screen reader on workflow timeline</td>
+<td>Meaningful labels (WCAG 2.1 AA)</td>
+</tr>
+</table>
+<h3>3.6 أمن الحالات الحدية | Security edge cases</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-S-01</td>
+<td>JWT <code>sub</code> valid UUID but user deleted</td>
+<td>401/403</td>
+</tr>
+<tr>
+<td>EC-S-02</td>
+<td>JWT algorithm <code>none</code> / wrong alg</td>
+<td>Reject</td>
+</tr>
+<tr>
+<td>EC-S-03</td>
+<td>Long JWT / cookie size</td>
+<td>Failure handled</td>
+</tr>
+<tr>
+<td>EC-S-04</td>
+<td>CSRF: state-changing request from foreign origin</td>
+<td>Blocked per CORS + token design</td>
+</tr>
+<tr>
+<td>EC-S-05</td>
+<td>Path traversal in attachment storage key</td>
+<td>Reject</td>
+</tr>
+<tr>
+<td>EC-S-06</td>
+<td>IDOR: guess another user’s attachment UUID</td>
+<td>403</td>
+</tr>
+</table>
+<h3>3.7 التكامل الخارجي (SRS &#167;12) | Integrations</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Integration</th>
+<th>Edge scenario</th>
+<th>Expected behavior</th>
+</tr>
+<tr>
+<td>EC-X-01</td>
+<td>AD/LDAP</td>
+<td>LDAP slow (&gt;5s)</td>
+<td>Timeout; graceful degradation</td>
+</tr>
+<tr>
+<td>EC-X-02</td>
+<td>PKI</td>
+<td>HSM unavailable</td>
+<td>Queue or fail closed for signing</td>
+</tr>
+<tr>
+<td>EC-X-03</td>
+<td>SMS</td>
+<td>Provider rate limit</td>
+<td>Backoff; user message</td>
+</tr>
+<tr>
+<td>EC-X-04</td>
+<td>GSB / HR REST</td>
+<td>Partial JSON</td>
+<td>Schema validation error</td>
+</tr>
+<tr>
+<td>EC-X-05</td>
+<td>Email</td>
+<td>SMTP greylisting</td>
+<td>Retry policy</td>
+</tr>
+</table>
+<h3>3.8 القواعد العملية (SRS &#167;10) | Business rules — edge tests</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Rule</th>
+<th>Edge test</th>
+</tr>
+<tr>
+<td>EC-B-01</td>
+<td>BR-010–015</td>
+<td>Each rule: minimal valid + one violating case</td>
+</tr>
+<tr>
+<td>EC-B-02</td>
+<td>BR-020–022</td>
+<td>Confidentiality vs role matrix exhaustive for sample set</td>
+</tr>
+</table>
+<h3>3.9 دورية المراجعة | Review cadence</h3>
+<ul><li><strong>Sprint:</strong> إضافة سيناريوهات للميزات الجديدة.</li></ul>
+<ul><li><strong>Release:</strong> مجموعة انحدار لحالات الحد من الأولوية P1.</li></ul>
+<ul><li><strong>Post-incident:</strong> توثيق السيناريوهات التي لم تُغطَّ سابقاً.</li></ul>
+<hr />
+<span id="sec-4"></span>
+<h2>4. سيناريوهات الفشل | Failure scenarios</h2>
+<p><em>يشمل: الشبكة والبنية التحتائية، البيانات غير الصالحة، الصلاحيات والمصادقة.</em></p>
+<h3>4.1 فشل الشبكة والبنية التحتائية | Network &amp; infrastructure</h3>
+<h4>4.1.1 Client ↔ API</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Symptom</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-N-01</td>
+<td>User offline or DNS failure</td>
+<td>UI shows offline/retry; no silent data loss on forms (draft if supported)</td>
+</tr>
+<tr>
+<td>FS-N-02</td>
+<td>TLS handshake failure (cert expired, wrong hostname)</td>
+<td>Browser error; monitoring alert on cert expiry</td>
+</tr>
+<tr>
+<td>FS-N-03</td>
+<td>Intermittent packet loss</td>
+<td>Idempotent retries for GET; duplicate detection for POST</td>
+</tr>
+<tr>
+<td>FS-N-04</td>
+<td>HTTP 502/504 from reverse proxy</td>
+<td>User-friendly message; correlation id in logs</td>
+</tr>
+<tr>
+<td>FS-N-05</td>
+<td>Request timeout</td>
+<td>UI timeout; reconcile via polling or idempotency key</td>
+</tr>
+<tr>
+<td>FS-N-06</td>
+<td>Large upload timeout mid-flight</td>
+<td>Resumable or clear restart; no corrupt partial attachment record</td>
+</tr>
+</table>
+<h4>4.1.2 API ↔ PostgreSQL</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Symptom</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-N-10</td>
+<td>DB connection pool exhausted</td>
+<td>503 with retry-after; alert</td>
+</tr>
+<tr>
+<td>FS-N-11</td>
+<td>DB failover (HA)</td>
+<td>Brief errors; RPO ≤ 1h (NFR-203); reconnect</td>
+</tr>
+<tr>
+<td>FS-N-12</td>
+<td>Long Flyway migration on deploy</td>
+<td>Maintenance window or blue/green strategy</td>
+</tr>
+<tr>
+<td>FS-N-13</td>
+<td>Deadlock on hot row</td>
+<td>Service-layer retry; metrics</td>
+</tr>
+</table>
+<h4>4.1.3 API ↔ Camunda</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Symptom</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-N-20</td>
+<td>Engine exception on transition</td>
+<td>Rollback; consistent state; Cockpit incident</td>
+</tr>
+<tr>
+<td>FS-N-21</td>
+<td>Job executor stuck</td>
+<td>Monitoring; runbook</td>
+</tr>
+</table>
+<h4>4.1.4 API ↔ File storage (local / S3 / MinIO)</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Symptom</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-N-30</td>
+<td>Disk full or S3 503</td>
+<td>Clear error; no DB row without blob</td>
+</tr>
+<tr>
+<td>FS-N-31</td>
+<td>Antivirus async failure</td>
+<td>Quarantine or block download until resolved</td>
+</tr>
+</table>
+<h3>4.2 بيانات غير صالحة أو خبيثة | Invalid / malicious data</h3>
+<h4>4.2.1 Request validation</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Input</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-D-01</td>
+<td>Missing required field on <code>POST /correspondence</code></td>
+<td>400 + field errors</td>
+</tr>
+<tr>
+<td>FS-D-02</td>
+<td>Wrong JSON type for coded field</td>
+<td>400; no 500</td>
+</tr>
+<tr>
+<td>FS-D-03</td>
+<td>Oversized payload</td>
+<td>413</td>
+</tr>
+<tr>
+<td>FS-D-04</td>
+<td>Invalid FK</td>
+<td>400/404; safe message</td>
+</tr>
+<tr>
+<td>FS-D-05</td>
+<td>Invalid ISO date</td>
+<td>400</td>
+</tr>
+<tr>
+<td>FS-D-06</td>
+<td>multipart missing boundary</td>
+<td>400</td>
+</tr>
+<tr>
+<td>FS-D-07</td>
+<td>Content vs extension mismatch</td>
+<td>Reject if policy mandates</td>
+</tr>
+</table>
+<h4>4.2.2 Business rule violations</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Input</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-D-10</td>
+<td>Action invalid for workflow state</td>
+<td>409 / 422 <code>INVALID_STATE</code></td>
+</tr>
+<tr>
+<td>FS-D-11</td>
+<td>Approve without mandatory comment</td>
+<td>400</td>
+</tr>
+<tr>
+<td>FS-D-12</td>
+<td>Cancel finalized correspondence</td>
+<td>Denied per BR-014 / policy</td>
+</tr>
+</table>
+<h4>4.2.3 Injection &amp; fuzzing</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Input</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-D-20</td>
+<td>XSS in fields shown in UI</td>
+<td>Escaped; CSP in prod</td>
+</tr>
+<tr>
+<td>FS-D-21</td>
+<td>SQL injection patterns in search</td>
+<td>Parameterized queries; no leakage</td>
+</tr>
+<tr>
+<td>FS-D-22</td>
+<td>SSRF via URL field (if any)</td>
+<td>Allowlist or block private IPs</td>
+</tr>
+</table>
+<h3>4.3 الصلاحيات والمصادقة | Permissions &amp; authentication</h3>
+<h4>4.3.1 Unauthenticated</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Call</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-P-01</td>
+<td>Protected endpoint without <code>Authorization</code></td>
+<td>401</td>
+</tr>
+<tr>
+<td>FS-P-02</td>
+<td>Malformed <code>Bearer</code></td>
+<td>401</td>
+</tr>
+<tr>
+<td>FS-P-03</td>
+<td>Expired JWT</td>
+<td>401; refresh if applicable</td>
+</tr>
+</table>
+<h4>4.3.2 Authenticated but not authorized</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>User action</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-P-10</td>
+<td>Clerk → <code>DELETE /users/{id}</code></td>
+<td>403</td>
+</tr>
+<tr>
+<td>FS-P-11</td>
+<td>Handler → admin <code>PUT</code></td>
+<td>403</td>
+</tr>
+<tr>
+<td>FS-P-12</td>
+<td>Access out-of-scope correspondence</td>
+<td>403 or empty list (document policy)</td>
+</tr>
+<tr>
+<td>FS-P-13</td>
+<td>Download foreign attachment UUID</td>
+<td>403</td>
+</tr>
+</table>
+<h4>4.3.3 Privilege abuse</h4>
+<table>
+<tr>
+<th>ID</th>
+<th>Tamper</th>
+<th>Expected</th>
+</tr>
+<tr>
+<td>FS-P-20</td>
+<td>Edited JWT (invalid signature)</td>
+<td>401</td>
+</tr>
+<tr>
+<td>FS-P-21</td>
+<td>Client-only role elevation</td>
+<td>Server ignores; DB is source of truth</td>
+</tr>
+<tr>
+<td>FS-P-22</td>
+<td>Old JWT after password reset</td>
+<td>Invalid if versioning / revocation</td>
+</tr>
+</table>
+<h3>4.4 المراقبة عند الفشل | Observability &amp; supportability</h3>
+<table>
+<tr>
+<th>Requirement</th>
+<th>Detail</th>
+</tr>
+<tr>
+<td>Correlation ID</td>
+<td><code>X-Request-Id</code> through API → Camunda → logs</td>
+</tr>
+<tr>
+<td>Structured logging</td>
+<td>No PII/passwords; JWT never logged in full</td>
+</tr>
+<tr>
+<td>Metrics</td>
+<td>Error rate by endpoint, DB latency, Camunda incidents</td>
+</tr>
+<tr>
+<td>Runbooks</td>
+<td>FS-N-11, FS-N-20, FS-N-30 linked to on-call</td>
+</tr>
+</table>
+<h3>4.5 مصفوفة تتبع عيّنة | Traceability matrix (sample)</h3>
+<table>
+<tr>
+<th>Failure ID</th>
+<th>Automated test</th>
+<th>Load test</th>
+<th>Security test</th>
+</tr>
+<tr>
+<td>FS-N-04</td>
+<td>E2E mock 502</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>FS-D-01</td>
+<td>API contract test</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>FS-P-12</td>
+<td>RBAC integration</td>
+<td>—</td>
+<td>✓</td>
+</tr>
+</table>
+<hr />
+<span id="sec-5"></span>
+<h2>5. سجل مخاطر الأداء | Performance risks register</h2>
+<h3>5.1 خط الأساس من SRS | SRS performance baseline</h3>
+<table>
+<tr>
+<th>ID</th>
+<th>Metric</th>
+<th>Target</th>
+</tr>
+<tr>
+<td>NFR-101</td>
+<td>Transaction response time</td>
+<td>≤ 3 seconds</td>
+</tr>
+<tr>
+<td>NFR-102</td>
+<td>List query (10,000 records)</td>
+<td>≤ 5 seconds</td>
+</tr>
+<tr>
+<td>NFR-103</td>
+<td>Concurrent users</td>
+<td>5,000</td>
+</tr>
+<tr>
+<td>NFR-104</td>
+<td>Correspondence volume</td>
+<td>50,000+</td>
+</tr>
+<tr>
+<td>NFR-105</td>
+<td>Retention</td>
+<td>10 years</td>
+</tr>
+<tr>
+<td>NFR-201</td>
+<td>Availability</td>
+<td>99.9%</td>
+</tr>
+</table>
+<h3>5.2 سجل المخاطر | Risk register</h3>
+<table>
+<tr>
+<th>Risk ID</th>
+<th>Area</th>
+<th>Risk description</th>
+<th>L</th>
+<th>I</th>
+<th>Mitigation</th>
+<th>Owner</th>
+<th>SRS</th>
+</tr>
+<tr>
+<td>PERF-R01</td>
+<td>Database</td>
+<td>Unindexed filters → full scans at scale</td>
+<td>M</td>
+<td>H</td>
+<td>Composite indexes; EXPLAIN; read replicas</td>
+<td>DBA / Dev</td>
+<td>NFR-102</td>
+</tr>
+<tr>
+<td>PERF-R02</td>
+<td>Database</td>
+<td>N+1 on detail view</td>
+<td>H</td>
+<td>M</td>
+<td>Joins / DTOs / batch APIs</td>
+<td>Dev</td>
+<td>NFR-101</td>
+</tr>
+<tr>
+<td>PERF-R03</td>
+<td>Camunda</td>
+<td>Job executor saturation</td>
+<td>M</td>
+<td>H</td>
+<td>Pool tuning; scale-out story</td>
+<td>Platform</td>
+<td>NFR-103</td>
+</tr>
+<tr>
+<td>PERF-R04</td>
+<td>Camunda</td>
+<td>Heavy parallel BPMN</td>
+<td>L</td>
+<td>M</td>
+<td>Simplify; async</td>
+<td>BA / Dev</td>
+<td>FR-203</td>
+</tr>
+<tr>
+<td>PERF-R05</td>
+<td>File I/O</td>
+<td>Slow NFS for attachments</td>
+<td>M</td>
+<td>H</td>
+<td>Object storage; CDN</td>
+<td>Infra</td>
+<td>FR-102</td>
+</tr>
+<tr>
+<td>PERF-R06</td>
+<td>File I/O</td>
+<td>Sync AV blocks upload</td>
+<td>M</td>
+<td>M</td>
+<td>Async scan + status</td>
+<td>Security</td>
+<td>&#167;14</td>
+</tr>
+<tr>
+<td>PERF-R07</td>
+<td>Search</td>
+<td>LIKE-only full-text at scale</td>
+<td>H</td>
+<td>H</td>
+<td>OpenSearch / ES</td>
+<td>Arch</td>
+<td>FR-502</td>
+</tr>
+<tr>
+<td>PERF-R08</td>
+<td>Reports</td>
+<td>On-the-fly aggregates</td>
+<td>M</td>
+<td>H</td>
+<td>Materialized views / Redis TTL</td>
+<td>Dev</td>
+<td>FR-601</td>
+</tr>
+<tr>
+<td>PERF-R09</td>
+<td>Export</td>
+<td>Full dataset in memory</td>
+<td>M</td>
+<td>H</td>
+<td>Streaming; async job</td>
+<td>Dev</td>
+<td>FR-705</td>
+</tr>
+<tr>
+<td>PERF-R10</td>
+<td>JWT</td>
+<td>DB lookup every request</td>
+<td>M</td>
+<td>M</td>
+<td>Short cache + invalidation</td>
+<td>Dev</td>
+<td>—</td>
+</tr>
+<tr>
+<td>PERF-R11</td>
+<td>API</td>
+<td>Chatty Angular</td>
+<td>M</td>
+<td>M</td>
+<td>BFF; <code>forkJoin</code></td>
+<td>FE</td>
+<td>NFR-101</td>
+</tr>
+<tr>
+<td>PERF-R12</td>
+<td>Network</td>
+<td>Oversized JWT/cookies</td>
+<td>L</td>
+<td>M</td>
+<td>Slim claims</td>
+<td>Sec</td>
+<td>—</td>
+</tr>
+<tr>
+<td>PERF-R13</td>
+<td>Frontend</td>
+<td>10k rows unvirtualized</td>
+<td>H</td>
+<td>M</td>
+<td>Paging + virtual scroll</td>
+<td>FE</td>
+<td>NFR-102</td>
+</tr>
+<tr>
+<td>PERF-R14</td>
+<td>Growth</td>
+<td>10-year retention volume</td>
+<td>M</td>
+<td>H</td>
+<td>Partitioning; archival</td>
+<td>DBA</td>
+<td>NFR-105</td>
+</tr>
+<tr>
+<td>PERF-R15</td>
+<td>Integrations</td>
+<td>Sync LDAP/SMS blocking</td>
+<td>M</td>
+<td>H</td>
+<td>Timeouts; circuit breaker; queue</td>
+<td>Dev</td>
+<td>&#167;12</td>
+</tr>
+<tr>
+<td>PERF-R16</td>
+<td>Backup</td>
+<td>RPO pressure under write load</td>
+<td>M</td>
+<td>H</td>
+<td>WAL / PITR; IOPS</td>
+<td>Infra</td>
+<td>NFR-203</td>
+</tr>
+</table>
+<p><em>L = Likelihood &#183; I = Impact (H/M/L)</em></p>
+<h3>5.3 ملف اختبار الحمل المقترح | Load testing profile</h3>
+<table>
+<tr>
+<th>Scenario</th>
+<th>Mix %</th>
+<th>Notes</th>
+</tr>
+<tr>
+<td>Login + dashboard</td>
+<td>25</td>
+<td>Warm JWT cache</td>
+</tr>
+<tr>
+<td>List correspondence (filtered)</td>
+<td>35</td>
+<td>NFR-102</td>
+</tr>
+<tr>
+<td>Open detail + attachments</td>
+<td>15</td>
+<td>Download separate</td>
+</tr>
+<tr>
+<td>Workflow action</td>
+<td>15</td>
+<td>Camunda path</td>
+</tr>
+<tr>
+<td>Report export</td>
+<td>10</td>
+<td>PERF-R09</td>
+</tr>
+</table>
+<p><strong>Ramp:</strong> 0 → 5000 VUs over 30–60 min; soak 2–4 h.</p>
+<h3>5.4 مؤشرات المراقبة في الإنتاج | Production monitoring KPIs</h3>
+<table>
+<tr>
+<th>KPI</th>
+<th>Alert threshold (example)</th>
+</tr>
+<tr>
+<td>API P95 latency</td>
+<td>&gt; 2.5s warn &#183; &gt; 3.5s crit vs NFR-101</td>
+</tr>
+<tr>
+<td>Error rate 5xx</td>
+<td>&gt; 0.1% / 5 min</td>
+</tr>
+<tr>
+<td>DB CPU</td>
+<td>&gt; 70% sustained</td>
+</tr>
+<tr>
+<td>Camunda incidents/hour</td>
+<td>&gt; 0 (business hours)</td>
+</tr>
+<tr>
+<td>Disk usage attachments</td>
+<td>&gt; 80%</td>
+</tr>
+</table>
+<h3>5.5 المراجعة | Review</h3>
+<table>
+<tr>
+<th>Frequency</th>
+<th>Action</th>
+</tr>
+<tr>
+<td>Each major release</td>
+<td>Re-run load test; update scores</td>
+</tr>
+<tr>
+<td>Architecture change</td>
+<td>Add risks for new integrations</td>
+</tr>
+</table>
+<hr />
+<span id="sec-6"></span>
+<h2>6. قائمة جاهزية الإنتاج (Go/No-Go) | Production readiness checklist</h2>
+<p><strong>وسم الحالة | Legend:</strong> ☐ Not started &#183; ◐ In progress &#183; ☑ Done &#183; N/A</p>
+<h3>6.1 الوظيفي وUAT | Functional &amp; UAT</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.1.1</td>
+<td>All P1 UAT cases passed</td>
+<td>☐</td>
+<td>Run log</td>
+<td>QA</td>
+</tr>
+<tr>
+<td>6.1.2</td>
+<td>P2 defects triaged (fix / waive / defer + CAB)</td>
+<td>☐</td>
+<td>Tracker</td>
+<td>Product</td>
+</tr>
+<tr>
+<td>6.1.3</td>
+<td>BR-001–022 verified in staging</td>
+<td>☐</td>
+<td>Results</td>
+<td>Business</td>
+</tr>
+<tr>
+<td>6.1.4</td>
+<td>BPMN versions tagged in release</td>
+<td>☐</td>
+<td>Git + Camunda record</td>
+<td>Dev</td>
+</tr>
+</table>
+<h3>6.2 الأمن والامتثال (SRS &#167;11) | Security &amp; compliance</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.2.1</td>
+<td>TLS 1.2+ (target 1.3)</td>
+<td>☐</td>
+<td>Scan</td>
+<td>Security</td>
+</tr>
+<tr>
+<td>6.2.2</td>
+<td>Secrets in vault — not in git/images</td>
+<td>☐</td>
+<td>CI secret scan</td>
+<td>Security</td>
+</tr>
+<tr>
+<td>6.2.3</td>
+<td>Strong <code>AC_JWT_SECRET</code> + rotation plan</td>
+<td>☐</td>
+<td>Runbook</td>
+<td>Security</td>
+</tr>
+<tr>
+<td>6.2.4</td>
+<td>RBAC matrix = <code>SecurityConfig</code> + DB</td>
+<td>☐</td>
+<td>Matrix</td>
+<td>Security</td>
+</tr>
+<tr>
+<td>6.2.5</td>
+<td>OWASP ASVS spot check</td>
+<td>☐</td>
+<td>Report</td>
+<td>Security</td>
+</tr>
+<tr>
+<td>6.2.6</td>
+<td>MFA / AD / SSO in scope tested</td>
+<td>☐</td>
+<td>Log</td>
+<td>IAM</td>
+</tr>
+<tr>
+<td>6.2.7</td>
+<td>Attachment download — no IDOR</td>
+<td>☐</td>
+<td>Test</td>
+<td>Security</td>
+</tr>
+<tr>
+<td>6.2.8</td>
+<td>CORS restricted (prod)</td>
+<td>☐</td>
+<td>Config</td>
+<td>Dev</td>
+</tr>
+<tr>
+<td>6.2.9</td>
+<td>CSP, HSTS, X-Frame-Options</td>
+<td>☐</td>
+<td>Header scan</td>
+<td>Dev</td>
+</tr>
+</table>
+<h3>6.3 البيانات والاستمرارية | Data &amp; persistence</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.3.1</td>
+<td>Flyway clean on empty + prod-like DB</td>
+<td>☐</td>
+<td>CI + staging</td>
+<td>DBA</td>
+</tr>
+<tr>
+<td>6.3.2</td>
+<td>Backup; RPO ≤ 1h (NFR-203)</td>
+<td>☐</td>
+<td>Job logs</td>
+<td>Infra</td>
+</tr>
+<tr>
+<td>6.3.3</td>
+<td>Restore drill (quarterly)</td>
+<td>☐</td>
+<td>Report</td>
+<td>Infra</td>
+</tr>
+<tr>
+<td>6.3.4</td>
+<td>RTO ≤ 4h (NFR-202) tested</td>
+<td>☐</td>
+<td>DR runbook</td>
+<td>Infra</td>
+</tr>
+<tr>
+<td>6.3.5</td>
+<td>Retention 10y (NFR-105) — archival policy</td>
+<td>☐</td>
+<td>Policy</td>
+<td>Legal / IM</td>
+</tr>
+</table>
+<h3>6.4 الأداء والسعة (SRS &#167;5.1) | Performance &amp; scale</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.4.1</td>
+<td>Load test to target concurrency</td>
+<td>☐</td>
+<td>k6/Gatling</td>
+<td>QA</td>
+</tr>
+<tr>
+<td>6.4.2</td>
+<td>NFR-101 / NFR-102 under load</td>
+<td>☐</td>
+<td>Grafana</td>
+<td>QA</td>
+</tr>
+<tr>
+<td>6.4.3</td>
+<td>DB indexes for top queries</td>
+<td>☐</td>
+<td>EXPLAIN</td>
+<td>DBA</td>
+</tr>
+<tr>
+<td>6.4.4</td>
+<td>Pool sizing for pods &#215; concurrency</td>
+<td>☐</td>
+<td>Sheet</td>
+<td>Dev</td>
+</tr>
+</table>
+<h3>6.5 المراقبة والتشغيل | Observability &amp; operations</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.5.1</td>
+<td>JSON logs + correlation id</td>
+<td>☐</td>
+<td>Sample</td>
+<td>Dev</td>
+</tr>
+<tr>
+<td>6.5.2</td>
+<td>RED/USE metrics</td>
+<td>☐</td>
+<td>Dashboard</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>6.5.3</td>
+<td>Alerts: errors, latency, disk, queues</td>
+<td>☐</td>
+<td>Ops</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>6.5.4</td>
+<td>Runbooks: deploy, rollback, DB, Camunda</td>
+<td>☐</td>
+<td>Wiki</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>6.5.5</td>
+<td>Health checks → load balancer</td>
+<td>☐</td>
+<td>Config</td>
+<td>Infra</td>
+</tr>
+</table>
+<h3>6.6 التهيئة والبيئات | Configuration</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.6.1</td>
+<td>Prod config — no dev defaults</td>
+<td>☐</td>
+<td>Diff</td>
+<td>Dev</td>
+</tr>
+<tr>
+<td>6.6.2</td>
+<td>PostgreSQL HA matches RTO/RPO</td>
+<td>☐</td>
+<td>Diagram</td>
+<td>Infra</td>
+</tr>
+<tr>
+<td>6.6.3</td>
+<td>Camunda admin password not default</td>
+<td>☐</td>
+<td>Vault</td>
+<td>Infra</td>
+</tr>
+<tr>
+<td>6.6.4</td>
+<td>Email/SMS prod creds + rate limits</td>
+<td>☐</td>
+<td>Vendor</td>
+<td>Ops</td>
+</tr>
+<tr>
+<td>6.6.5</td>
+<td>File storage lifecycle</td>
+<td>☐</td>
+<td>IaC</td>
+<td>Infra</td>
+</tr>
+</table>
+<h3>6.7 الواجهة الأمامية (Angular) | Frontend</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.7.1</td>
+<td>Prod build; source maps policy</td>
+<td>☐</td>
+<td>Pipeline</td>
+<td>Dev</td>
+</tr>
+<tr>
+<td>6.7.2</td>
+<td>API base URL correct</td>
+<td>☐</td>
+<td>Config</td>
+<td>Dev</td>
+</tr>
+<tr>
+<td>6.7.3</td>
+<td>RTL + i18n smoke</td>
+<td>☐</td>
+<td>Screenshots</td>
+<td>QA</td>
+</tr>
+<tr>
+<td>6.7.4</td>
+<td>WCAG 2.1 AA criticals closed</td>
+<td>☐</td>
+<td>Audit</td>
+<td>UX</td>
+</tr>
+</table>
+<h3>6.8 قانوني وخصوصية وتدقيق | Legal &amp; privacy</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.8.1</td>
+<td>Audit tamper-evidence / retention</td>
+<td>☐</td>
+<td>Design</td>
+<td>Compliance</td>
+</tr>
+<tr>
+<td>6.8.2</td>
+<td>PII documented</td>
+<td>☐</td>
+<td>DPIA</td>
+<td>DPO</td>
+</tr>
+<tr>
+<td>6.8.3</td>
+<td>System issue reporting E2E</td>
+<td>☐</td>
+<td>Test</td>
+<td>Support</td>
+</tr>
+</table>
+<h3>6.9 الإصدار | Release mechanics</h3>
+<table>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+<th>Sign-off</th>
+</tr>
+<tr>
+<td>6.9.1</td>
+<td>Rollback tested</td>
+<td>☐</td>
+<td>Drill</td>
+<td>SRE</td>
+</tr>
+<tr>
+<td>6.9.2</td>
+<td>Feature flags (if used)</td>
+<td>☐</td>
+<td>List</td>
+<td>Dev</td>
+</tr>
+<tr>
+<td>6.9.3</td>
+<td>Maintenance window communicated</td>
+<td>☐</td>
+<td>Comms</td>
+<td>PMO</td>
+</tr>
+</table>
+<h3>6.10 قرار Go/No-Go الإداري | Extended go/no-go</h3>
+<table>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Go / No-Go</th>
+<th>Date</th>
+<th>Notes</th>
+</tr>
+<tr>
+<td>Product Owner</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Engineering Lead</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>QA Lead</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Security</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+<p><strong>No-Go</strong> if any P1 security, data integrity, or unmitigated P1 defect remains.</p>
+<hr />
+<span id="sec-7"></span>
+<h2>7. التوقيع والاعتماد الرسمي | Official sign-off</h2>
+<h3>7.1 الاعتمادات الإلزامية للتسليم | Required approvals for this package</h3>
+<table>
+<tr>
+<th>#</th>
+<th>الدور</th>
+<th>Role</th>
+<th>الاسم Name</th>
+<th>التوقيع Signature</th>
+<th>التاريخ Date</th>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>ممثل الأعمال</strong></td>
+<td><strong>Business representative</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>ضمان الجودة (QA)</strong></td>
+<td><strong>Quality Assurance</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>القيادة التقنية</strong></td>
+<td><strong>Technical Lead</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+<h3>7.2 إقرار بالاستلام | Acknowledgement</h3>
+<p>نقر بموجب هذا بأن حزمة ضمان الجودة الموحّدة قد استُلمت للمراجعة، وأن المحتوى يعكس المتطلبات الواردة في وثيقة مواصفات المتطلبات البرمجية المعتمدة للنظام.</p>
+<p>We acknowledge receipt of the Master QA Delivery Package for review and confirm that the content reflects the approved SRS for the Administrative Communications System.</p>
+<h3>7.3 سجل المراجعات | Revision history</h3>
+<table>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author / Owner</th>
+<th>Summary of changes</th>
+</tr>
+<tr>
+<td>1.0</td>
+<td>5 April 2026</td>
+<td>QA / Architecture</td>
+<td>Initial consolidated release</td>
+</tr>
+</table>
+<hr />
+<p><em>نهاية الوثيقة — End of document</em></p>
+</body></html>

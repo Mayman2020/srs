@@ -7,6 +7,7 @@ import com.gov.ac.correspondence.mapper.CorrespondenceCreateMapper;
 import com.gov.ac.correspondence.reference.ReferenceNumberGenerator;
 import com.gov.ac.correspondence.workflow.CamundaCorrespondenceWorkflowService;
 import com.gov.ac.correspondence.workflow.CamundaCorrespondenceWorkflowService.StartedProcess;
+import com.gov.ac.correspondence.CorrespondenceAggregateLimits;
 import com.gov.ac.correspondence.CorrespondenceLookupCodes;
 import com.gov.ac.correspondence.workflow.CorrespondenceProcessDefinitionKeys;
 import com.gov.ac.domain.correspondence.Attachment;
@@ -21,7 +22,7 @@ import com.gov.ac.domain.user.AppUser;
 import com.gov.ac.domain.workflow.WorkflowHistory;
 import com.gov.ac.domain.workflow.WorkflowInstance;
 import com.gov.ac.lookup.LookupResolutionService;
-import com.gov.ac.notification.NotificationService;
+import com.gov.ac.modules.notification.NotificationService;
 import com.gov.ac.persistence.AppUserRepository;
 import com.gov.ac.persistence.AttachmentRepository;
 import com.gov.ac.persistence.AttachmentVersionRepository;
@@ -30,6 +31,7 @@ import com.gov.ac.persistence.CorrespondenceRepository;
 import com.gov.ac.persistence.DepartmentRepository;
 import com.gov.ac.persistence.OrganizationRepository;
 import com.gov.ac.persistence.WorkflowHistoryRepository;
+import com.gov.ac.persistence.RoleRepository;
 import com.gov.ac.persistence.WorkflowInstanceRepository;
 import com.gov.ac.persistence.WorkflowInstanceStatusRepository;
 import com.gov.ac.common.api.BadRequestException;
@@ -51,11 +53,6 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class CorrespondenceCreateService {
 
-  /** SRS §14.1 aggregate cap (application-enforced). */
-  private static final long MAX_TOTAL_ATTACHMENT_BYTES = 200L * 1024 * 1024;
-
-  private static final int MAX_ATTACHMENTS_COUNT = 30;
-
   private final LookupResolutionService lookups;
   private final ReferenceNumberGenerator referenceNumberGenerator;
   private final CamundaCorrespondenceWorkflowService camundaWorkflow;
@@ -71,6 +68,7 @@ public class CorrespondenceCreateService {
   private final WorkflowInstanceStatusRepository workflowInstanceStatusRepository;
   private final WorkflowHistoryRepository workflowHistoryRepository;
   private final NotificationService notificationService;
+  private final RoleRepository roleRepository;
 
   /**
    * Creates correspondence, attachments, Camunda process, {@code workflow_instance}, and first
@@ -103,18 +101,24 @@ public class CorrespondenceCreateService {
     Department ownerDept = resolveDepartment(form.getOwnerDepartmentId());
 
     if (!CollectionUtils.isEmpty(form.getAttachments())
-        && form.getAttachments().size() > MAX_ATTACHMENTS_COUNT) {
+        && form.getAttachments().size() > CorrespondenceAggregateLimits.MAX_ATTACHMENTS_COUNT) {
       throw new BadRequestException(
-          "Too many attachments (max " + MAX_ATTACHMENTS_COUNT + " per correspondence)");
+          "Too many attachments (max "
+              + CorrespondenceAggregateLimits.MAX_ATTACHMENTS_COUNT
+              + " per correspondence)");
     }
 
     long attachmentTotal = sumAttachmentBytes(form.getAttachments());
-    if (attachmentTotal > MAX_TOTAL_ATTACHMENT_BYTES) {
+    if (attachmentTotal > CorrespondenceAggregateLimits.MAX_TOTAL_ATTACHMENT_BYTES) {
       throw new BadRequestException(
-          "Total attachment size exceeds limit of " + MAX_TOTAL_ATTACHMENT_BYTES + " bytes");
+          "Total attachment size exceeds limit of "
+              + CorrespondenceAggregateLimits.MAX_TOTAL_ATTACHMENT_BYTES
+              + " bytes");
     }
 
     validateAttachmentSizes(form.getAttachments());
+
+    validateWorkflowFirstAssignment(form);
 
     String referenceNumber = referenceNumberGenerator.nextReferenceNumber();
     String processKey = CorrespondenceProcessDefinitionKeys.forCorrespondenceTypeCode(type.getCode());
@@ -155,9 +159,15 @@ public class CorrespondenceCreateService {
       correspondenceCommentRepository.save(comment);
     }
 
+    UUID wfAssignee = form.getWorkflowFirstAssigneeUserId();
+    String wfGroup =
+        StringUtils.hasText(form.getWorkflowFirstCandidateGroup())
+            ? form.getWorkflowFirstCandidateGroup().trim()
+            : null;
+
     StartedProcess started =
         camundaWorkflow.startCorrespondenceProcess(
-            processKey, referenceNumber, actorUserId, correspondence.getId());
+            processKey, referenceNumber, actorUserId, correspondence.getId(), wfAssignee, wfGroup);
 
     WorkflowInstanceStatus running =
         workflowInstanceStatusRepository
@@ -311,6 +321,31 @@ public class CorrespondenceCreateService {
               log.debug("Reject create: unknown department id={}", id);
               return new BadRequestException("Unknown or deleted department");
             });
+  }
+
+  private void validateWorkflowFirstAssignment(CorrespondenceCreateForm form) {
+    UUID assignee = form.getWorkflowFirstAssigneeUserId();
+    boolean hasGroup = StringUtils.hasText(form.getWorkflowFirstCandidateGroup());
+    if (assignee != null && hasGroup) {
+      throw new BadRequestException(
+          "Use either workflowFirstAssigneeUserId or workflowFirstCandidateGroup, not both");
+    }
+    if (assignee != null) {
+      appUserRepository
+          .findByIdAndDeletedAtIsNull(assignee)
+          .filter(u -> Boolean.TRUE.equals(u.getActive()))
+          .orElseThrow(
+              () -> new BadRequestException("workflowFirstAssigneeUserId: unknown or inactive user"));
+    }
+    if (hasGroup) {
+      String code = form.getWorkflowFirstCandidateGroup().trim();
+      roleRepository
+          .findByCodeIgnoreCaseAndDeletedAtIsNullAndActiveTrue(code)
+          .orElseThrow(
+              () ->
+                  new BadRequestException(
+                      "workflowFirstCandidateGroup: unknown or inactive role code: " + code));
+    }
   }
 
   private static String trimToNull(String s) {

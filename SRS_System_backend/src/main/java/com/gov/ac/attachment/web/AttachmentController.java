@@ -1,5 +1,6 @@
 package com.gov.ac.attachment.web;
 
+import com.gov.ac.attachment.AttachmentDeletionService;
 import com.gov.ac.attachment.AttachmentDownloadService;
 import com.gov.ac.attachment.AttachmentStorageProperties;
 import com.gov.ac.attachment.dto.AttachmentUploadResponse;
@@ -12,13 +13,16 @@ import java.nio.file.Paths;
 import java.time.YearMonth;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -29,6 +33,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class AttachmentController {
 
   private final AttachmentDownloadService attachmentDownloadService;
+  private final AttachmentDeletionService attachmentDeletionService;
   private final AttachmentStorageProperties storageProperties;
 
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -75,5 +80,11 @@ public class AttachmentController {
   @GetMapping("/{id}/download")
   public ResponseEntity<StreamingResponseBody> download(@PathVariable Long id) {
     return attachmentDownloadService.download(id, SecurityUtils.requireCurrentUserId());
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable Long id) {
+    attachmentDeletionService.softDelete(id, SecurityUtils.requireCurrentUserId());
   }
 }

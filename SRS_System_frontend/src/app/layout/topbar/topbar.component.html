@@ -1,3 +1,4 @@
+<div class="topbar-root">
 <header class="header">
 
   <!-- LEFT -->
@@ -99,17 +100,50 @@
 
 
 </div>
-  
+
     <!-- User -->
     <div class="user-menu modern">
 
-      <div class="user-avatar">
-        {{ userName.charAt(0) }}
+      <div class="user-avatar" *ngIf="!avatarUrl">
+        {{ (userName && userName.length ? userName.charAt(0) : '') || '?' }}
       </div>
+      <img *ngIf="avatarUrl" class="user-avatar-img" [src]="avatarUrl" alt="" />
 
-      <span class="user-name">
-        {{ userName }}
-      </span>
+      <div class="user-meta">
+        <span class="user-name">{{ userName }}</span>
+        <div class="role-line">
+          <ng-container *ngIf="showRoleSwitcher; else singleRoleBlock">
+            <div class="role-switch-host" #roleSwitchHost>
+              <button
+                type="button"
+                class="role-chip"
+                (click)="toggleRoleMenu($event)"
+                [disabled]="switchingRole"
+                [attr.aria-expanded]="showRoleMenu"
+                [attr.aria-label]="'topbar.roleMenuAria' | t">
+                <span class="role-chip-label">{{ roleLabel(currentRoleCode || '') }}</span>
+                <span class="role-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="role-dropdown" *ngIf="showRoleMenu" role="menu">
+                <button
+                  type="button"
+                  class="role-option"
+                  *ngFor="let r of availableRoles"
+                  role="menuitem"
+                  [class.active]="r === currentRoleCode"
+                  (click)="selectRole(r, $event)">
+                  {{ roleLabel(r) }}
+                </button>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #singleRoleBlock>
+            <span class="role-static">
+              {{ currentRoleCode ? roleLabel(currentRoleCode) : ('common.roleNA' | t) }}
+            </span>
+          </ng-template>
+        </div>
+      </div>
 
      <button type="button" class="logout-btn"
         (click)="logout()"
@@ -129,3 +163,9 @@
   </div>
 
 </header>
+
+<div class="topbar-toast" *ngIf="toast.show" role="status" aria-live="polite">
+  <b>{{ toast.title }}</b>
+  <p>{{ toast.message }}</p>
+</div>
+</div>

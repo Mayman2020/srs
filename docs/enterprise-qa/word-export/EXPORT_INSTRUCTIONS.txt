@@ -1,0 +1,31 @@
+Administrative Communications System — Master QA Package
+Word / PDF export (official submission)
+================================================================
+
+SOURCE OF TRUTH (editable)
+  ..\QA_Master_Delivery_Package_AR_EN.md
+
+WORD-READY OUTPUT (generated)
+  QA_Master_ForWord.html
+
+STEPS FOR MICROSOFT WORD
+  1. Open QA_Master_ForWord.html in Word (File → Open → select the file).
+  2. Review page breaks (cover vs. body).
+  3. File → Save As → Word Document (*.docx).
+  4. Optional: Insert automatic Table of Contents (References → Table of Contents)
+     so page numbers match your organization template.
+
+REGENERATE HTML AFTER EDITING THE MARKDOWN
+  In PowerShell:
+    cd word-export
+    .\Convert-MasterToWordHtml.ps1
+
+PDF
+  From Word: File → Save As → PDF, or File → Export → Create PDF.
+
+FONTS
+  Body uses Segoe UI and Traditional Arabic in CSS. In Word you may set
+  default complex-script font to a corporate Arabic font if required.
+
+================================================================
+Document version aligned with master: 1.0 | Date: 5 April 2026

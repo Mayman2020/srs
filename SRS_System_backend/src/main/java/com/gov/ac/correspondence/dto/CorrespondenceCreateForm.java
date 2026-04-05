@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -57,4 +58,18 @@ public class CorrespondenceCreateForm {
   private String primaryComment;
 
   @Valid @Size(max = 30) private List<CorrespondenceAttachmentForm> attachments;
+
+  /**
+   * Optional: first Camunda user task goes to this user (UUID). Mutually exclusive with {@link
+   * #workflowFirstCandidateGroup}.
+   */
+  private UUID workflowFirstAssigneeUserId;
+
+  /**
+   * Optional: first task is a candidate group for this {@code role.code} (e.g. STAFF). Any active
+   * user with that role may claim the task. Mutually exclusive with {@link
+   * #workflowFirstAssigneeUserId}.
+   */
+  @Size(max = 64)
+  private String workflowFirstCandidateGroup;
 }

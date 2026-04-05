@@ -1,0 +1,24 @@
+# Staging — activate with spring.profiles.active=staging (e.g. Docker Compose staging stack).
+# Override secrets via environment variables only; do not commit real credentials.
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
+
+ac:
+  security:
+    cors:
+      allowed-origin-patterns: ${AC_CORS_ALLOWED_ORIGIN_PATTERNS:https://staging.ac.example.gov}
+    headers:
+      hsts-enabled: false
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+  endpoints:
+    web:
+      exposure:
+        include: health

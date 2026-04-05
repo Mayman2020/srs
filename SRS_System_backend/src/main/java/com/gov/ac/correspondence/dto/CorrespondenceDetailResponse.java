@@ -20,6 +20,7 @@ public class CorrespondenceDetailResponse {
   String subject;
   String description;
   String bodyHtml;
+  String replyDraftHtml;
   OrganizationSummaryDto senderOrganization;
   OrganizationSummaryDto recipientOrganization;
   DepartmentSummaryDto ownerDepartment;

@@ -7,7 +7,7 @@ import com.gov.ac.correspondence.security.CorrespondenceViewAuthorization;
 import com.gov.ac.domain.correspondence.Correspondence;
 import com.gov.ac.domain.correspondence.CorrespondenceComment;
 import com.gov.ac.domain.user.AppUser;
-import com.gov.ac.notification.NotificationService;
+import com.gov.ac.modules.notification.NotificationService;
 import com.gov.ac.persistence.AppUserRepository;
 import com.gov.ac.persistence.CorrespondenceCommentRepository;
 import com.gov.ac.persistence.CorrespondenceRepository;

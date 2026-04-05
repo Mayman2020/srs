@@ -123,6 +123,8 @@ export interface CorrespondenceDetailResponse {
   subject: string;
   description: string | null;
   bodyHtml: string | null;
+  /** Unsaved reply/editor HTML from server */
+  replyDraftHtml: string | null;
   senderOrganization: OrganizationSummaryDto | null;
   recipientOrganization: OrganizationSummaryDto | null;
   ownerDepartment: DepartmentSummaryDto | null;
@@ -164,6 +166,10 @@ export interface CorrespondenceCreateRequest {
   barcodeValue?: string | null;
   primaryComment?: string | null;
   attachments?: CorrespondenceAttachmentFormDto[] | null;
+  /** First Camunda task assigned to this user (UUID). Mutually exclusive with workflowFirstCandidateGroup. */
+  workflowFirstAssigneeUserId?: string | null;
+  /** First Camunda task as candidate pool for this role code (e.g. STAFF). Mutually exclusive with workflowFirstAssigneeUserId. */
+  workflowFirstCandidateGroup?: string | null;
 }
 
 export interface CorrespondenceCreatedResponse {
@@ -260,8 +266,61 @@ export interface NotificationItemDto {
 
 export interface LoginResponseDto {
   accessToken: string;
+  /** Opaque refresh JTI issued by `/api/v1/auth/login` or `/auth/refresh` (null on switch-role). */
+  refreshToken?: string | null;
+  expiresInSeconds?: number;
   userId: string;
   username: string;
+  roles: string[];
+  currentRole: string;
+}
+
+export interface UserDetailDto {
+  id: string;
+  username: string;
+  fullNameAr: string;
+  fullNameEn: string;
+  email: string;
+  departmentCode: string | null;
+  departmentId: number | null;
+  active: boolean;
+  roleIds: number[];
+}
+
+export interface PermissionAdminDto {
+  id: number;
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  description: string | null;
+  sortOrder: number;
+  active: boolean;
+}
+
+export interface UiScreenDto {
+  id: number;
+  code: string;
+  routePath: string;
+  nameAr: string;
+  nameEn: string;
+  description: string | null;
+  sortOrder: number;
+  active: boolean;
+}
+
+export interface SystemIssueDto {
+  id: number;
+  source: string;
+  severity: string;
+  message: string;
+  detail: string | null;
+  pageUrl: string | null;
+  userId: string | null;
+  httpStatus: number | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedBy: string | null;
+  resolutionNote: string | null;
 }
 
 export interface AttachmentUploadResponseDto {

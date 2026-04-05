@@ -7,6 +7,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export interface NotificationItem {
   id: string;
@@ -22,7 +24,7 @@ export interface NotificationItem {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, MatSnackBarModule],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss',
 })
@@ -35,7 +37,8 @@ export class NotificationsComponent implements OnInit {
   constructor(
     private notificationApi: NotificationApiService,
     private router: Router,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -199,8 +202,26 @@ export class NotificationsComponent implements OnInit {
     return this.i18n.instant('notifications.agoDays', { d: days });
   }
 
-  deleteNotification(_id: string, event: Event): void {
+  deleteNotification(id: string, event: Event): void {
     event.stopPropagation();
-    /* No delete API — keep UI stable */
+    this.notificationApi.delete(id).subscribe({
+      next: () => {
+        this.notifications = this.notifications.filter((n) => n.id !== id);
+        this.unreadCount = this.notifications.filter((n) => !n.read).length;
+        this.applyFilter();
+        this.snackBar.open(
+          this.i18n.instant('notifications.deleteSuccess'),
+          this.i18n.instant('common.close'),
+          { duration: 3000 }
+        );
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.snackBar.open(
+          err.userMessage ?? this.i18n.instant('errors.generic'),
+          this.i18n.instant('common.close'),
+          { duration: 5000 }
+        );
+      },
+    });
   }
 }

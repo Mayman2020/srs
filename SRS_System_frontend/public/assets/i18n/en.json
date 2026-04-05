@@ -18,7 +18,8 @@
     "roleNA": "—",
     "empty": "No data",
     "toastOk": "Done",
-    "close": "Close"
+    "close": "Close",
+    "loading": "Loading…"
   },
   "errors": {
     "network": "Could not reach the server. Check that the API is running and your connection.",
@@ -47,6 +48,8 @@
     "pageTitle": "Reports & statistics",
     "exportPdf": "Export PDF",
     "exportExcel": "Export Excel",
+    "exportExcelSuccess": "Excel file downloaded.",
+    "exportExcelError": "Could not export Excel. Try again or contact support.",
     "kpiTitle": "Summary",
     "kpiTotal": "Total",
     "kpiDone": "Completed",
@@ -71,6 +74,8 @@
     "transactions": "Transactions",
     "users": "Users",
     "roles": "Roles & permissions",
+    "adminHub": "System administration",
+    "circularInbox": "Circulars",
     "reports": "Reports & statistics",
     "badge": {
       "kpis": "KPIs",
@@ -83,6 +88,16 @@
   "sidebar": {
     "demoUser": "Demo user",
     "demoRole": "Employee"
+  },
+  "circularInbox": {
+    "title": "Circulars",
+    "subtitle": "Official circulars for your account",
+    "refresh": "Refresh",
+    "markRead": "Mark as read",
+    "empty": "No circulars in your inbox.",
+    "loadError": "Could not load circulars.",
+    "noUserId": "Sign in again to view circulars.",
+    "broadcast": "Broadcast"
   },
   "transactions": {
     "createButton": "Create transaction",
@@ -221,6 +236,7 @@
     "deleteTitle": "Delete",
     "viewTxTitle": "View transaction",
     "deleteConfirm": "Delete this notification?",
+    "deleteSuccess": "Notification removed.",
     "defaultTitle": "Notification",
     "type": {
       "new-transaction": "New transaction",
@@ -249,14 +265,6 @@
     "disabled": "Disabled",
     "close": "Close"
   },
-  "reports": {
-    "title": "Reports & statistics",
-    "exportPdf": "Export PDF",
-    "exportExcel": "Export Excel",
-    "movementTitle": "Transaction movement",
-    "statusDone": "Completed",
-    "statusLate": "Overdue"
-  },
   "createTx": {
     "pageTitle": "Create transaction",
     "wizard": {
@@ -274,6 +282,13 @@
     "ccPlaceholder": "Click to select organizations",
     "maxDays": "Response time (days)",
     "maxDaysPlaceholder": "Number of days",
+    "workflow": {
+      "firstAssigneeUserId": "Workflow: assign first task to user (optional)",
+      "firstAssigneeUserIdPh": "User UUID — leave empty to use initiator or role pool below",
+      "firstCandidateGroup": "Workflow: first task for role pool (optional)",
+      "firstCandidateGroupPh": "Role code from directory, e.g. STAFF",
+      "hintExclusive": "Use only one of user UUID or role code, not both."
+    },
     "attachmentsTitle": "Attachments",
     "attachmentsHint": "Drag files here or click to browse",
     "attachmentsAllowed": "Allowed: PDF, Word, Excel, images",
@@ -417,6 +432,7 @@
     "actionSendMail": "Send email",
     "actionCancel": "Cancel",
     "actionPrintBarcode": "Print barcode",
+    "actionRejectWorkflow": "Reject",
     "quickSummary": "Quick summary",
     "quickSummarySubtitle": "Overview of transaction status",
     "qiStatus": "Status",
@@ -431,8 +447,35 @@
     "legacyTimelineTitle": "Transaction timeline",
     "wfApprove": "Approve",
     "wfReturn": "Return",
+    "wfRefer": "Refer",
     "wfReject": "Reject",
-    "visualCurrentHandler": "Current handler"
+    "visualCurrentHandler": "Current handler",
+    "workflowDelegate": "Delegate task",
+    "workflowDelegatePrompt": "Enter the user ID (UUID) to delegate your current task to:",
+    "workflowDelegateSuccess": "Task delegated.",
+    "dialogReturnTitle": "Return transaction",
+    "dialogReferralTitle": "Referral — reason or notes",
+    "dialogRejectTitle": "Reject transaction",
+    "sendMailTitle": "Send email",
+    "sendMailTo": "Recipient email",
+    "sendMailSubject": "Subject",
+    "sendMailBody": "Message",
+    "sendMailSubmit": "Send",
+    "sendMailSuccess": "Email dispatch request sent.",
+    "sendMailError": "Could not send email.",
+    "sendMailBodyDefault": "Correspondence {{ref}}\nPage: {{url}}",
+    "cancelDialogTitle": "Cancel correspondence?",
+    "cancelDialogMessage": "This will cancel the correspondence on the server, stop the workflow, and return you to the transactions list. This action is recorded in the audit log.",
+    "cancelConfirm": "Cancel correspondence",
+    "cancelSuccess": "Correspondence cancelled.",
+    "saveDraftSuccess": "Draft saved.",
+    "sendReplySuccess": "Reply sent and recorded.",
+    "sendReplyEmpty": "Enter reply content before sending.",
+    "addAttachmentSuccess": "Attachment added.",
+    "deleteAttachmentTitle": "Delete attachment?",
+    "deleteAttachmentConfirm": "This file will be removed from the correspondence.",
+    "deleteAttachmentConfirmBtn": "Delete",
+    "deleteAttachmentSuccess": "Attachment removed."
   },
   "login": {
     "title": "Sign in",
@@ -479,7 +522,8 @@
     "loginErrorTitle": "Sign-in failed",
     "validationRequired": "Please enter username and password.",
     "forgotPasswordMessage": "Please contact IT support to reset your password.",
-    "forgotPasswordTitle": "Password recovery"
+    "forgotPasswordTitle": "Password recovery",
+    "mfaRequired": "This account uses MFA. Request an OTP (email/SMS) from your administrator flow, then sign in via the MFA verification step."
   },
   "topbar": {
     "markAllRead": "Mark all as read",
@@ -487,7 +531,21 @@
     "notificationsIconTitle": "Notifications",
     "unreadCount": "{{n}} unread",
     "demoUserName": "User",
-    "viewAllNotifications": "View all notifications"
+    "viewAllNotifications": "View all notifications",
+    "roleMenuAria": "Switch active role",
+    "roleSwitchErrorTitle": "Role switch failed",
+    "roleSwitchError": "The active role could not be changed. Check permissions or try again."
+  },
+  "roles": {
+    "codes": {
+      "SYS_ADMIN": "System administrator",
+      "CORRESP_MGR": "Correspondence manager",
+      "CORRESP_CLERK": "Correspondence clerk",
+      "DEPT_MANAGER": "Department manager",
+      "STAFF": "Staff",
+      "APPROVER": "Approver",
+      "AUDITOR": "Auditor"
+    }
   },
   "departmentTree": {
     "title": "Select organizations",
@@ -497,5 +555,71 @@
   },
   "genericSelect": {
     "placeholder": "Choose…"
+  },
+  "admin": {
+    "pageTitle": "System administration",
+    "pageSubtitle": "Users, permissions, screens, role matrix, and captured system issues",
+    "tabUsers": "Users",
+    "tabPermissions": "Permissions",
+    "tabScreens": "Screens",
+    "tabRolesMatrix": "Roles & mapping",
+    "tabIssues": "System issues",
+    "usersTitle": "Users",
+    "permsTitle": "Permission definitions",
+    "screensTitle": "UI screen registry",
+    "rolesCardsTitle": "Roles",
+    "matrixTitle": "Map permissions to role",
+    "saveMatrix": "Save mapping",
+    "pickRole": "Pick a role from the cards above",
+    "matrixSaved": "Role permissions saved.",
+    "issuesTitle": "System issues (client / API errors)",
+    "refresh": "Refresh",
+    "resolve": "Resolve",
+    "resolveIssue": "Resolve issue",
+    "resolveNotePh": "Optional resolution note",
+    "issueResolved": "Issue marked resolved.",
+    "add": "Add",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "assignRole": "Assign role",
+    "colName": "Name",
+    "colUsername": "Username",
+    "colEmail": "Email",
+    "colDept": "Department",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "colCode": "Code",
+    "colNameAr": "Name (AR)",
+    "colNameEn": "Name (EN)",
+    "colSort": "Sort",
+    "colActive": "Active",
+    "colRoute": "Route",
+    "colWhen": "When",
+    "colSeverity": "Severity",
+    "colMessage": "Message",
+    "colUrl": "URL",
+    "colHttp": "HTTP",
+    "colResolved": "Resolved?",
+    "description": "Description",
+    "password": "Password",
+    "passwordOptional": "Leave blank to keep current",
+    "userAdd": "New user",
+    "userEdit": "Edit user",
+    "userView": "User details",
+    "permAdd": "New permission",
+    "permEdit": "Edit permission",
+    "screenAdd": "New screen",
+    "screenEdit": "Edit screen",
+    "validationUser": "Complete required fields (username, password, department).",
+    "saveFailed": "Could not save changes.",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "userCreated": "User created.",
+    "userUpdated": "User updated.",
+    "userDeleted": "User deleted.",
+    "roleAssigned": "Role assigned.",
+    "confirmDelete": "Confirm delete?",
+    "confirmDeleteUser": "Delete this user?"
   }
 }

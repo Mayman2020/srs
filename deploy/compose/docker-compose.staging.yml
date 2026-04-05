@@ -1,0 +1,7 @@
+# Overlay: staging Spring profile and conservative defaults (see ../env/staging.env.example).
+
+services:
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      AC_SECURITY_HSTS_ENABLED: "false"
