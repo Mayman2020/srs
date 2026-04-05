@@ -1,11 +1,15 @@
 # =============================================================================
 # LOCAL development profile — safe defaults for run-backend.* / IDE / mvn spring-boot:run
 # Do not use in production. Production remains strict via application-prod.yml + env vars.
+#
+# DB password: same env chain as hesabaty-backend (DB_PASSWORD default admin). SRS-specific override: AC_LOCAL_DB_PASSWORD.
+#   Set AC_LOCAL_DB_PASSWORD in run-backend.secrets.ps1, or DB_PASSWORD to share one value across projects.
+# Note: SPRING_DATASOURCE_PASSWORD in the OS often overrides YAML and breaks local dev — run-backend.ps1 clears it for profile local.
 # =============================================================================
 
 spring:
   datasource:
-    password: postgres
+    password: ${AC_LOCAL_DB_PASSWORD:${DB_PASSWORD:admin}}
 
 camunda.bpm:
   admin-user:

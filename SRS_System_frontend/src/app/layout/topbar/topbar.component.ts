@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -153,8 +154,11 @@ export class TopbarComponent implements OnInit {
         const rows = page.content ?? [];
         this.notifications = rows.map((r) => this.mapPreview(r));
       },
-      error: () => {
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Topbar] notification preview load failed', err);
         this.notifications = [];
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 5000 });
       }
     });
   }
@@ -227,6 +231,14 @@ export class TopbarComponent implements OnInit {
     this.notificationApi.markRead(n.id).subscribe({
       next: () => {
         n.read = true;
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Topbar] markRead failed', err);
+        this.snackBar.open(
+          err.userMessage ?? this.i18n.instant('errors.generic'),
+          this.i18n.instant('common.close'),
+          { duration: 5000 }
+        );
       }
     });
   }
@@ -241,6 +253,7 @@ export class TopbarComponent implements OnInit {
         this.notifications.splice(index, 1);
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Topbar] delete notification failed', err);
         this.snackBar.open(
           err.userMessage ?? this.i18n.instant('errors.generic'),
           this.i18n.instant('common.close'),
@@ -268,17 +281,29 @@ export class TopbarComponent implements OnInit {
     }
   }
 
+  /**
+   * No bulk `mark-all-read` API on backend yet — one PATCH per notification.
+   * Batched via {@link forkJoin} for a single error/success surface.
+   */
   markAllRead() {
     const unread = this.notifications.filter((n) => !n.read);
     if (!unread.length) {
       return;
     }
-    for (const n of unread) {
-      this.notificationApi.markRead(n.id).subscribe({
-        next: () => {
+    forkJoin(unread.map((n) => this.notificationApi.markRead(n.id))).subscribe({
+      next: () => {
+        for (const n of unread) {
           n.read = true;
         }
-      });
-    }
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Topbar] markAllRead failed', err);
+        this.snackBar.open(
+          err.userMessage ?? this.i18n.instant('errors.generic'),
+          this.i18n.instant('common.close'),
+          { duration: 5000 }
+        );
+      }
+    });
   }
 }

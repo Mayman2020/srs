@@ -1,6 +1,6 @@
 /**
  * One-off: align admin password with V10 seed and ensure clerk exists for notification E2E.
- * Uses same defaults as application-local.yml (postgres/admin on ac_communications).
+ * Uses same defaults as application-local.yml (user postgres, password admin on ac_communications).
  */
 import pg from 'pg';
 

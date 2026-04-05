@@ -5,8 +5,7 @@ import { NotificationApiService } from '../../core/api/notification-api.service'
 import { NotificationItemDto } from '../../core/api/api-types';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -53,10 +52,13 @@ export class NotificationsComponent implements OnInit {
         this.unreadCount = this.notifications.filter((n) => !n.read).length;
         this.applyFilter();
       },
-      error: () => {
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Notifications] list load failed', err);
         this.notifications = [];
         this.unreadCount = 0;
         this.applyFilter();
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
       },
     });
   }
@@ -134,8 +136,10 @@ export class NotificationsComponent implements OnInit {
         this.unreadCount = Math.max(0, this.unreadCount - 1);
         this.applyFilter();
       },
-      error: () => {
-        /* keep UI unchanged; interceptor may surface message */
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Notifications] markRead failed', err);
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 5000 });
       },
     });
   }
@@ -145,13 +149,18 @@ export class NotificationsComponent implements OnInit {
     if (!unread.length) {
       return;
     }
-    forkJoin(unread.map((n) => this.notificationApi.markRead(n.id).pipe(catchError(() => of(void 0))))).subscribe({
+    forkJoin(unread.map((n) => this.notificationApi.markRead(n.id))).subscribe({
       next: () => {
         this.notifications.forEach((n) => {
           n.read = true;
         });
         this.unreadCount = 0;
         this.applyFilter();
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[Notifications] markAllAsRead failed', err);
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
       },
     });
   }

@@ -17,26 +17,33 @@
     Skip Maven build; only run the application.
 
 .PARAMETER Port
-    Server port. Default 8080. If Oracle TNSLSNR uses 8080 on your machine, use -Port 8081 and point proxy.conf.json to the same port.
+    Preferred server port. Default 8080. If something non-Java (e.g. Oracle TNSLSNR) holds this port, the script auto-picks the next free port unless -NoAutoPort is set.
+
+.PARAMETER NoAutoPort
+    If the preferred port is blocked by a non-Java process, exit with an error instead of searching for a free port.
+
+.PARAMETER NoProxyUpdate
+    When the script auto-selects a different port, it normally updates SRS_System_frontend\proxy.conf.json. Use this switch to skip that file change.
 
 .EXAMPLE
     .\run-backend.ps1
     .\run-backend.ps1 -SkipBuild
     .\run-backend.ps1 -Port 8081
+    .\run-backend.ps1 -NoAutoPort
 #>
 
 [CmdletBinding()]
 param(
     [string]$Profile = "local",
     [switch]$SkipBuild,
-    [int]$Port = 8080
+    [int]$Port = 8080,
+    [switch]$NoAutoPort,
+    [switch]$NoProxyUpdate
 )
 
 $ErrorActionPreference = 'Stop'
-$DefaultPort = $Port
 $ExpectedProcess = "java"
 $ApiPrefix = "/api/v1"
-$BaseUrl = "http://localhost:$DefaultPort$ApiPrefix"
 
 # Script root = backend module (this folder)
 $ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
@@ -71,14 +78,20 @@ if ($Profile -eq 'local' -and -not (Test-Path $LocalYml)) {
 $useLocalYml = ($Profile -eq "local") -and (Test-Path $LocalYml)
 
 # Optional overrides (gitignored): run-backend.secrets.ps1
+# Profile local: always load when present so AC_* applies even if Windows defines SPRING_DATASOURCE_PASSWORD (cleared below).
+if ($Profile -eq 'local' -and (Test-Path $SecretsFile)) {
+    Write-Info "Loading local secrets: $SecretsFile"
+    . $SecretsFile
+}
+
 $jwtWeak = $false
 if ($env:AC_JWT_SECRET -and $env:AC_JWT_SECRET.Trim().Length -lt 32) { $jwtWeak = $true }
-$dbPassUnset = [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD)
-if ((Test-Path $SecretsFile) -and ($jwtWeak -or $dbPassUnset)) {
+$dbPassUnset = [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD) -and [string]::IsNullOrWhiteSpace($env:AC_LOCAL_DB_PASSWORD) -and [string]::IsNullOrWhiteSpace($env:DB_PASSWORD)
+if ($Profile -ne 'local' -and (Test-Path $SecretsFile) -and ($jwtWeak -or $dbPassUnset)) {
     Write-Info "Loading local secrets: $SecretsFile"
     . $SecretsFile
     $jwtWeak = ($env:AC_JWT_SECRET -and $env:AC_JWT_SECRET.Trim().Length -lt 32)
-    $dbPassUnset = [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD)
+    $dbPassUnset = [string]::IsNullOrWhiteSpace($env:SPRING_DATASOURCE_PASSWORD) -and [string]::IsNullOrWhiteSpace($env:AC_LOCAL_DB_PASSWORD) -and [string]::IsNullOrWhiteSpace($env:DB_PASSWORD)
 }
 if ($jwtWeak) {
     Write-Warn "AC_JWT_SECRET is set but shorter than 32 bytes. Spring Boot will fail JWT setup."
@@ -90,7 +103,7 @@ if ($dbPassUnset -and (-not $useLocalYml)) {
     exit 1
 }
 
-Write-Step "LOCAL mode: SPRING_PROFILES_ACTIVE=$Profile | API http://localhost:$Port$ApiPrefix" "Cyan"
+Write-Step "LOCAL mode: SPRING_PROFILES_ACTIVE=$Profile | API (preferred) http://localhost:$Port$ApiPrefix" "Cyan"
 
 # Port and process (restart behavior)
 function Get-ProcessOnPort {
@@ -116,6 +129,53 @@ function Get-ProcessOnPort {
     return $null
 }
 
+function Test-PortInUse {
+    param([int]$PortListen)
+    return $null -ne (Get-ProcessOnPort -PortListen $PortListen)
+}
+
+# Next free TCP listen port in [start, start + maxAttempts).
+function Find-NextFreePort {
+    param(
+        [int]$StartPort,
+        [int]$MaxAttempts = 40
+    )
+    for ($i = 0; $i -lt $MaxAttempts; $i++) {
+        $p = $StartPort + $i
+        if (-not (Test-PortInUse -PortListen $p)) {
+            return $p
+        }
+    }
+    return $null
+}
+
+function Update-FrontendProxyTarget {
+    param(
+        [int]$ListenPort,
+        [string]$ProxyFile
+    )
+    if (-not (Test-Path $ProxyFile)) {
+        Write-Warn "Frontend proxy file not found: $ProxyFile (skipping update)."
+        return
+    }
+    try {
+        $raw = Get-Content -Path $ProxyFile -Raw -Encoding UTF8
+        $rx = '("target"\s*:\s*)"http://localhost:\d+"'
+        $replacement = '$1"http://localhost:{0}"' -f $ListenPort
+        $updated = $raw -replace $rx, $replacement
+        if ($updated -eq $raw) {
+            Write-Warn "Could not find proxy target pattern in $ProxyFile - set target to http://localhost:$ListenPort manually."
+            return
+        }
+        # UTF-8 without BOM — Angular's proxy JSON parser rejects EF BB BF at position 0.
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($ProxyFile, $updated.TrimEnd() + "`n", $utf8NoBom)
+        Write-Success "Updated frontend proxy: $ProxyFile -> http://localhost:$ListenPort"
+    } catch {
+        Write-Warn "Failed to update proxy file: $_"
+    }
+}
+
 function Stop-ProcessOnPort {
     param([int]$PortListen, [string]$ExpectedName)
     $found = Get-ProcessOnPort -PortListen $PortListen
@@ -130,7 +190,7 @@ function Stop-ProcessOnPort {
     if (-not $match) {
         Write-Warn "Port $PortListen is in use by $procName (PID $pidVal), not $ExpectedName. Skipping kill for safety."
         if ($procName -match 'TNSLSNR|oracle') {
-            Write-Info "  (Oracle listener often uses 8080. Use .\run-backend.ps1 -Port 8081 and set SRS_System_frontend\proxy.conf.json target to http://localhost:8081.)"
+            Write-Info '  (Oracle listener often uses 8080 - script will try the next free port unless -NoAutoPort.)'
         }
         return $false
     }
@@ -216,12 +276,42 @@ if ($psqlCmd) {
     Write-Info "psql not on PATH - Spring Boot will auto-create database if missing."
 }
 
-# Restart: stop old backend on port
-Write-Step "Checking port $DefaultPort..." "Cyan"
-if (-not (Stop-ProcessOnPort -PortListen $DefaultPort -ExpectedName $ExpectedProcess)) {
-    Write-Err "Pick a free port, e.g. .\run-backend.ps1 -Port 8081. If you change the port, set SRS_System_frontend\proxy.conf.json `"target`" to the same URL."
-    exit 1
+if ($Profile -eq 'local') {
+    # OS-wide SPRING_DATASOURCE_PASSWORD overrides YAML and often breaks local (wrong/empty).
+    if (Test-Path Env:SPRING_DATASOURCE_PASSWORD) {
+        Remove-Item Env:\SPRING_DATASOURCE_PASSWORD -ErrorAction SilentlyContinue
+        Write-Info "Local profile: cleared SPRING_DATASOURCE_PASSWORD (use AC_LOCAL_DB_PASSWORD or DB_PASSWORD in run-backend.secrets.ps1 if auth fails)."
+    }
 }
+
+# Restart: stop old Java on preferred port, or auto-pick next free port if non-Java holds it
+$chosenPort = $Port
+$ProxyJson = Join-Path $ProjectRoot "..\SRS_System_frontend\proxy.conf.json"
+
+Write-Step "Checking port $chosenPort..." "Cyan"
+if (-not (Stop-ProcessOnPort -PortListen $chosenPort -ExpectedName $ExpectedProcess)) {
+    if ($NoAutoPort) {
+        Write-Err "Port $chosenPort is not available. Use .\run-backend.ps1 -Port 8081 (or another free port), or omit -NoAutoPort to auto-pick."
+        Write-Info "  If you change the port manually, set SRS_System_frontend\proxy.conf.json `"target`" to the same URL."
+        exit 1
+    }
+    Write-Warn "Port $chosenPort blocked by a non-Java process - searching for a free port..."
+    $next = Find-NextFreePort -StartPort ($chosenPort + 1)
+    if (-not $next) {
+        Write-Err "No free port found in range starting at $($chosenPort + 1). Free a port or pass -Port explicitly."
+        exit 1
+    }
+    $chosenPort = $next
+    Write-Success "Using SERVER_PORT=$chosenPort (API http://localhost:$chosenPort$ApiPrefix)"
+    if (-not $NoProxyUpdate) {
+        Update-FrontendProxyTarget -ListenPort $chosenPort -ProxyFile $ProxyJson
+    } else {
+        Write-Warn "Skipped proxy update (-NoProxyUpdate). Set frontend proxy target to http://localhost:$chosenPort"
+    }
+}
+
+$DefaultPort = $chosenPort
+$BaseUrl = "http://localhost:$DefaultPort$ApiPrefix"
 
 # SERVER_PORT for this run
 $env:SERVER_PORT = "$DefaultPort"
@@ -251,8 +341,36 @@ Write-Host ""
 
 $runArgs = @("spring-boot:run", "-Dspring-boot.run.profiles=$Profile")
 
-& $MvnwPath @runArgs
-$exitCode = $LASTEXITCODE
+$prevSpringAppJson = $null
+if ($Profile -eq 'local') {
+    # Force datasource password via JSON (high precedence) so Windows env / IDE pollution cannot break startup.
+    $localPw = $env:AC_LOCAL_DB_PASSWORD
+    if ([string]::IsNullOrWhiteSpace($localPw)) { $localPw = $env:DB_PASSWORD }
+    if ([string]::IsNullOrWhiteSpace($localPw)) {
+        $localPw = 'admin'
+    } else {
+        $localPw = $localPw.Trim()
+    }
+    $esc = $localPw -replace '\\', '\\' -replace '"', '\"'
+    if (Test-Path Env:SPRING_APPLICATION_JSON) {
+        $prevSpringAppJson = $env:SPRING_APPLICATION_JSON
+    }
+    $env:SPRING_APPLICATION_JSON = "{`"spring`":{`"datasource`":{`"password`":`"$esc`"}}}"
+    Write-Info "Local DB password applied via SPRING_APPLICATION_JSON (length $($localPw.Length); set AC_LOCAL_DB_PASSWORD or DB_PASSWORD if auth fails)."
+}
+
+$exitCode = 1
+try {
+    & $MvnwPath @runArgs
+    $exitCode = $LASTEXITCODE
+} finally {
+    if ($Profile -eq 'local') {
+        Remove-Item Env:\SPRING_APPLICATION_JSON -ErrorAction SilentlyContinue
+        if ($null -ne $prevSpringAppJson) {
+            $env:SPRING_APPLICATION_JSON = $prevSpringAppJson
+        }
+    }
+}
 
 Write-Host ""
 if ($exitCode -eq 0) {
@@ -260,5 +378,8 @@ if ($exitCode -eq 0) {
 } else {
     Write-Err "Backend exited with failure (exit code $exitCode)."
     Write-Info "Common causes: DB password missing (SCRAM), wrong password, AC_JWT_SECRET unset, port in use, or invalid BPMN/Camunda config."
+    if ($Profile -eq 'local') {
+        Write-Info "  Local: set AC_LOCAL_DB_PASSWORD or DB_PASSWORD in run-backend.secrets.ps1 to match PostgreSQL user (hesabaty default is admin)."
+    }
 }
 exit $exitCode

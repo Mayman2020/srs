@@ -3,19 +3,32 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { AuthApiService } from '../../../core/api/auth-api.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
+import { MfaOtpDialogComponent } from '../../../shared/dialogs/mfa-otp-dialog.component';
 
 declare var particlesJS: unknown;
+
+function isMfaRequired(err: HttpErrorResponse): boolean {
+  if (err.status !== 403) {
+    return false;
+  }
+  const body = err.error;
+  if (body === 'MFA_REQUIRED') {
+    return true;
+  }
+  return typeof body === 'string' && body.trim() === 'MFA_REQUIRED';
+}
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe]
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, MatDialogModule]
 })
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   form!: FormGroup;
@@ -33,6 +46,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private authApi: AuthApiService,
     private i18n: I18nService,
+    private dialog: MatDialog,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
@@ -99,21 +113,52 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authApi.login({ username, password }).subscribe({
       next: () => {
         this.submitting = false;
-        this.showToast(
-          this.i18n.instant('auth.loginSuccessTitle'),
-          this.i18n.instant('auth.loginSuccessMessage')
-        );
-        setTimeout(() => this.router.navigate(['/dashboard']), 600);
+        this.onLoginSuccess();
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         this.submitting = false;
-        let msg = err.userMessage ?? this.i18n.instant('errors.generic');
-        if (err.status === 403 && err.error === 'MFA_REQUIRED') {
-          msg = this.i18n.instant('auth.mfaRequired');
+        if (isMfaRequired(err)) {
+          const u = String(username ?? '').trim();
+          const p = String(password ?? '');
+          if (!u) {
+            this.showToast(
+              this.i18n.instant('auth.loginErrorTitle'),
+              this.i18n.instant('auth.validationRequired')
+            );
+            return;
+          }
+          this.openMfaDialog(u, p);
+          return;
         }
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
         this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg);
       }
     });
+  }
+
+  /** Material dialog: OTP entry, resend, verify (tokens applied inside {@link AuthApiService#mfaVerify}). */
+  private openMfaDialog(username: string, password: string): void {
+    this.dialog
+      .open(MfaOtpDialogComponent, {
+        width: 'min(440px, 94vw)',
+        disableClose: false,
+        autoFocus: 'first-tabbable',
+        data: { username, password }
+      })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (ok) {
+          this.onLoginSuccess();
+        }
+      });
+  }
+
+  private onLoginSuccess(): void {
+    this.showToast(
+      this.i18n.instant('auth.loginSuccessTitle'),
+      this.i18n.instant('auth.loginSuccessMessage')
+    );
+    setTimeout(() => this.router.navigate(['/dashboard']), 600);
   }
 
   forgotPassword(): void {

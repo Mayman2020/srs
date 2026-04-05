@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 // ══════════════════════════════════════════════════════════════════
 //  transaction-details.component.scss
 //  Complete stylesheet — covers EVERY class used in the HTML template
@@ -307,7 +309,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
   transition:all .15s ease;
 
   &:hover{
-    border-color:lighten($primary,25%);
+    border-color: color.adjust($primary, $lightness: 25%);
     background:#fafafa;
   }
 
@@ -511,7 +513,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
     color       : $primary;
     border-color: $border;
 
-    &:hover { background: $primary-soft; border-color: lighten($primary, 20%); }
+    &:hover { background: $primary-soft; border-color: color.adjust($primary, $lightness: 20%); }
   }
 
   &.warning {
@@ -786,7 +788,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
   background   : $body-bg;
   transition   : border-color .2s, box-shadow .2s;
 
-  &:hover { border-color: lighten($primary, 20%); box-shadow: $shadow-sm; }
+  &:hover { border-color: color.adjust($primary, $lightness: 20%); box-shadow: $shadow-sm; }
 }
 
 .att-icon {
@@ -847,7 +849,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
   font-size      : .8rem;
   transition     : all .18s;
 
-  &:hover { background: $primary-soft; color: $primary; border-color: lighten($primary, 20%); }
+  &:hover { background: $primary-soft; color: $primary; border-color: color.adjust($primary, $lightness: 20%); }
   &.danger:hover { background: #fee2e2; color: $danger; border-color: #fca5a5; }
 }
 
@@ -1231,7 +1233,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
 
     background: $primary-soft;
 
-    border-color: lighten($primary, 15%);
+    border-color: color.adjust($primary, $lightness: 15%);
 
     transform: translateY(-1px);
 

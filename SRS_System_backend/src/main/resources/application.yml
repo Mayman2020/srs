@@ -11,7 +11,8 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ac_communications}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    # Password: profile `local` sets it in application-local.yml. Other profiles / Docker: set SPRING_DATASOURCE_PASSWORD.
+    # Do not use ${SPRING_DATASOURCE_PASSWORD:} here — an empty env var would override the local profile and break auth.
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

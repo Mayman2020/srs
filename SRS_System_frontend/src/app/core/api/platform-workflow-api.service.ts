@@ -2,7 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
-import { WorkflowHistoryEntryDto } from './api-types';
 
 /** Monolith workflow helpers (Camunda tasks tied to correspondence). */
 export interface CorrespondenceWorkflowDelegateRequest {
@@ -22,12 +21,5 @@ export class PlatformWorkflowApiService {
     body: CorrespondenceWorkflowDelegateRequest
   ): Observable<void> {
     return this.http.post<void>(`${this.base}/correspondence/${correspondenceId}/workflow-delegate`, body);
-  }
-
-  /** Server timeline (same as transaction details workflow tab). */
-  workflowTimeline(correspondenceId: string): Observable<WorkflowHistoryEntryDto[]> {
-    return this.http.get<WorkflowHistoryEntryDto[]>(
-      `${this.base}/correspondence/${correspondenceId}/workflow-history`
-    );
   }
 }

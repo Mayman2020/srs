@@ -46,7 +46,12 @@ export const appConfig: ApplicationConfig = {
       return (async () => {
         try {
           await firstValueFrom(
-            i18n.loadLang(readStoredLang()).pipe(catchError(() => of(undefined)))
+            i18n.loadLang(readStoredLang()).pipe(
+              catchError((err: unknown) => {
+                console.warn('[AppInit] i18n load failed', err);
+                return of(undefined);
+              })
+            )
           );
         } catch {
           /* ignore */
@@ -62,7 +67,14 @@ export const appConfig: ApplicationConfig = {
         }
 
         try {
-          await firstValueFrom(lookups.load().pipe(catchError(() => of(undefined))));
+          await firstValueFrom(
+            lookups.load().pipe(
+              catchError((err: unknown) => {
+                console.warn('[AppInit] lookup labels load failed', err);
+                return of(undefined);
+              })
+            )
+          );
         } catch {
           /* ignore */
         }

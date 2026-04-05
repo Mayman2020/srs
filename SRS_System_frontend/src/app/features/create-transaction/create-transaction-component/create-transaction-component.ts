@@ -32,6 +32,7 @@ import {
 } from '../../../core/api/api-types';
 import { LetterTemplateApiService } from '../../../core/api/letter-template-api.service';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -108,7 +109,12 @@ export class CreateTransactionComponent implements OnInit {
 
     forkJoin({
       bundle: this.lookupService.getBundle(),
-      templates: this.letterTemplateApi.list().pipe(catchError(() => of([] as LetterTemplateDto[])))
+      templates: this.letterTemplateApi.list().pipe(
+        catchError((err: unknown) => {
+          console.error('[CreateTransaction] letter templates load failed', err);
+          return of([] as LetterTemplateDto[]);
+        })
+      ),
     }).subscribe({
       next: ({ bundle, templates }) => {
         this.transactionTypes = bundle.correspondenceTypes.map((t) => ({ key: t.code }));
@@ -117,13 +123,16 @@ export class CreateTransactionComponent implements OnInit {
         this.classificationLevels = (bundle.classifications ?? []).map((c) => ({ key: c.code }));
         this.applyLetterTemplatesFromApi(templates ?? []);
       },
-      error: () => {
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        console.error('[CreateTransaction] lookup bundle load failed', err);
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
         this.transactionTypes = [];
         this.secrecyLevels = [];
         this.priorityLevels = [];
         this.classificationLevels = [];
         this.applyLetterTemplatesFromApi([]);
-      }
+      },
     });
 
     this.departmentApi.list().subscribe({

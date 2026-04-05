@@ -9,6 +9,7 @@ import { TransactionService } from '../../services/transaction.service';
 import { PlatformWorkflowApiService } from '../../core/api/platform-workflow-api.service';
 import { AttachmentApiService } from '../../core/api/attachment-api.service';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
+import { AuthApiService } from '../../core/api/auth-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -179,6 +180,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private platformWorkflow: PlatformWorkflowApiService,
     private attachmentApi: AttachmentApiService,
     private tokens: AuthTokenService,
+    private authApi: AuthApiService,
     private i18n: I18nService,
     private snackBar: MatSnackBar
   ) {}
@@ -229,9 +231,12 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
 
     forkJoin({
       d: this.transactionService.getDetail(id),
-      h: this.transactionService
-        .getWorkflowHistory(id)
-        .pipe(catchError(() => of([] as WorkflowHistoryEntryDto[]))),
+      h: this.transactionService.getWorkflowHistory(id).pipe(
+        catchError((err: unknown) => {
+          console.error('[TransactionDetails] workflow history request failed', err);
+          return of([] as WorkflowHistoryEntryDto[]);
+        })
+      ),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -244,7 +249,9 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           const draft = (d.replyDraftHtml ?? '').trim();
           this.form.patchValue({ letterContent: draft });
         },
-        error: () => {
+        error: (err: HttpErrorResponse & { userMessage?: string }) => {
+          console.error('[TransactionDetails] load correspondence failed', err);
+          this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
           this.canAddNote = false;
           this.transaction = {
             id,
@@ -676,12 +683,21 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   private downloadWithAuth(attachmentId: number, filename: string, openInTab: boolean): void {
     const token = this.tokens.getToken();
     if (!token) {
+      this.toast(this.i18n.instant('transactionDetails.downloadNoSession'));
+      this.authApi.logout();
+      void this.router.navigate(['/login']);
       return;
     }
     fetch(this.attachmentApi.downloadUrl(attachmentId), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => {
+        if (r.status === 401 || r.status === 403) {
+          this.toast(this.i18n.instant('transactionDetails.downloadNoSession'));
+          this.authApi.logout();
+          void this.router.navigate(['/login']);
+          throw new Error('session invalid');
+        }
         if (!r.ok) {
           throw new Error('download failed');
         }
@@ -699,7 +715,11 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         }
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
       })
-      .catch(() => {
+      .catch((e: unknown) => {
+        if (e instanceof Error && e.message === 'session invalid') {
+          return;
+        }
+        console.error('[TransactionDetails] attachment download failed', e);
         this.toast(this.i18n.instant('errors.generic'));
       });
   }

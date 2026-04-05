@@ -15,6 +15,11 @@ import {
 import { LookupLabelsService } from '../core/lookup/lookup-labels.service';
 import { Transaction, TimelineStep } from '../models/transaction.model';
 
+/**
+ * Application facade for correspondence: maps API DTOs to UI {@link Transaction} models,
+ * resolves timeline labels via {@link LookupLabelsService}, and delegates mutations to
+ * {@link CorrespondenceApiService}. Prefer this service in features; keep HTTP types in `core/api`.
+ */
 @Injectable({
   providedIn: 'root'
 })

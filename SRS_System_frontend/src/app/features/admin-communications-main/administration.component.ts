@@ -241,14 +241,18 @@ export class AdministrationComponent implements OnInit {
   openViewUser(u: UserListDto): void {
     this.usersApi.getOne(u.id).subscribe({
       next: (d) => this.patchUserFormFromDetail(d, true),
-      error: () => {}
+      error: (e: HttpErrorResponse & { userMessage?: string }) => {
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
+      }
     });
   }
 
   openEditUser(u: UserListDto): void {
     this.usersApi.getOne(u.id).subscribe({
       next: (d) => this.patchUserFormFromDetail(d, false),
-      error: () => {}
+      error: (e: HttpErrorResponse & { userMessage?: string }) => {
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
+      }
     });
   }
 
