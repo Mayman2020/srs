@@ -43,7 +43,7 @@
   <div class="stat-card stat-info">
     <div class="stat-icon"><i class="fa-solid fa-paperclip"></i></div>
     <div class="stat-info">
-      <span class="stat-value">{{ transaction.attachments?.length || 0 }}</span>
+      <span class="stat-value">{{ transaction.attachments.length || 0 }}</span>
       <span class="stat-label">{{ 'transactions.table.attachments' | t }}</span>
     </div>
   </div>
@@ -51,7 +51,7 @@
   <div class="stat-card stat-purple">
     <div class="stat-icon"><i class="fa-solid fa-comment-dots"></i></div>
     <div class="stat-info">
-      <span class="stat-value">{{ transaction.notes?.length || 0 }}</span>
+      <span class="stat-value">{{ transaction.notes.length || 0 }}</span>
       <span class="stat-label">{{ 'transactionDetails.statComments' | t }}</span>
     </div>
   </div>
@@ -563,7 +563,7 @@
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-paperclip"></i></div>
           <h3>{{ 'transactionDetails.attachmentsHeading' | t }}</h3>
-          <span class="count-badge">{{ transaction.attachments?.length || 0 }}</span>
+          <span class="count-badge">{{ transaction.attachments.length || 0 }}</span>
         </div>
         <button class="btn secondary btn-sm" (click)="addAttachment()">
           <i class="fa-solid fa-plus"></i> {{ 'transactionDetails.addAttachment' | t }}
@@ -603,7 +603,7 @@
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="!transaction.attachments?.length">
+        <div class="empty-state" *ngIf="!transaction.attachments.length">
           <i class="fa-solid fa-paperclip empty-icon"></i>
           <p>{{ 'transactionDetails.noAttachments' | t }}</p>
         </div>
@@ -650,7 +650,7 @@
                  (keyup.enter)="submitNote()" />
           <button class="btn primary btn-sm"
                   (click)="submitNote()"
-                  [disabled]="!newNote?.trim()">
+                  [disabled]="!newNote.trim()">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
@@ -662,7 +662,7 @@
 
     <!-- ── RELATED ── -->
    <div *ngIf="activeTab==='related'"> 
-    <div class="card full-width" *ngIf="relatedTransactions?.length">
+    <div class="card full-width" *ngIf="relatedTransactions.length">
 
       <div class="card-header">
         <div class="card-header-title">

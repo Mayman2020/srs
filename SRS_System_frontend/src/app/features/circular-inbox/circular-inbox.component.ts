@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
@@ -9,6 +9,7 @@ import {
 } from '../../core/api/platform-circular-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 
 @Component({
   selector: 'app-circular-inbox',
@@ -27,7 +28,8 @@ export class CircularInboxComponent implements OnInit {
     private circularApi: PlatformCircularApiService,
     private auth: AuthTokenService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -39,20 +41,22 @@ export class CircularInboxComponent implements OnInit {
     if (!userId?.trim()) {
       this.errorText = this.i18n.instant('circularInbox.noUserId');
       this.rows = [];
+      this.cdr.detectChanges();
       return;
     }
-    this.loading = true;
     this.errorText = null;
-    this.circularApi.inbox(userId.trim()).subscribe({
+    subscribePageLoad({
+      cdr: this.cdr,
+      setLoading: (v) => (this.loading = v),
+      source: this.circularApi.inbox(userId.trim()),
       next: (list) => {
         this.rows = list ?? [];
-        this.loading = false;
       },
-      error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.loading = false;
+      error: (err: unknown) => {
         this.rows = [];
+        const httpErr = err as HttpErrorResponse & { userMessage?: string };
         this.errorText =
-          err.userMessage ?? this.i18n.instant('circularInbox.loadError');
+          httpErr.userMessage ?? this.i18n.instant('circularInbox.loadError');
       },
     });
   }

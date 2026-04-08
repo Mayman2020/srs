@@ -41,7 +41,8 @@ export class AuthApiService {
           username: r.username,
           userId: r.userId,
           roles: r.roles,
-          currentRole: r.currentRole
+          currentRole: r.currentRole,
+          profileImageUrl: r.profileImageUrl
         });
       })
     );
@@ -60,7 +61,8 @@ export class AuthApiService {
           username: r.username,
           userId: r.userId,
           roles: r.roles,
-          currentRole: r.currentRole
+          currentRole: r.currentRole,
+          profileImageUrl: r.profileImageUrl
         });
       })
     );
@@ -76,7 +78,8 @@ export class AuthApiService {
           username: r.username,
           userId: r.userId,
           roles: r.roles,
-          currentRole: r.currentRole
+          currentRole: r.currentRole,
+          profileImageUrl: r.profileImageUrl
         });
       })
     );
@@ -92,7 +95,8 @@ export class AuthApiService {
           username: r.username,
           userId: r.userId,
           roles: r.roles,
-          currentRole: r.currentRole
+          currentRole: r.currentRole,
+          profileImageUrl: r.profileImageUrl
         });
       })
     );

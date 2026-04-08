@@ -69,18 +69,12 @@ export const routes: Routes = [
       {
         path: 'users',
         loadComponent: () =>
-          import('./features/admin-communications-main/administration.component').then(
-            (m) => m.AdministrationComponent
-          ),
-        data: { defaultAdminTab: 'users' }
+          import('./features/users/users').then((m) => m.UsersComponent)
       },
       {
         path: 'roles',
         loadComponent: () =>
-          import('./features/admin-communications-main/administration.component').then(
-            (m) => m.AdministrationComponent
-          ),
-        data: { defaultAdminTab: 'roles' }
+          import('./features/roles/roles').then((m) => m.RolesComponent)
       },
 
 

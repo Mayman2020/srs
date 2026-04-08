@@ -1,23 +1,53 @@
-import { Component, ElementRef, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Injector,
+  OnInit,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { Chart } from 'chart.js/auto';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { MatIcon } from '@angular/material/icon';
 import { DashboardApiService } from '../../core/api/dashboard-api.service';
+import { LookupService } from '../../core/api/lookup.service';
 import { DashboardBucketDto, DashboardResponseDto } from '../../core/api/api-types';
 import { TransactionService } from '../../services/transaction.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
+import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
+import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
+import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
+import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
+import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
+
+export type DashboardRecentRow = {
+  id: string;
+  referenceNumber: string;
+  typeCode: string;
+  subject: string;
+  created: string;
+  statusCode: string;
+};
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatIcon, TranslatePipe, LookupTranslatePipe],
+  imports: [CommonModule, MatIcon, TranslatePipe, LookupTranslatePipe, SrsDataTableComponent, SrsSortHeaderComponent],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
+  animations: [srsTableRowEnter]
 })
 export class DashboardComponent implements OnInit {
   @ViewChild('statusDonut') statusDonut!: ElementRef<HTMLCanvasElement>;
@@ -25,16 +55,22 @@ export class DashboardComponent implements OnInit {
   @ViewChild('aiStatusDonut') aiStatusDonut!: ElementRef<HTMLCanvasElement>;
   @ViewChild('aiPriorityBar') aiPriorityBar!: ElementRef<HTMLCanvasElement>;
 
+  /** SLA ring animation — signal updates schedule CD without `detectChanges()`. */
+  readonly animatedSlaPercent = signal(0);
+
+  private readonly injector = inject(Injector);
+
   constructor(
     public router: Router,
-    private cdr: ChangeDetectorRef,
     private dashboardApi: DashboardApiService,
+    private lookupApi: LookupService,
+    private lookupLabels: LookupLabelsService,
     private transactionService: TransactionService,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   slaPercent = 0;
-  animatedSlaPercent = 0;
 
   total = 0;
   done = 0;
@@ -49,21 +85,28 @@ export class DashboardComponent implements OnInit {
 
   private dash: DashboardResponseDto | null = null;
 
-  transactions: {
-    id: string;
-    referenceNumber: string;
-    typeCode: string;
-    subject: string;
-    created: string;
-    statusCode: string;
-  }[] = [];
+  recentLoading = true;
+  recentAll: DashboardRecentRow[] = [];
+  recentRows: DashboardRecentRow[] = [];
+  recentTotal = 0;
+  recentPage = 1;
+  recentPageSize = SRS_TABLE_DEFAULT_PAGE_SIZE;
+  recentSortColumn = 'created';
+  recentSortDir: SortDirection = 'desc';
 
   ngOnInit(): void {
-    forkJoin({
-      dash: this.dashboardApi.getDashboard(),
-      recent: this.transactionService.listPage({ page: 0, size: 6 })
-    }).subscribe({
-      next: ({ dash, recent }) => {
+    subscribePageLoad({
+      cdr: this.cdr,
+      setLoading: (v) => (this.recentLoading = v),
+      source: forkJoin({
+        dash: this.dashboardApi.getDashboard(),
+        recent: this.transactionService.listPage({ page: 0, size: 50 }),
+        bundle: this.lookupApi.getBundle().pipe(catchError(() => of(null)))
+      }),
+      next: ({ dash, recent, bundle }) => {
+        if (bundle) {
+          this.lookupLabels.hydrateFromBundle(bundle);
+        }
         this.dash = dash;
         this.total = dash.totalCorrespondences;
         this.overdueCount = dash.overdueCount;
@@ -79,7 +122,7 @@ export class DashboardComponent implements OnInit {
         this.slaAction = this.inProgress;
         this.slaOnTime = Math.max(0, this.done - this.slaLate);
 
-        this.transactions = recent.map((t) => ({
+        this.recentAll = recent.map((t) => ({
           id: t.id,
           referenceNumber: t.referenceNumber ?? t.id,
           typeCode: t.typeCode,
@@ -87,15 +130,20 @@ export class DashboardComponent implements OnInit {
           created: t.created,
           statusCode: t.statusCode
         }));
-        this.cdr.detectChanges();
-        setTimeout(() => {
-          this.animateSla();
-          this.renderCharts();
-        }, 0);
+        this.rebuildRecentTable();
+        afterNextRender(
+          () => {
+            this.animateSla();
+            this.renderCharts();
+          },
+          { injector: this.injector }
+        );
       },
       error: () => {
         this.total = 0;
-        this.transactions = [];
+        this.recentAll = [];
+        this.recentRows = [];
+        this.recentTotal = 0;
         this.dash = null;
         this.overdueCount = 0;
         this.slaOnTime = 0;
@@ -119,8 +167,7 @@ export class DashboardComponent implements OnInit {
     let current = 0;
     const step = () => {
       if (current <= this.slaPercent) {
-        this.animatedSlaPercent = current;
-        this.cdr.detectChanges();
+        this.animatedSlaPercent.set(current);
         current++;
         requestAnimationFrame(step);
       }
@@ -273,5 +320,61 @@ export class DashboardComponent implements OnInit {
 
   openTransaction(id: string): void {
     this.router.navigate(['/transactions', id]);
+  }
+
+  onRecentSort(ev: { columnId: string; direction: SortDirection }): void {
+    this.recentSortColumn = ev.columnId;
+    this.recentSortDir = ev.direction;
+    this.recentPage = 1;
+    this.rebuildRecentTable();
+  }
+
+  onRecentPage(p: number): void {
+    this.recentPage = p;
+    this.rebuildRecentTable();
+  }
+
+  onRecentPageSize(n: number): void {
+    this.recentPageSize = n;
+    this.recentPage = 1;
+    this.rebuildRecentTable();
+  }
+
+  trackByRecentId(_i: number, row: DashboardRecentRow): string {
+    return row.id;
+  }
+
+  private rebuildRecentTable(): void {
+    const sorted = this.sortRecentRows([...this.recentAll]);
+    const r = srsClientPaginate(sorted, this.recentPage, this.recentPageSize);
+    this.recentPage = r.page;
+    this.recentTotal = r.total;
+    this.recentRows = r.pageRows;
+  }
+
+  private sortRecentRows(rows: DashboardRecentRow[]): DashboardRecentRow[] {
+    const col = this.recentSortColumn;
+    const dir = this.recentSortDir;
+    return rows.sort((a, b) => {
+      switch (col) {
+        case 'ref':
+          return compareSortValues(a.referenceNumber, b.referenceNumber, dir);
+        case 'type':
+          return compareSortValues(a.typeCode, b.typeCode, dir);
+        case 'subject':
+          return compareSortValues(a.subject, b.subject, dir);
+        case 'created': {
+          const ta = new Date(a.created).getTime();
+          const tb = new Date(b.created).getTime();
+          const na = Number.isNaN(ta) ? 0 : ta;
+          const nb = Number.isNaN(tb) ? 0 : tb;
+          return compareSortValues(na, nb, dir);
+        }
+        case 'status':
+          return compareSortValues(a.statusCode, b.statusCode, dir);
+        default:
+          return 0;
+      }
+    });
   }
 }

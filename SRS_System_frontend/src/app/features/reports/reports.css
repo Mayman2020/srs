@@ -53,6 +53,38 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.04);
 }
 
+.reports-filter-form {
+  display: contents;
+}
+
+.reports-kpi-hint {
+  font-size: 0.8rem;
+  color: #b45309;
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.reports-result-card {
+  margin-top: 20px;
+}
+
+.reports-result-head h3 {
+  margin: 0 0 6px;
+  color: #0f6b4d;
+}
+
+.reports-result-head small {
+  display: block;
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.srs-dt-empty-cell {
+  padding: 0 !important;
+  vertical-align: middle;
+}
+
 .top-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,11 +1,11 @@
-<aside class="sidebar" [class.collapsed]="collapsed">
+<aside class="sidebar" [class.collapsed]="collapsed()">
 
   <!-- HEADER -->
   <div class="brand">
 
     <button class="collapse-btn" (click)="toggleSidebar()">
       <i class="fa-solid"
-              [ngClass]="collapsed ? 'fa-bars' : 'fa-layer-group'">
+              [ngClass]="collapsed() ? 'fa-bars' : 'fa-layer-group'">
       </i>
     </button>
 
@@ -20,17 +20,33 @@
 
     <button
       class="item"
-      *ngFor="let item of NAV_ITEMS"
+      *ngFor="let item of NAV_ITEMS; trackBy: trackByNavKey"
       [class.active]="isActive(item)"
       (click)="router.navigate([item.route])">
 
       <span class="icon" [innerHTML]="item.icon"></span>
-      <span class="label" *ngIf="!collapsed">
+      <span class="label" *ngIf="!collapsed()">
         {{ item.labelKey | t }}
       </span>
 
     </button>
 
   </nav>
+
+  <div class="sidebar-user" [class.collapsed-only]="collapsed()">
+    <app-erp-user-avatar
+      [primarySrc]="profile().avatarPrimarySrc"
+      [initials]="profile().initials"
+      size="sm"
+      hostClass="sidebar-user__avatar"
+    />
+    <div class="sidebar-user__meta" *ngIf="!collapsed()">
+      <span class="sidebar-user__name">{{ profile().displayName }}</span>
+      <span class="sidebar-user__role-label">{{ 'profile.sidebarSignedIn' | t }}</span>
+      <span class="sidebar-user__role" *ngIf="profile().currentRole">
+        {{ roleLabel(profile().currentRole!) }}
+      </span>
+    </div>
+  </div>
 
 </aside>

@@ -1,0 +1,26 @@
+.erp-page-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.erp-page-toolbar__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.erp-page-toolbar__subtitle {
+  margin: 6px 0 0;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+.erp-page-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}

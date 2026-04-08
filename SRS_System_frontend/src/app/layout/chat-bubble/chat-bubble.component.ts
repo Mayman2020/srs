@@ -3,7 +3,6 @@ import { TransactionService } from '../../services/transaction.service';
 import { Transaction } from '../../models/transaction.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MatIcon } from '@angular/material/icon';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -12,7 +11,7 @@ import { ViewEncapsulation } from '@angular/core';
 @Component({
   selector: 'app-chat-bubble',
   standalone: true,
-  imports: [FormsModule, CommonModule, MatIcon, TranslatePipe],
+  imports: [FormsModule, CommonModule, TranslatePipe],
   templateUrl: './chat-bubble.component.html',
   styleUrl: './chat-bubble.component.css',
   encapsulation: ViewEncapsulation.None

@@ -1,21 +1,32 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 
 import { Transaction } from '../../models/transaction.model';
 import { TransactionService } from '../../services/transaction.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupService } from '../../core/api/lookup.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
+import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
+import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
+import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
+import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
+import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
 
 @Component({
   selector: 'app-transactions-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, LookupTranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, LookupTranslatePipe, SrsDataTableComponent, SrsSortHeaderComponent],
   templateUrl: './transactions-list.component.html',
-  styleUrls: ['./transactions-list.component.css']
+  styleUrls: ['./transactions-list.component.css'],
+  animations: [srsTableRowEnter]
 })
 export class TransactionsListComponent implements OnInit {
   all: Transaction[] = [];
@@ -30,8 +41,12 @@ export class TransactionsListComponent implements OnInit {
   fStatus = '';
 
   page = 1;
-  pageSize = 5;
+  pageSize = SRS_TABLE_DEFAULT_PAGE_SIZE;
   total = 0;
+
+  tableLoading = true;
+  sortColumn = 'id';
+  sortDir: SortDirection = 'asc';
 
   statusFilterCodes: string[] = [];
 
@@ -40,10 +55,10 @@ export class TransactionsListComponent implements OnInit {
     private route: ActivatedRoute,
     public router: Router,
     private lookupLabels: LookupLabelsService,
-    private i18n: I18nService
-  ) {
-    this.statusFilterCodes = this.lookupLabels.orderedRows('correspondenceStatus').map((r) => r.code);
-  }
+    private lookupApi: LookupService,
+    private i18n: I18nService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
 
   get listContextLabel(): string {
     if (!this.type) {
@@ -57,8 +72,20 @@ export class TransactionsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.type = this.route.snapshot.paramMap.get('type') || '';
-    this.service.listPage().subscribe({
-      next: (list) => {
+    subscribePageLoad({
+      cdr: this.cdr,
+      setLoading: (v) => (this.tableLoading = v),
+      source: forkJoin({
+        bundle: this.lookupApi.getBundle().pipe(catchError(() => of(null))),
+        list: this.service.listPage().pipe(catchError(() => of([] as Transaction[])))
+      }),
+      next: ({ bundle, list }) => {
+        if (bundle) {
+          this.lookupLabels.hydrateFromBundle(bundle);
+          this.statusFilterCodes = this.lookupLabels
+            .orderedRows('correspondenceStatus')
+            .map((r) => r.code);
+        }
         if (this.type === 'ARCHIVED') {
           this.all = list.filter((t) => t.statusCode === 'ARCHIVED');
         } else if (this.type) {
@@ -95,15 +122,11 @@ export class TransactionsListComponent implements OnInit {
   }
 
   applyPagination(): void {
-    this.total = this.filtered.length;
-    const start = (this.page - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.pageData = this.filtered.slice(start, end);
-  }
-
-  pages(): number[] {
-    const count = Math.ceil(this.total / this.pageSize);
-    return Array.from({ length: count }, (_, i) => i + 1);
+    const sorted = this.sortTransactions(this.filtered);
+    const r = srsClientPaginate(sorted, this.page, this.pageSize);
+    this.page = r.page;
+    this.total = r.total;
+    this.pageData = r.pageRows;
   }
 
   goToPage(p: number): void {
@@ -111,23 +134,57 @@ export class TransactionsListComponent implements OnInit {
     this.applyPagination();
   }
 
-  next(): void {
-    if (this.page < this.pages().length) {
-      this.page++;
-      this.applyPagination();
-    }
-  }
-
-  prev(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.applyPagination();
-    }
-  }
-
-  changeSize(): void {
+  onSort(ev: { columnId: string; direction: SortDirection }): void {
+    this.sortColumn = ev.columnId;
+    this.sortDir = ev.direction;
     this.page = 1;
     this.applyPagination();
+  }
+
+  onPageSizeChange(n: number): void {
+    this.pageSize = n;
+    this.page = 1;
+    this.applyPagination();
+  }
+
+  trackByTxId(_i: number, t: Transaction): string {
+    return t.id;
+  }
+
+  private sortTransactions(rows: Transaction[]): Transaction[] {
+    const col = this.sortColumn;
+    const dir = this.sortDir;
+    return [...rows].sort((a, b) => {
+      switch (col) {
+        case 'id': {
+          const na = Number(a.id);
+          const nb = Number(b.id);
+          if (!Number.isNaN(na) && !Number.isNaN(nb)) {
+            return compareSortValues(na, nb, dir);
+          }
+          return compareSortValues(a.id, b.id, dir);
+        }
+        case 'type':
+          return compareSortValues(a.typeCode, b.typeCode, dir);
+        case 'subject':
+          return compareSortValues(a.subject, b.subject, dir);
+        case 'entity': {
+          const sa = `${a.from ?? ''} ${a.to ?? ''}`;
+          const sb = `${b.from ?? ''} ${b.to ?? ''}`;
+          return compareSortValues(sa, sb, dir);
+        }
+        case 'sla':
+          return compareSortValues(this.calcSla(a), this.calcSla(b), dir);
+        case 'secrecy':
+          return compareSortValues(a.secrecy || '', b.secrecy || '', dir);
+        case 'attachments':
+          return compareSortValues(a.attachments?.length ?? 0, b.attachments?.length ?? 0, dir);
+        case 'status':
+          return compareSortValues(a.statusCode, b.statusCode, dir);
+        default:
+          return 0;
+      }
+    });
   }
 
   back(): void {

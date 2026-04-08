@@ -26,7 +26,18 @@
       {{ actionLabel }}
     </button>
 
-<!-- Notifications -->
+<div class="lang-switch">
+      <button type="button" class="lang-btn" [class.active]="i18n.currentLang() === 'ar'" (click)="switchLanguage('ar')">
+        <span>🇸🇦</span>
+        عربي
+      </button>
+      <button type="button" class="lang-btn" [class.active]="i18n.currentLang() === 'en'" (click)="switchLanguage('en')">
+        <span>🇬🇧</span>
+        EN
+      </button>
+    </div>
+
+    <!-- Notifications -->
 <div class="notification-wrapper">
 
   <button type="button" class="icon-btn modern"
@@ -101,16 +112,19 @@
 
 </div>
 
-    <!-- User -->
+    <!-- User: shared profile store + presentational avatar (same pipeline as sidebar). -->
     <div class="user-menu modern">
 
-      <div class="user-avatar" *ngIf="!avatarUrl">
-        {{ (userName && userName.length ? userName.charAt(0) : '') || '?' }}
-      </div>
-      <img *ngIf="avatarUrl" class="user-avatar-img" [src]="avatarUrl" alt="" />
+      <app-erp-user-avatar
+        class="topbar-erp-avatar"
+        [primarySrc]="profile().avatarPrimarySrc"
+        [initials]="profile().initials"
+        size="md"
+        hostClass="user-avatar-host"
+      />
 
       <div class="user-meta">
-        <span class="user-name">{{ userName }}</span>
+        <span class="user-name">{{ profile().displayName }}</span>
         <div class="role-line">
           <ng-container *ngIf="showRoleSwitcher; else singleRoleBlock">
             <div class="role-switch-host" #roleSwitchHost>
@@ -121,16 +135,16 @@
                 [disabled]="switchingRole"
                 [attr.aria-expanded]="showRoleMenu"
                 [attr.aria-label]="'topbar.roleMenuAria' | t">
-                <span class="role-chip-label">{{ roleLabel(currentRoleCode || '') }}</span>
+                <span class="role-chip-label">{{ roleLabel(profile().currentRole || '') }}</span>
                 <span class="role-chevron" aria-hidden="true"></span>
               </button>
               <div class="role-dropdown" *ngIf="showRoleMenu" role="menu">
                 <button
                   type="button"
                   class="role-option"
-                  *ngFor="let r of availableRoles"
+                  *ngFor="let r of profile().roles"
                   role="menuitem"
-                  [class.active]="r === currentRoleCode"
+                  [class.active]="r === profile().currentRole"
                   (click)="selectRole(r, $event)">
                   {{ roleLabel(r) }}
                 </button>
@@ -139,7 +153,7 @@
           </ng-container>
           <ng-template #singleRoleBlock>
             <span class="role-static">
-              {{ currentRoleCode ? roleLabel(currentRoleCode) : ('common.roleNA' | t) }}
+              {{ profile().currentRole ? roleLabel(profile().currentRole ?? '') : ('common.roleNA' | t) }}
             </span>
           </ng-template>
         </div>

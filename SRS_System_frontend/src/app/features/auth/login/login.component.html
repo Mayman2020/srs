@@ -102,6 +102,7 @@
 
         <div class="login-actions">
           <button class="btn btn-primary" type="submit" [disabled]="submitting">
+            <span class="button-spinner" *ngIf="submitting"></span>
             <span>{{ 'login.submitLong' | t }}</span>
             <i class="arrow">←</i>
           </button>
@@ -113,7 +114,14 @@
         </div>
       </form>
 
-      <div class="toast show" *ngIf="toast.show">
+      <div
+        class="toast show"
+        *ngIf="toast.show"
+        [class.toast-success]="toast.kind === 'success'"
+        [class.toast-error]="toast.kind === 'error'"
+        [class.toast-info]="toast.kind === 'info'"
+        role="status"
+        aria-live="polite">
         <b>{{ toast.title }}</b>
         <p>{{ toast.message }}</p>
       </div>

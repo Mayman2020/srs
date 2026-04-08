@@ -1,7 +1,6 @@
 import {
   Component,
   ContentChild,
-  DestroyRef,
   ElementRef,
   EventEmitter,
   HostListener,
@@ -13,21 +12,22 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { I18nService } from '../../core/i18n/i18n.service';
+import { I18nService, AppLang } from '../../core/i18n/i18n.service';
 import { NotificationApiService } from '../../core/api/notification-api.service';
-import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { NotificationItemDto } from '../../core/api/api-types';
+import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
+import { ErpUserAvatarComponent } from '../../shared/erp/erp-user-avatar.component';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, MatSnackBarModule],
+  imports: [CommonModule, TranslatePipe, MatSnackBarModule, ErpUserAvatarComponent],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.css'
 })
@@ -41,19 +41,16 @@ export class TopbarComponent implements OnInit {
 
   @ViewChild('roleSwitchHost') roleSwitchHost?: ElementRef<HTMLElement>;
 
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly profileStore = inject(ErpUserProfileStore);
+
+  /** Single source of truth for display name, avatar URL resolution, and roles (see {@link ErpUserProfileStore}). */
+  readonly profile = toSignal(this.profileStore.profile$, {
+    initialValue: this.profileStore.snapshot()
+  });
 
   toast = { show: false, title: '', message: '' };
 
   hasProjectedAction = false;
-
-  userName = '';
-
-  avatarUrl: string | null = null;
-
-  currentRoleCode: string | null = null;
-
-  availableRoles: string[] = [];
 
   showRoleMenu = false;
 
@@ -68,36 +65,24 @@ export class TopbarComponent implements OnInit {
 
   constructor(
     public router: Router,
-    private i18n: I18nService,
+    public i18n: I18nService,
     private notificationApi: NotificationApiService,
-    private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.refreshUser();
-    this.tokens.sessionChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.refreshUser();
-    });
     this.loadNotificationPreview();
   }
 
-  private refreshUser(): void {
-    this.userName = this.tokens.getUsername()?.trim() || this.i18n.instant('topbar.demoUserName');
-    this.avatarUrl = this.tokens.getProfileImageUrl();
-    this.currentRoleCode = this.tokens.getCurrentRole();
-    this.availableRoles = this.tokens.getRoles();
+  get showRoleSwitcher(): boolean {
+    return this.profile().roles.length > 1;
   }
 
   roleLabel(code: string): string {
     const key = `roles.codes.${code}`;
     const t = this.i18n.instant(key);
     return t === key ? code : t;
-  }
-
-  get showRoleSwitcher(): boolean {
-    return this.availableRoles.length > 1;
   }
 
   toggleRoleMenu(event: Event): void {
@@ -110,7 +95,8 @@ export class TopbarComponent implements OnInit {
 
   selectRole(code: string, event: Event): void {
     event.stopPropagation();
-    if (this.switchingRole || !code || code === this.currentRoleCode) {
+    const current = this.profile().currentRole;
+    if (this.switchingRole || !code || code === current) {
       this.showRoleMenu = false;
       return;
     }
@@ -119,7 +105,6 @@ export class TopbarComponent implements OnInit {
       next: () => {
         this.switchingRole = false;
         this.showRoleMenu = false;
-        this.refreshUser();
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         this.switchingRole = false;
@@ -207,6 +192,18 @@ export class TopbarComponent implements OnInit {
     this.isMobile = window.innerWidth <= 1024;
   }
 
+  switchLanguage(lang: AppLang): void {
+    if (this.i18n.currentLang() === lang) {
+      return;
+    }
+    this.i18n.loadLang(lang).subscribe({
+      next: () => {},
+      error: () => {
+        this.snackBar.open(this.i18n.instant('errors.generic'), this.i18n.instant('common.close'), { duration: 5000 });
+      }
+    });
+  }
+
   logout(): void {
     this.authApi.logout();
     this.router.navigate(['/login']);
@@ -230,7 +227,9 @@ export class TopbarComponent implements OnInit {
     }
     this.notificationApi.markRead(n.id).subscribe({
       next: () => {
-        n.read = true;
+        this.notifications = this.notifications.map((item, i) =>
+          i === index ? { ...item, read: true } : item
+        );
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[Topbar] markRead failed', err);
@@ -250,7 +249,7 @@ export class TopbarComponent implements OnInit {
     }
     this.notificationApi.delete(n.id).subscribe({
       next: () => {
-        this.notifications.splice(index, 1);
+        this.notifications = this.notifications.filter((_, i) => i !== index);
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[Topbar] delete notification failed', err);
@@ -281,10 +280,6 @@ export class TopbarComponent implements OnInit {
     }
   }
 
-  /**
-   * No bulk `mark-all-read` API on backend yet — one PATCH per notification.
-   * Batched via {@link forkJoin} for a single error/success surface.
-   */
   markAllRead() {
     const unread = this.notifications.filter((n) => !n.read);
     if (!unread.length) {
@@ -292,9 +287,10 @@ export class TopbarComponent implements OnInit {
     }
     forkJoin(unread.map((n) => this.notificationApi.markRead(n.id))).subscribe({
       next: () => {
-        for (const n of unread) {
-          n.read = true;
-        }
+        const unreadIds = new Set(unread.map((u) => u.id));
+        this.notifications = this.notifications.map((n) =>
+          unreadIds.has(n.id) ? { ...n, read: true } : n
+        );
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[Topbar] markAllRead failed', err);

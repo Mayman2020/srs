@@ -1,6 +1,8 @@
 import {
   ApplicationConfig,
+  ApplicationRef,
   inject,
+  NgZone,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners
 } from '@angular/core';
@@ -11,6 +13,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/api/auth.interceptor';
 import { httpErrorInterceptor } from './core/api/http-error.interceptor';
 import { systemIssueReporterInterceptor } from './core/api/system-issue-reporter.interceptor';
+import { zonePatchHttpInterceptor } from './core/api/zone-patch-http.interceptor';
 import { catchError, firstValueFrom, of } from 'rxjs';
 
 import { routes } from './app.routes';
@@ -34,7 +37,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimations(),
     provideHttpClient(
-      withInterceptors([authInterceptor, httpErrorInterceptor, systemIssueReporterInterceptor])
+      withInterceptors([
+        zonePatchHttpInterceptor,
+        authInterceptor,
+        httpErrorInterceptor,
+        systemIssueReporterInterceptor,
+      ])
     ),
     // inject() must run synchronously in the initializer — not after await (NG0203).
     provideAppInitializer(() => {
@@ -42,6 +50,8 @@ export const appConfig: ApplicationConfig = {
       const title = inject(Title);
       const authToken = inject(AuthTokenService);
       const lookups = inject(LookupLabelsService);
+      const ngZone = inject(NgZone);
+      const appRef = inject(ApplicationRef);
 
       return (async () => {
         try {
@@ -63,6 +73,13 @@ export const appConfig: ApplicationConfig = {
         }
 
         if (!authToken.getToken()) {
+          ngZone.run(() => {
+            try {
+              appRef.tick();
+            } catch {
+              /* ignore — app may not be attached yet */
+            }
+          });
           return;
         }
 
@@ -78,6 +95,14 @@ export const appConfig: ApplicationConfig = {
         } catch {
           /* ignore */
         }
+
+        ngZone.run(() => {
+          try {
+            appRef.tick();
+          } catch {
+            /* ignore */
+          }
+        });
       })();
     })
   ]

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, mergeMap, of } from 'rxjs';
 import { CorrespondenceApiService, CorrespondenceListParams } from '../core/api/correspondence-api.service';
 import {
   CorrespondenceAttachmentDetailDto,
@@ -10,6 +10,7 @@ import {
   CorrespondenceDetailResponse,
   CorrespondenceListItemDto,
   CorrespondenceTimelineEntryDto,
+  SpringPage,
   WorkflowHistoryEntryDto
 } from '../core/api/api-types';
 import { LookupLabelsService } from '../core/lookup/lookup-labels.service';
@@ -33,6 +34,49 @@ export class TransactionService {
     return this.correspondenceApi
       .list({ size: params.size ?? 500, page: params.page ?? 0, ...params })
       .pipe(map((p) => (p.content ?? []).map((row) => this.mapListRow(row))));
+  }
+
+  /** Spring page for server-driven tables (sorting / paging / filters on `/correspondence`). */
+  listSpringPage(params: CorrespondenceListParams = {}): Observable<SpringPage<Transaction>> {
+    return this.correspondenceApi.list(params).pipe(
+      map((p) => ({
+        ...p,
+        content: (p.content ?? []).map((row) => this.mapListRow(row))
+      }))
+    );
+  }
+
+  /**
+   * Loads up to `maxRows` list rows matching the same filters as reports / admin tables.
+   * Uses backend page size (max 100 per request); suitable for KPI derivation on filtered sets.
+   */
+  fetchMatchingUpTo(
+    filters: Omit<CorrespondenceListParams, 'page' | 'size' | 'sort'>,
+    maxRows = 2000,
+    sort: string[] = ['createdAt,desc']
+  ): Observable<Transaction[]> {
+    return this.pullMatchingChunk({ ...filters, sort }, 0, [], maxRows);
+  }
+
+  private pullMatchingChunk(
+    base: CorrespondenceListParams,
+    page: number,
+    acc: Transaction[],
+    maxRows: number
+  ): Observable<Transaction[]> {
+    return this.listSpringPage({ ...base, page, size: 100 }).pipe(
+      mergeMap((sp) => {
+        const batch = sp.content ?? [];
+        const merged = [...acc, ...batch];
+        const capped = merged.slice(0, maxRows);
+        const pageSize = sp.size ?? 100;
+        const lastPage = batch.length < pageSize || sp.number >= sp.totalPages - 1 || capped.length >= maxRows;
+        if (lastPage) {
+          return of(capped);
+        }
+        return this.pullMatchingChunk(base, page + 1, capped, maxRows);
+      })
+    );
   }
 
   /** Full correspondence payload for the details screen. */

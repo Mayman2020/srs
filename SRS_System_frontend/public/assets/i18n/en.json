@@ -21,6 +21,22 @@
     "close": "Close",
     "loading": "Loading…"
   },
+  "profile": {
+    "avatarAlt": "Profile photo",
+    "avatarFallbackAlt": "Default profile image",
+    "sidebarSignedIn": "Signed in",
+    "toolbarMeta": ""
+  },
+  "dataTable": {
+    "pagerRange": "{{start}}–{{end}} of {{total}}",
+    "rowsPerPage": "Rows per page",
+    "paginationAria": "Table pagination",
+    "sortByColumn": "Sort by {{col}}",
+    "sortedAscending": "{{col}}, sorted ascending",
+    "sortedDescending": "{{col}}, sorted descending",
+    "actions": "Actions",
+    "filterPlaceholder": "Filter in view…"
+  },
   "errors": {
     "network": "Could not reach the server. Check that the API is running and your connection.",
     "cors": "The browser blocked the request for security reasons. Make sure the frontend and API are configured together, then restart the API if needed.",
@@ -67,7 +83,12 @@
     "heatmapTitle": "Open overdue items by department",
     "heatmapPlaceholder": "",
     "chartDeptOverdue": "Overdue open items by department",
-    "chartMonthlyCreated": "Monthly created (from server)"
+    "chartMonthlyCreated": "Monthly created (from server)",
+    "resultTableTitle": "Correspondence results",
+    "resultTableSubtitle": "Paged from the server using your filters and sort.",
+    "kpiPartialHint": "Completed / overdue / average metrics below use up to 2,000 matching rows. Totals match the full filtered set.",
+    "openDetail": "Open",
+    "tableEmpty": "No rows match the current filters."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -216,6 +237,8 @@
       "mutationsViaApi": "User changes are done via server APIs when available."
     },
     "action": {
+      "view": "View",
+      "assign": "Assign role",
       "edit": "Edit",
       "delete": "Delete",
       "suspend": "Suspend account",
@@ -260,10 +283,26 @@
     "viewPerms": "View detailed permissions",
     "modalTitle": "Permissions for role",
     "permsHeading": "Permissions:",
-    "permsEmpty": "Detailed permissions will appear when the server exposes a permission matrix API.",
+    "permsEmpty": "No permissions are mapped to this role.",
+    "permsLoadError": "Could not load permissions. Check your access or open System administration.",
+    "openMatrix": "Open permission matrix (system administration)",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "close": "Close"
+    "close": "Close",
+    "listTableTitle": "Role directory",
+    "listTableSubtitle": "Roles are managed on the server; map permissions in system administration.",
+    "colRoleName": "Role",
+    "colCode": "Code",
+    "colUsersHeader": "Users",
+    "codes": {
+      "SYS_ADMIN": "System administrator",
+      "CORRESP_MGR": "Correspondence manager",
+      "CORRESP_CLERK": "Correspondence clerk",
+      "DEPT_MANAGER": "Department manager",
+      "STAFF": "Staff",
+      "APPROVER": "Approver",
+      "AUDITOR": "Auditor"
+    }
   },
   "createTx": {
     "pageTitle": "Create transaction",
@@ -317,7 +356,11 @@
       "next": "Next"
     },
     "validation": {
-      "required": "Please fill all required fields"
+      "required": "Please fill all required fields",
+      "step1": "Complete basic data (all required fields; subject at least 5 characters)",
+      "step2Form": "Check reply period and optional workflow fields",
+      "recipientsRequired": "Select at least one recipient department",
+      "step3": "Enter letter content or choose a valid template"
     },
     "submit": {
       "success": "Transaction created successfully",
@@ -548,17 +591,6 @@
     "roleMenuAria": "Switch active role",
     "roleSwitchErrorTitle": "Role switch failed",
     "roleSwitchError": "The active role could not be changed. Check permissions or try again."
-  },
-  "roles": {
-    "codes": {
-      "SYS_ADMIN": "System administrator",
-      "CORRESP_MGR": "Correspondence manager",
-      "CORRESP_CLERK": "Correspondence clerk",
-      "DEPT_MANAGER": "Department manager",
-      "STAFF": "Staff",
-      "APPROVER": "Approver",
-      "AUDITOR": "Auditor"
-    }
   },
   "departmentTree": {
     "title": "Select organizations",

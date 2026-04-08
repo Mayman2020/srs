@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NotificationApiService } from '../../core/api/notification-api.service';
@@ -8,6 +8,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { forkJoin } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
+import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 
 export interface NotificationItem {
   id: string;
@@ -37,7 +38,8 @@ export class NotificationsComponent implements OnInit {
     private notificationApi: NotificationApiService,
     private router: Router,
     private i18n: I18nService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -45,19 +47,22 @@ export class NotificationsComponent implements OnInit {
   }
 
   loadNotifications(): void {
-    this.notificationApi.list(0, 100).subscribe({
+    subscribePageLoad({
+      cdr: this.cdr,
+      source: this.notificationApi.list(0, 100),
       next: (page) => {
         const rows = page.content ?? [];
         this.notifications = rows.map((r) => this.mapDto(r));
         this.unreadCount = this.notifications.filter((n) => !n.read).length;
         this.applyFilter();
       },
-      error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        console.error('[Notifications] list load failed', err);
+      error: (err: unknown) => {
+        const httpErr = err as HttpErrorResponse & { userMessage?: string };
+        console.error('[Notifications] list load failed', httpErr);
         this.notifications = [];
         this.unreadCount = 0;
         this.applyFilter();
-        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
+        const msg = httpErr.userMessage ?? this.i18n.instant('errors.generic');
         this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
       },
     });

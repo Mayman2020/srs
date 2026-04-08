@@ -21,7 +21,7 @@
     <div class="sla-kpi">
 
       <div class="sla-percent">
-        {{ animatedSlaPercent }}%
+        {{ animatedSlaPercent() }}%
       </div>
 
       <div class="sla-label">
@@ -61,7 +61,7 @@
     <div class="sla-progress">
 
       <div class="progress-bar">
-        <div class="progress-fill" [style.width.%]="animatedSlaPercent"></div>
+        <div class="progress-fill" [style.width.%]="animatedSlaPercent()"></div>
       </div>
 
     </div>
@@ -232,20 +232,71 @@
   <div class="title">
     <h3>{{ 'dashboard.recentTitle' | t }}</h3>
   </div>
-  <div class="table-wrap">
+  <srs-data-table
+    [loading]="recentLoading"
+    [skeletonRows]="5"
+    [skeletonColumns]="6"
+    [skeletonAriaLabel]="'common.loading' | t"
+    [page]="recentPage"
+    [pageSize]="recentPageSize"
+    [total]="recentTotal"
+    [legacyCountOnPage]="0"
+    (paginationPage)="onRecentPage($event)"
+    (paginationPageSize)="onRecentPageSize($event)"
+  >
     <table>
       <thead>
         <tr>
-          <th>{{ 'dashboard.thRef' | t }}</th>
-          <th>{{ 'dashboard.thType' | t }}</th>
-          <th>{{ 'dashboard.thSubject' | t }}</th>
-          <th>{{ 'dashboard.thCreated' | t }}</th>
-          <th>{{ 'dashboard.thStatus' | t }}</th>
-          <th>{{ 'dashboard.thActions' | t }}</th>
+          <th>
+            <srs-sort-header
+              columnId="ref"
+              labelKey="dashboard.thRef"
+              [activeColumn]="recentSortColumn"
+              [direction]="recentSortDir"
+              (sortChange)="onRecentSort($event)"
+            />
+          </th>
+          <th>
+            <srs-sort-header
+              columnId="type"
+              labelKey="dashboard.thType"
+              [activeColumn]="recentSortColumn"
+              [direction]="recentSortDir"
+              (sortChange)="onRecentSort($event)"
+            />
+          </th>
+          <th>
+            <srs-sort-header
+              columnId="subject"
+              labelKey="dashboard.thSubject"
+              [activeColumn]="recentSortColumn"
+              [direction]="recentSortDir"
+              (sortChange)="onRecentSort($event)"
+            />
+          </th>
+          <th>
+            <srs-sort-header
+              columnId="created"
+              labelKey="dashboard.thCreated"
+              [activeColumn]="recentSortColumn"
+              [direction]="recentSortDir"
+              (sortChange)="onRecentSort($event)"
+            />
+          </th>
+          <th>
+            <srs-sort-header
+              columnId="status"
+              labelKey="dashboard.thStatus"
+              [activeColumn]="recentSortColumn"
+              [direction]="recentSortDir"
+              (sortChange)="onRecentSort($event)"
+            />
+          </th>
+          <th class="srs-dt-th-plain">{{ 'dashboard.thActions' | t }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let tx of transactions">
+        <tr *ngFor="let tx of recentRows; trackBy: trackByRecentId" [@srsTableRowEnter]>
           <td><span class="link">{{ tx.referenceNumber }}</span></td>
           <td>{{ tx.typeCode | lk:'correspondenceType' }}</td>
           <td>{{ tx.subject }}</td>
@@ -263,14 +314,12 @@
           </td>
         </tr>
 
-        <tr *ngIf="transactions.length === 0">
-          <td colspan="6" class="muted">{{ 'dashboard.noTransactions' | t }}</td>
+        <tr *ngIf="!recentLoading && recentAll.length === 0">
+          <td colspan="6" class="srs-dt-empty">{{ 'dashboard.noTransactions' | t }}</td>
         </tr>
       </tbody>
-
     </table>
-  </div>
-  <div id="dashTxPager"></div>
+  </srs-data-table>
 </section>
 
 <div class="divider"></div>

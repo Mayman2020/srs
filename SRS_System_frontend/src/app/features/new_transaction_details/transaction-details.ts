@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, forkJoin, of } from 'rxjs';
@@ -182,7 +182,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private ngZone: NgZone
   ) {}
 
   // ══════════════════════════════════════════════
@@ -688,14 +689,16 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       void this.router.navigate(['/login']);
       return;
     }
-    fetch(this.attachmentApi.downloadUrl(attachmentId), {
+    void fetch(this.attachmentApi.downloadUrl(attachmentId), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => {
         if (r.status === 401 || r.status === 403) {
-          this.toast(this.i18n.instant('transactionDetails.downloadNoSession'));
-          this.authApi.logout();
-          void this.router.navigate(['/login']);
+          this.ngZone.run(() => {
+            this.toast(this.i18n.instant('transactionDetails.downloadNoSession'));
+            this.authApi.logout();
+            void this.router.navigate(['/login']);
+          });
           throw new Error('session invalid');
         }
         if (!r.ok) {
@@ -704,23 +707,25 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         return r.blob();
       })
       .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        if (openInTab) {
-          window.open(url, '_blank', 'noopener');
-        } else {
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          a.click();
-        }
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        this.ngZone.run(() => {
+          const url = URL.createObjectURL(blob);
+          if (openInTab) {
+            window.open(url, '_blank', 'noopener');
+          } else {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+          }
+          setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        });
       })
       .catch((e: unknown) => {
         if (e instanceof Error && e.message === 'session invalid') {
           return;
         }
         console.error('[TransactionDetails] attachment download failed', e);
-        this.toast(this.i18n.instant('errors.generic'));
+        this.ngZone.run(() => this.toast(this.i18n.instant('errors.generic')));
       });
   }
 

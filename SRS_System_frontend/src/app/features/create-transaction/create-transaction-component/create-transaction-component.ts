@@ -38,6 +38,7 @@ import { catchError, map } from 'rxjs/operators';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../../core/i18n/lookup-translate.pipe';
+import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
 import { GenericSelectComponent } from '../../../component/generic-select/generic-select.component';
 import { EditorModule } from '@tinymce/tinymce-angular';
 import { DepartmentTreeDialogComponent } from '../department-tree-dialog/department-tree-dialog.component';
@@ -117,6 +118,7 @@ export class CreateTransactionComponent implements OnInit {
       ),
     }).subscribe({
       next: ({ bundle, templates }) => {
+        this.lookupLabels.hydrateFromBundle(bundle);
         this.transactionTypes = bundle.correspondenceTypes.map((t) => ({ key: t.code }));
         this.secrecyLevels = bundle.confidentialities.map((c) => ({ key: c.code }));
         this.priorityLevels = bundle.priorities.map((p) => ({ key: p.code }));
@@ -168,7 +170,6 @@ export class CreateTransactionComponent implements OnInit {
   }
 
   goToStep(step: number) {
-
     if (step <= this.totalSteps) {
       this.currentStep = step;
 
@@ -176,9 +177,55 @@ export class CreateTransactionComponent implements OnInit {
         this.generateBarcode();
       }
     }
-
   }
+
+  /** Stepper header: allow going back only; forward navigation uses {@link #nextStep}. */
+  goToStepIfAllowed(step: number): void {
+    if (step < 1 || step > this.totalSteps) {
+      return;
+    }
+    if (step < this.currentStep) {
+      this.goToStep(step);
+    }
+  }
+
   nextStep() {
+    if (this.currentStep === 1) {
+      this.basicForm.markAllAsTouched();
+      if (this.basicForm.invalid) {
+        this.showNotification(this.i18n.instant('createTx.validation.step1'), 'error');
+        return;
+      }
+      this.currentStep++;
+      return;
+    }
+    if (this.currentStep === 2) {
+      this.secondaryForm.markAllAsTouched();
+      if (this.secondaryForm.invalid) {
+        this.showNotification(this.i18n.instant('createTx.validation.step2Form'), 'error');
+        return;
+      }
+      if (this.toArray.length === 0) {
+        this.showNotification(this.i18n.instant('createTx.validation.recipientsRequired'), 'error');
+        return;
+      }
+      this.currentStep++;
+      return;
+    }
+    if (this.currentStep === 3) {
+      if (this.selectedTemplateKey === 'no-letter') {
+        this.currentStep++;
+        return;
+      }
+      this.letterForm.markAllAsTouched();
+      const content = (this.letterForm.value.letterContent ?? '').toString().trim();
+      if (this.letterForm.invalid || !content) {
+        this.showNotification(this.i18n.instant('createTx.validation.step3'), 'error');
+        return;
+      }
+      this.currentStep++;
+      return;
+    }
     if (this.currentStep === 4) {
       this.submit();
       return;
@@ -218,7 +265,8 @@ export class CreateTransactionComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private lookupService: LookupService,
     private letterTemplateApi: LetterTemplateApiService,
-    private i18n: I18nService
+    private i18n: I18nService,
+    private lookupLabels: LookupLabelsService
   ) {
 
     // Step 1
@@ -306,11 +354,18 @@ export class CreateTransactionComponent implements OnInit {
   };
 
   onTemplateChange(key: string) {
-
     this.selectedTemplateKey = key;
 
-    const template = this.letterTemplates.find(t => t.key === key);
+    const template = this.letterTemplates.find((t) => t.key === key);
     if (!template) return;
+
+    const ctl = this.letterForm.get('letterContent');
+    if (key === 'no-letter') {
+      ctl?.clearValidators();
+    } else {
+      ctl?.setValidators([Validators.required]);
+    }
+    ctl?.updateValueAndValidity();
 
     this.letterForm.patchValue({
       letterContent: template.getHtml()
@@ -569,8 +624,7 @@ export class CreateTransactionComponent implements OnInit {
     }
     const first = this.letterTemplates[0];
     if (first) {
-      this.selectedTemplateKey = first.key;
-      this.letterForm.patchValue({ letterContent: first.getHtml() });
+      this.onTemplateChange(first.key);
     }
   }
 
@@ -700,11 +754,12 @@ export class CreateTransactionComponent implements OnInit {
       workflowFirstAssigneeUserId: '',
       workflowFirstCandidateGroup: ''
     });
-    this.letterForm.reset({
-      letterContent: this.letterTemplates[0]?.getHtml() ?? this.defaultTemplate()
-    });
     if (this.letterTemplates[0]) {
-      this.selectedTemplateKey = this.letterTemplates[0].key;
+      this.onTemplateChange(this.letterTemplates[0].key);
+    } else {
+      this.letterForm.reset({
+        letterContent: this.defaultTemplate()
+      });
     }
     this.toArray.clear();
     this.ccArray.clear();
@@ -771,7 +826,7 @@ export class CreateTransactionComponent implements OnInit {
           this.ccArray.clear();
           unique.forEach((id) => this.ccArray.push(this.fb.control(id, { nonNullable: true })));
         }
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       });
     });
   }

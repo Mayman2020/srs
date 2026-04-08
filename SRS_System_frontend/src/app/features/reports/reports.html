@@ -17,6 +17,8 @@
     <div class="card">
       <h3>{{ 'reports.kpiTitle' | t }}</h3>
 
+      <p class="reports-kpi-hint" *ngIf="statsTruncated">{{ 'reports.kpiPartialHint' | t }}</p>
+
       <div class="kpi-grid">
         <div class="kpi">
           <span>{{ 'reports.kpiTotal' | t }}</span>
@@ -41,44 +43,153 @@
     </div>
 
     <div class="card">
-      <h3>{{ 'reports.filtersTitle' | t }}</h3>
+      <srs-filter-bar
+        [titleKey]="'reports.filtersTitle'"
+        [showClear]="true"
+        [showApply]="true"
+        (clear)="clearReportFilters()"
+        (apply)="runReport()"
+      >
+        <form [formGroup]="reportForm" class="reports-filter-form">
+          <div>
+            <label>{{ 'reports.from' | t }}</label>
+            <input type="date" formControlName="from" />
+          </div>
 
-      <form [formGroup]="reportForm" class="filter-grid">
+          <div>
+            <label>{{ 'reports.to' | t }}</label>
+            <input type="date" formControlName="to" />
+          </div>
 
-        <div>
-          <label>{{ 'reports.from' | t }}</label>
-          <input type="date" formControlName="from">
-        </div>
+          <div>
+            <label>{{ 'reports.type' | t }}</label>
+            <select formControlName="type">
+              <option value="">{{ 'common.all' | t }}</option>
+              <option *ngFor="let t of correspondenceTypes" [value]="t.code">{{ lookupTypeLabel(t.code) }}</option>
+            </select>
+          </div>
 
-        <div>
-          <label>{{ 'reports.to' | t }}</label>
-          <input type="date" formControlName="to">
-        </div>
-
-        <div>
-          <label>{{ 'reports.type' | t }}</label>
-          <select formControlName="type">
-            <option value="">{{ 'common.all' | t }}</option>
-            <option *ngFor="let t of correspondenceTypes" [value]="t.code">{{ lookupTypeLabel(t.code) }}</option>
-          </select>
-        </div>
-
-        <div>
-          <label>{{ 'reports.status' | t }}</label>
-          <select formControlName="status">
-            <option value="">{{ 'common.all' | t }}</option>
-            <option *ngFor="let s of correspondenceStatuses" [value]="s.code">{{ lookupStatusLabel(s.code) }}</option>
-          </select>
-        </div>
-
-        <button class="btn primary" type="button" (click)="runReport()">
-          {{ 'reports.run' | t }}
-        </button>
-
-      </form>
+          <div>
+            <label>{{ 'reports.status' | t }}</label>
+            <select formControlName="status">
+              <option value="">{{ 'common.all' | t }}</option>
+              <option *ngFor="let s of correspondenceStatuses" [value]="s.code">{{ lookupStatusLabel(s.code) }}</option>
+            </select>
+          </div>
+        </form>
+      </srs-filter-bar>
     </div>
 
   </div>
+
+  <section class="card reports-result-card">
+    <div class="reports-result-head">
+      <h3>{{ 'reports.resultTableTitle' | t }}</h3>
+      <small>{{ 'reports.resultTableSubtitle' | t }}</small>
+    </div>
+
+    <srs-data-table
+      [loading]="tableLoading"
+      [loadingMode]="tableLoadingMode"
+      [paginationMode]="'server'"
+      [preservePaginationWhileLoading]="true"
+      [showSkeleton]="true"
+      [skeletonRows]="6"
+      [skeletonColumns]="7"
+      [skeletonAriaLabel]="'common.loading' | t"
+      [page]="reportPage"
+      [pageSize]="reportPageSize"
+      [total]="reportTotal"
+      [pageSizeOptions]="[5, 10, 20, 50, 100]"
+      [legacyCountOnPage]="0"
+      (paginationPage)="onReportPage($event)"
+      (paginationPageSize)="onReportPageSize($event)"
+    >
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <srs-sort-header
+                columnId="ref"
+                labelKey="dashboard.thRef"
+                [activeColumn]="reportSortUiColumn"
+                [direction]="reportSortUiDir"
+                (sortChange)="onReportSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="type"
+                labelKey="transactions.table.type"
+                [activeColumn]="reportSortUiColumn"
+                [direction]="reportSortUiDir"
+                (sortChange)="onReportSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="subject"
+                labelKey="transactions.table.subject"
+                [activeColumn]="reportSortUiColumn"
+                [direction]="reportSortUiDir"
+                (sortChange)="onReportSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="created"
+                labelKey="dashboard.thCreated"
+                [activeColumn]="reportSortUiColumn"
+                [direction]="reportSortUiDir"
+                (sortChange)="onReportSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="status"
+                labelKey="transactions.table.status"
+                [activeColumn]="reportSortUiColumn"
+                [direction]="reportSortUiDir"
+                (sortChange)="onReportSort($event)"
+              />
+            </th>
+            <th class="srs-dt-th-plain">{{ 'dataTable.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tx of reportRows; trackBy: trackByReportTx" [@srsTableRowEnter]>
+            <td>
+              <span class="link">{{ tx.referenceNumber || tx.id }}</span>
+            </td>
+            <td>{{ tx.typeCode | lk:'correspondenceType' }}</td>
+            <td>{{ tx.subject }}</td>
+            <td>{{ tx.created }}</td>
+            <td>
+              <span
+                class="pill"
+                [ngClass]="{
+                  ok: tx.statusCode === 'COMPLETED',
+                  warn: tx.statusCode === 'IN_PROGRESS'
+                }"
+              >
+                {{ tx.statusCode | lk:'correspondenceStatus' }}
+              </span>
+            </td>
+            <td>
+              <button type="button" class="btn small primary" (click)="openReportRow(tx)">
+                {{ 'reports.openDetail' | t }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!tableLoading && reportTotal === 0">
+            <td colspan="6" class="srs-dt-empty-cell">
+              <srs-empty-state [titleKey]="'reports.tableEmpty'" [showIcon]="true" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </srs-data-table>
+  </section>
 
   <div class="bottom-grid">
 

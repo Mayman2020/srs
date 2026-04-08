@@ -9,6 +9,8 @@ import { AuthApiService } from '../../../core/api/auth-api.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { MfaOtpDialogComponent } from '../../../shared/dialogs/mfa-otp-dialog.component';
+import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
+import { catchError, of, timeout } from 'rxjs';
 
 declare var particlesJS: unknown;
 
@@ -33,10 +35,11 @@ function isMfaRequired(err: HttpErrorResponse): boolean {
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   form!: FormGroup;
 
-  toast = {
+  toast: { show: boolean; title: string; message: string; kind: 'success' | 'error' | 'info' } = {
     show: false,
     title: '',
-    message: ''
+    message: '',
+    kind: 'info'
   };
 
   submitting = false;
@@ -46,6 +49,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private authApi: AuthApiService,
     private i18n: I18nService,
+    private lookupLabels: LookupLabelsService,
     private dialog: MatDialog,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
@@ -102,9 +106,11 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   login(): void {
     if (this.form.invalid || this.submitting) {
+      this.form.markAllAsTouched();
       this.showToast(
         this.i18n.instant('auth.validationRequired'),
-        this.i18n.instant('auth.validationRequired')
+        this.i18n.instant('auth.validationRequired'),
+        'error'
       );
       return;
     }
@@ -123,15 +129,19 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!u) {
             this.showToast(
               this.i18n.instant('auth.loginErrorTitle'),
-              this.i18n.instant('auth.validationRequired')
+              this.i18n.instant('auth.validationRequired'),
+              'error'
             );
             return;
           }
           this.openMfaDialog(u, p);
           return;
         }
-        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-        this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg);
+        const msg =
+          err.status === 401 || err.status === 403
+            ? this.i18n.instant('errors.badCredentials')
+            : err.userMessage ?? this.i18n.instant('errors.generic');
+        this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg, 'error');
       }
     });
   }
@@ -156,22 +166,40 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   private onLoginSuccess(): void {
     this.showToast(
       this.i18n.instant('auth.loginSuccessTitle'),
-      this.i18n.instant('auth.loginSuccessMessage')
+      this.i18n.instant('auth.loginSuccessMessage'),
+      'success'
     );
-    setTimeout(() => this.router.navigate(['/dashboard']), 600);
+    
+    // Load lookup labels in background with timeout to prevent hanging
+    this.lookupLabels
+      .load()
+      .pipe(
+        timeout(5000), // 5 second timeout
+        catchError(() => of(undefined))
+      )
+      .subscribe();
+    
+    // Navigate quickly - toast will still be visible during navigation
+    setTimeout(() => this.router.navigate(['/dashboard']), 800);
   }
 
   forgotPassword(): void {
     this.showToast(
       this.i18n.instant('auth.forgotPasswordTitle'),
-      this.i18n.instant('auth.forgotPasswordMessage')
+      this.i18n.instant('auth.forgotPasswordMessage'),
+      'info'
     );
   }
 
-  private showToast(title: string, message: string): void {
-    this.toast = { show: true, title, message };
+  private showToast(
+    title: string,
+    message: string,
+    kind: 'success' | 'error' | 'info' = 'info'
+  ): void {
+    this.toast = { show: true, title, message, kind };
+    const ms = kind === 'error' ? 6000 : 4000;
     setTimeout(() => {
       this.toast.show = false;
-    }, 4000);
+    }, ms);
   }
 }

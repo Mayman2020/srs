@@ -1,9 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { SidebarService } from '../../services/sidebar.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
+import { ErpUserAvatarComponent } from '../../shared/erp/erp-user-avatar.component';
 
 interface NavItem {
   key: string;
@@ -17,25 +21,23 @@ interface NavItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, ErpUserAvatarComponent],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
+  private readonly sidebarService = inject(SidebarService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly profileStore = inject(ErpUserProfileStore);
+  private readonly i18n = inject(I18nService);
 
+  /** Single reactive binding — do not subscribe inside `toggleSidebar()` (that leaked subscriptions). */
+  readonly collapsed = toSignal(this.sidebarService.collapsed$, { initialValue: false });
 
-
-  collapsed = false;
-
-toggleSidebar() {
-  this.sidebarService.toggle();
-   this.sidebarService.collapsed$.subscribe(val => {
-    this.collapsed = val;
+  /** Same {@link ErpUserProfileStore} stream as the topbar — consistent name, avatar, role. */
+  readonly profile = toSignal(this.profileStore.profile$, {
+    initialValue: this.profileStore.snapshot()
   });
-}
-
-  readonly userNameKey = 'sidebar.demoUser';
-  readonly userRoleKey = 'sidebar.demoRole';
 
   notifications = [
     { id: 1, read: false },
@@ -43,23 +45,17 @@ toggleSidebar() {
     { id: 3, read: true }
   ];
 
-    isMobile = window.innerWidth <= 1024;
+  isMobile = window.innerWidth <= 1024;
 
   NAV_ITEMS: NavItem[];
 
-  constructor(
-    public router: Router,
-    private sanitizer: DomSanitizer,
-    private sidebar: SidebarService,
-    private sidebarService: SidebarService
-  ) {
-
+  constructor(public router: Router) {
     this.NAV_ITEMS = [
       {
         key: 'dashboard',
         route: '/dashboard',
         labelKey: 'nav.dashboard',
-        icon: this.svg(`  
+        icon: this.svg(`
           <path d="M3 13h8V3H3v10zM13 21h8V11h-8v10z
                    M13 3h8v6h-8V3zM3 17h8v4H3v-4z"/>
         `)
@@ -86,6 +82,28 @@ toggleSidebar() {
         `)
       },
       {
+        key: 'users',
+        route: '/users',
+        labelKey: 'nav.users',
+        icon: this.svg(`
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5
+                   a4 4 0 0 0-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <path d="M20 8v6"/>
+          <path d="M23 11h-6"/>
+        `)
+      },
+      {
+        key: 'roles',
+        route: '/roles',
+        labelKey: 'nav.roles',
+        icon: this.svg(`
+          <path d="M12 1l3 5 5 1-3.5 4
+                   1 6-5.5-3-5.5 3
+                   1-6L4 7l5-1 3-5z"/>
+        `)
+      },
+      {
         key: 'admin',
         route: '/admin-communications-main',
         labelKey: 'nav.adminHub',
@@ -109,39 +127,26 @@ toggleSidebar() {
           <path d="M18 16v-10"/>
         `)
       }
-      // ,
-      // {
-      //   key: 'notifications',
-      //   route: '/notifications',
-      //   label: 'الإشعارات',
-      //   badgeId: 'badgeNoti',
-      //   icon: this.svg(`
-      //     <path d="M18 8a6 6 0 10-12 0
-      //              c0 7-3 7-3 7h18
-      //              s-3 0-3-7"/>
-      //     <path d="M13.73 21a2 2 0 01-3.46 0"/>
-      //   `)
-      // }
     ];
   }
 
-
-
-
+  toggleSidebar() {
+    this.sidebarService.toggle();
+  }
 
   closeSidebar() {
-    this.sidebar.close();
+    this.sidebarService.close();
   }
 
   @HostListener('window:resize')
   onResize() {
     this.isMobile = window.innerWidth <= 1024;
-    this.sidebar.syncOnResize();
+    this.sidebarService.syncOnResize();
   }
 
   @HostListener('document:keydown.escape')
   onEsc() {
-    this.sidebar.close();
+    this.sidebarService.close();
   }
 
   private svg(paths: string): SafeHtml {
@@ -156,7 +161,7 @@ toggleSidebar() {
   }
 
   unreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
+    return this.notifications.filter((n) => !n.read).length;
   }
 
   isActive(item: NavItem): boolean {
@@ -164,11 +169,21 @@ toggleSidebar() {
     return url.startsWith(item.route);
   }
 
+  trackByNavKey(_index: number, item: NavItem): string {
+    return item.key;
+  }
+
+  roleLabel(code: string): string {
+    const key = `roles.codes.${code}`;
+    const t = this.i18n.instant(key);
+    return t === key ? code : t;
+  }
+
   toggleTheme() {
     document.body.classList.toggle('dark');
   }
 
   logout() {
-    this.router.navigate(['/login'])
+    this.router.navigate(['/login']);
   }
 }

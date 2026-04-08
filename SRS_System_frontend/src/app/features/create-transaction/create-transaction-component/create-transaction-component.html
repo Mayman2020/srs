@@ -17,7 +17,8 @@
          *ngFor="let stepKey of wizardStepKeys; let i = index"
          [class.active]="currentStep === i+1"
          [class.completed]="currentStep > i+1"
-         (click)="goToStep(i+1)">
+         [class.step-clickable]="currentStep > i+1"
+         (click)="goToStepIfAllowed(i+1)">
 
       <div class="step-circle">
         <ng-container *ngIf="currentStep > i+1; else icon">
@@ -433,7 +434,7 @@
         type="button"
         class="btn-primary"
         *ngIf="currentStep < 5"
-        (click)="goToStep(currentStep + 1)">
+        (click)="nextStep()">
 
         {{ 'createTx.nav.next' | t }}
         <mat-icon>arrow_back</mat-icon>

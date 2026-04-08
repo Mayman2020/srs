@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 
 import { Transaction } from '../../models/transaction.model';
 import { TransactionService } from '../../services/transaction.service';
@@ -12,6 +13,13 @@ import { LookupService } from '../../core/api/lookup.service';
 import { LookupItemDto } from '../../core/api/api-types';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
+import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
+import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
+import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
+import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
 
 @Component({
   selector: 'app-transactions',
@@ -21,10 +29,13 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
     FormsModule,
     CreateTransactionButton,
     TranslatePipe,
-    LookupTranslatePipe
+    LookupTranslatePipe,
+    SrsDataTableComponent,
+    SrsSortHeaderComponent
   ],
   templateUrl: './transactions.component.html',
-  styleUrls: ['./transactions.component.css']
+  styleUrls: ['./transactions.component.css'],
+  animations: [srsTableRowEnter]
 })
 export class TransactionsComponent implements OnInit {
   all: Transaction[] = [];
@@ -38,8 +49,12 @@ export class TransactionsComponent implements OnInit {
   fStatus = '';
 
   page = 1;
-  pageSize = 5;
+  pageSize = SRS_TABLE_DEFAULT_PAGE_SIZE;
   total = 0;
+
+  tableLoading = true;
+  sortColumn = 'id';
+  sortDir: SortDirection = 'asc';
 
   correspondenceTypes: LookupItemDto[] = [];
   correspondenceStatuses: LookupItemDto[] = [];
@@ -56,17 +71,23 @@ export class TransactionsComponent implements OnInit {
     private service: TransactionService,
     private dashboardApi: DashboardApiService,
     private lookupService: LookupService,
-    public router: Router
+    private lookupLabels: LookupLabelsService,
+    public router: Router,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    forkJoin({
-      list: this.service.listPage(),
-      dash: this.dashboardApi.getDashboard(),
-      lookups: this.lookupService.getBundle()
-    }).subscribe({
+    subscribePageLoad({
+      cdr: this.cdr,
+      setLoading: (v) => (this.tableLoading = v),
+      source: forkJoin({
+        list: this.service.listPage(),
+        dash: this.dashboardApi.getDashboard(),
+        lookups: this.lookupService.getBundle()
+      }),
       next: ({ list, dash, lookups }) => {
         this.loadError = false;
+        this.lookupLabels.hydrateFromBundle(lookups);
         this.all = list;
         this.dashTotal = dash.totalCorrespondences;
         const inbound = list.filter((t) => (t.typeCode ?? '').toUpperCase() === 'INBOUND').length;
@@ -124,39 +145,69 @@ export class TransactionsComponent implements OnInit {
   }
 
   applyPagination(): void {
-    this.total = this.filtered.length;
-    const start = (this.page - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.pageData = this.filtered.slice(start, end);
+    const sorted = this.sortTransactions(this.filtered);
+    const r = srsClientPaginate(sorted, this.page, this.pageSize);
+    this.page = r.page;
+    this.total = r.total;
+    this.pageData = r.pageRows;
+  }
+
+  onSort(ev: { columnId: string; direction: SortDirection }): void {
+    this.sortColumn = ev.columnId;
+    this.sortDir = ev.direction;
+    this.page = 1;
+    this.applyPagination();
+  }
+
+  onPageSizeChange(n: number): void {
+    this.pageSize = n;
+    this.page = 1;
+    this.applyPagination();
+  }
+
+  trackByTxId(_i: number, t: Transaction): string {
+    return t.id;
+  }
+
+  private sortTransactions(rows: Transaction[]): Transaction[] {
+    const col = this.sortColumn;
+    const dir = this.sortDir;
+    return [...rows].sort((a, b) => {
+      switch (col) {
+        case 'id': {
+          const na = Number(a.id);
+          const nb = Number(b.id);
+          if (!Number.isNaN(na) && !Number.isNaN(nb)) {
+            return compareSortValues(na, nb, dir);
+          }
+          return compareSortValues(a.id, b.id, dir);
+        }
+        case 'type':
+          return compareSortValues(a.typeCode, b.typeCode, dir);
+        case 'subject':
+          return compareSortValues(a.subject, b.subject, dir);
+        case 'entity': {
+          const sa = `${a.from ?? ''} ${a.to ?? ''}`;
+          const sb = `${b.from ?? ''} ${b.to ?? ''}`;
+          return compareSortValues(sa, sb, dir);
+        }
+        case 'sla':
+          return compareSortValues(this.calcSla(a), this.calcSla(b), dir);
+        case 'secrecy':
+          return compareSortValues(a.secrecy || '', b.secrecy || '', dir);
+        case 'attachments':
+          return compareSortValues(a.attachments?.length ?? 0, b.attachments?.length ?? 0, dir);
+        case 'status':
+          return compareSortValues(a.statusCode, b.statusCode, dir);
+        default:
+          return 0;
+      }
+    });
   }
 
   goToPage(p: number): void {
     this.page = p;
     this.applyPagination();
-  }
-
-  next(): void {
-    if (this.page < this.pages().length) {
-      this.page++;
-      this.applyPagination();
-    }
-  }
-
-  prev(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.applyPagination();
-    }
-  }
-
-  changeSize(): void {
-    this.page = 1;
-    this.applyPagination();
-  }
-
-  pages(): number[] {
-    const count = Math.ceil(this.total / this.pageSize);
-    return Array.from({ length: count }, (_, i) => i + 1);
   }
 
   calcSla(t: Transaction): number {

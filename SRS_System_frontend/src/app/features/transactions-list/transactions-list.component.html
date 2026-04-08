@@ -54,24 +54,99 @@
       <small>{{ 'transactions.resultsCount' | t: { n: total } }}</small>
     </div>
 
-    <div class="table-wrap">
+    <srs-data-table
+      [loading]="tableLoading"
+      [skeletonRows]="6"
+      [skeletonColumns]="9"
+      [skeletonAriaLabel]="'common.loading' | t"
+      [page]="page"
+      [pageSize]="pageSize"
+      [total]="total"
+      [legacyCountOnPage]="pageData.length"
+      (paginationPage)="goToPage($event)"
+      (paginationPageSize)="onPageSizeChange($event)"
+    >
       <table>
         <thead>
           <tr>
-            <th>{{ 'transactions.table.no' | t }}</th>
-            <th>{{ 'transactions.table.type' | t }}</th>
-            <th>{{ 'transactions.table.subject' | t }}</th>
-            <th>{{ 'transactions.table.entity' | t }}</th>
-            <th>{{ 'transactions.table.sla' | t }}</th>
-            <th>{{ 'transactions.table.secrecy' | t }}</th>
-            <th>{{ 'transactions.table.attachments' | t }}</th>
-            <th>{{ 'transactions.table.status' | t }}</th>
-            <th></th>
+            <th>
+              <srs-sort-header
+                columnId="id"
+                labelKey="transactions.table.no"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="type"
+                labelKey="transactions.table.type"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="subject"
+                labelKey="transactions.table.subject"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="entity"
+                labelKey="transactions.table.entity"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="sla"
+                labelKey="transactions.table.sla"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="secrecy"
+                labelKey="transactions.table.secrecy"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="attachments"
+                labelKey="transactions.table.attachments"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th>
+              <srs-sort-header
+                columnId="status"
+                labelKey="transactions.table.status"
+                [activeColumn]="sortColumn"
+                [direction]="sortDir"
+                (sortChange)="onSort($event)"
+              />
+            </th>
+            <th class="srs-dt-th-plain">{{ 'dataTable.actions' | t }}</th>
           </tr>
         </thead>
 
         <tbody>
-          <tr *ngFor="let t of pageData">
+          <tr *ngFor="let t of pageData; trackBy: trackByTxId" [@srsTableRowEnter]>
             <td class="link">{{ t.id }}</td>
 
             <td>
@@ -121,41 +196,12 @@
               <button type="button" class="btn small primary" (click)="open(t)">{{ 'common.open' | t }}</button>
             </td>
           </tr>
+
+          <tr *ngIf="!tableLoading && pageData.length === 0">
+            <td colspan="9" class="srs-dt-empty">{{ 'common.empty' | t }}</td>
+          </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pager-modern">
-
-      <div class="pager-info">
-        {{ 'transactions.pagerLine' | t: { a: pageData.length, b: total } }}
-      </div>
-
-      <div class="pager-controls">
-
-        <button type="button" class="nav-btn" (click)="prev()" [disabled]="page===1">
-          {{ 'common.previous' | t }}
-        </button>
-
-        <button type="button" class="page-btn" *ngFor="let p of pages()" [class.active]="p === page" (click)="goToPage(p)">
-          {{ p }}
-        </button>
-
-        <button type="button" class="nav-btn" (click)="next()" [disabled]="page===pages().length">
-          {{ 'common.next' | t }}
-        </button>
-
-      </div>
-
-      <div class="pager-size">
-        <select [(ngModel)]="pageSize" (change)="changeSize()">
-          <option [value]="5">5</option>
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-        </select>
-      </div>
-
-    </div>
+    </srs-data-table>
   </section>
 </div>

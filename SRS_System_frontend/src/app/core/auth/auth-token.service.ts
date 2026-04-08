@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import type { AuthSessionSnapshot } from './auth-session.types';
 
 const STORAGE_KEY = 'ac_access_token';
 const REFRESH_TOKEN_KEY = 'ac_refresh_token';
@@ -21,8 +22,24 @@ export interface AuthSessionPayload {
 
 @Injectable({ providedIn: 'root' })
 export class AuthTokenService {
-  private readonly sessionRev = new BehaviorSubject(0);
-  readonly sessionChanged$ = this.sessionRev.asObservable();
+  private rev = 0;
+  private readonly _session = new BehaviorSubject<AuthSessionSnapshot>(this.buildSnapshot());
+
+  /**
+   * Reactive session snapshot for shell UI. Emits on login, token refresh, switch-role, and logout.
+   * Prefer `toSignal(this.session$, { initialValue: this.getSessionSnapshot() })` or `async` pipe.
+   */
+  readonly session$ = this._session.asObservable();
+
+  /**
+   * @deprecated Use {@link session$} or {@link getSessionSnapshot}. Kept for compatibility; this is
+   * the same stream as `session$` (not a bare revision counter).
+   */
+  readonly sessionChanged$ = this.session$;
+
+  getSessionSnapshot(): AuthSessionSnapshot {
+    return this._session.value;
+  }
 
   getToken(): string | null {
     try {
@@ -169,18 +186,8 @@ export class AuthTokenService {
     } catch {
       /* ignore */
     }
-    if (payload.profileImageUrl !== undefined) {
-      try {
-        if (payload.profileImageUrl) {
-          localStorage.setItem(AVATAR_URL_KEY, payload.profileImageUrl);
-        } else {
-          localStorage.removeItem(AVATAR_URL_KEY);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    this.bumpSession();
+    this.syncAvatarStorage(payload);
+    this.pushSession();
   }
 
   clear(): void {
@@ -195,11 +202,57 @@ export class AuthTokenService {
     } catch {
       /* ignore */
     }
-    this.bumpSession();
+    this.pushSession();
   }
 
-  private bumpSession(): void {
-    this.sessionRev.next(this.sessionRev.value + 1);
+  private syncAvatarStorage(payload: AuthSessionPayload): void {
+    try {
+      if (payload.profileImageUrl !== undefined) {
+        if (payload.profileImageUrl) {
+          localStorage.setItem(AVATAR_URL_KEY, payload.profileImageUrl);
+        } else {
+          localStorage.removeItem(AVATAR_URL_KEY);
+        }
+        return;
+      }
+      const fromJwt = this.readProfileImageUrlFromToken(payload.accessToken);
+      if (fromJwt) {
+        localStorage.setItem(AVATAR_URL_KEY, fromJwt);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  private pushSession(): void {
+    this.rev += 1;
+    this._session.next(this.buildSnapshot());
+  }
+
+  private buildSnapshot(): AuthSessionSnapshot {
+    return {
+      rev: this.rev,
+      username: this.getUsername(),
+      userId: this.getUserId(),
+      profileImageUrl: this.getProfileImageUrl(),
+      roles: [...this.getRoles()],
+      currentRole: this.getCurrentRole()
+    };
+  }
+
+  private readProfileImageUrlFromToken(token: string | null): string | null {
+    const p = this.decodeJwtPayload(token);
+    if (!p) {
+      return null;
+    }
+    const keys = ['picture', 'profileImageUrl', 'avatar_url', 'avatar'] as const;
+    for (const k of keys) {
+      const v = p[k];
+      if (typeof v === 'string' && v.trim()) {
+        return v.trim();
+      }
+    }
+    return null;
   }
 
   private readUserIdFromToken(token: string | null): string | null {

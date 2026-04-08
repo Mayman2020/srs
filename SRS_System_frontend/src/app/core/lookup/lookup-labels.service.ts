@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, tap } from 'rxjs';
-import { LookupItemDto } from '../api/api-types';
+import { LookupBundleDto, LookupItemDto } from '../api/api-types';
 import { LookupService } from '../api/lookup.service';
 import { I18nService } from '../i18n/i18n.service';
 
@@ -21,13 +21,7 @@ export class LookupLabelsService {
   load(): Observable<void> {
     return this.lookupApi.getBundle().pipe(
       tap((b) => {
-        this.setTable('correspondenceType', b.correspondenceTypes);
-        this.setTable('correspondenceStatus', b.correspondenceStatuses);
-        this.setTable('priority', b.priorities);
-        this.setTable('confidentiality', b.confidentialities);
-        this.setTable('classification', b.classifications ?? []);
-        this.setTable('workflowActionType', b.workflowActionTypes);
-        this.setTable('workflowHistoryEventType', b.workflowHistoryEventTypes ?? []);
+        this.hydrateFromBundle(b);
       }),
       map(() => undefined)
     );
@@ -35,6 +29,17 @@ export class LookupLabelsService {
 
   private setTable(table: string, rows: LookupItemDto[]): void {
     this.byTable.set(table, new Map(rows.map((r) => [r.code, r])));
+  }
+
+  /** Populate label maps from a bundle (e.g. right after login or with create-transaction lookups). */
+  hydrateFromBundle(b: LookupBundleDto): void {
+    this.setTable('correspondenceType', b.correspondenceTypes);
+    this.setTable('correspondenceStatus', b.correspondenceStatuses);
+    this.setTable('priority', b.priorities);
+    this.setTable('confidentiality', b.confidentialities);
+    this.setTable('classification', b.classifications ?? []);
+    this.setTable('workflowActionType', b.workflowActionTypes);
+    this.setTable('workflowHistoryEventType', b.workflowHistoryEventTypes ?? []);
   }
 
   orderedRows(table: string): LookupItemDto[] {

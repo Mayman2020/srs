@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor, FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupItemDto } from '../../core/api/api-types';
 
 @Component({
   selector: 'app-generic-select',
@@ -72,10 +73,32 @@ export class GenericSelectComponent implements ControlValueAccessor {
     }
     const row = item as Record<string, unknown>;
     if (this.lookupTable) {
-      const code = row[this.primaryKey];
-      return this.lookupLabels.label(this.lookupTable, code == null ? '' : String(code));
+      const codeStr = row[this.primaryKey] == null ? '' : String(row[this.primaryKey]);
+      const resolved = this.lookupLabels.label(this.lookupTable, codeStr);
+      if (resolved !== '\u2014' && resolved !== codeStr) {
+        return resolved;
+      }
     }
     const v = row[this.displayKey];
-    return v == null ? '' : String(v);
+    if (v != null && String(v).trim() !== '') {
+      return String(v);
+    }
+    const nameAr = row['nameAr'];
+    const nameEn = row['nameEn'];
+    if (typeof nameAr === 'string' && typeof nameEn === 'string') {
+      const dto: LookupItemDto = {
+        id: 0,
+        code: String(row[this.primaryKey] ?? ''),
+        nameAr,
+        nameEn,
+        sortOrder: 0
+      };
+      return this.lookupLabels.displayName(dto);
+    }
+    if (this.lookupTable) {
+      const codeStr = row[this.primaryKey] == null ? '' : String(row[this.primaryKey]);
+      return this.lookupLabels.label(this.lookupTable, codeStr);
+    }
+    return '';
   }
 }

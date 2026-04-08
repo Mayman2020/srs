@@ -232,6 +232,7 @@ export interface UserListDto {
   email: string;
   departmentCode: string;
   active: boolean;
+  roleIds?: number[];
 }
 
 export interface WorkflowHistoryEntryDto {
@@ -273,6 +274,8 @@ export interface LoginResponseDto {
   username: string;
   roles: string[];
   currentRole: string;
+  /** Optional absolute or API-relative profile image URL from auth endpoints. */
+  profileImageUrl?: string | null;
 }
 
 export interface UserDetailDto {

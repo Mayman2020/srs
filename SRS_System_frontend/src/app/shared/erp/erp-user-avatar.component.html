@@ -1,0 +1,18 @@
+<span [ngClass]="hostClasses()" role="img" [attr.aria-label]="'profile.avatarAlt' | t">
+  @if (primarySrc?.trim() && !primaryFailed) {
+    <img
+      class="erp-avatar__img"
+      [src]="primarySrc!"
+      alt=""
+      (error)="onPrimaryError()"
+    />
+  } @else if (primarySrc?.trim() && primaryFailed && fallbackSrc) {
+    <img
+      class="erp-avatar__img erp-avatar__img--fallback"
+      [src]="fallbackSrc"
+      [attr.alt]="'profile.avatarFallbackAlt' | t"
+    />
+  } @else {
+    <span class="erp-avatar__initials">{{ initials }}</span>
+  }
+</span>

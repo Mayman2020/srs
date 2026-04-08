@@ -1,0 +1,42 @@
+<nav class="srs-pager" role="navigation" [attr.aria-label]="'dataTable.paginationAria' | t">
+  <div class="srs-pager__info">
+    <ng-container *ngIf="legacyCountOnPage > 0; else rangeTpl">
+      {{ 'transactions.pagerLine' | t: { a: legacyCountOnPage, b: total } }}
+    </ng-container>
+    <ng-template #rangeTpl>
+      {{ 'dataTable.pagerRange' | t: { start: rangeStart, end: rangeEnd, total: total } }}
+    </ng-template>
+  </div>
+
+  <div class="srs-pager__controls">
+    <button type="button" class="srs-pager__nav" (click)="prev()" [disabled]="page <= 1">
+      {{ 'common.previous' | t }}
+    </button>
+
+    <ng-container *ngFor="let item of pageItems(); trackBy: trackByPageItem">
+      <span *ngIf="item === 'ellipsis'" class="srs-pager__gap" aria-hidden="true">…</span>
+      <button
+        *ngIf="item !== 'ellipsis'"
+        type="button"
+        class="srs-pager__page"
+        [class.srs-pager__page--active]="item === page"
+        (click)="go(item)"
+      >
+        {{ item }}
+      </button>
+    </ng-container>
+
+    <button type="button" class="srs-pager__nav" (click)="next()" [disabled]="page >= totalPages">
+      {{ 'common.next' | t }}
+    </button>
+  </div>
+
+  <div class="srs-pager__size">
+    <label class="srs-pager__size-label">
+      <span class="srs-pager__size-text">{{ 'dataTable.rowsPerPage' | t }}</span>
+      <select [ngModel]="pageSize" (ngModelChange)="pageSizeChange.emit($event)">
+        <option *ngFor="let n of pageSizeOptions" [ngValue]="n">{{ n }}</option>
+      </select>
+    </label>
+  </div>
+</nav>

@@ -237,31 +237,6 @@ body {
 
 
 /* ===================================================== */
-/* ======================= TABLE ======================= */
-/* ===================================================== */
-
-.table-wrap table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table-wrap th {
-  background: #E6F4EF;
-  font-weight: 600;
-}
-
-.table-wrap th,
-.table-wrap td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border-light);
-  text-align: center;
-}
-
-.table-wrap tr:hover {
-  background: rgba(11, 110, 79, 0.058);
-}
-
-/* ===================================================== */
 /* ======================== TOAST ====================== */
 /* ===================================================== */
 

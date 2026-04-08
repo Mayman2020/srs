@@ -48,6 +48,11 @@
   position: relative;
   flex: 1;
   text-align: center;
+  cursor: default;
+}
+
+.step.step-clickable {
+  cursor: pointer;
 }
 
 /* الخط بين كل دائرتين */

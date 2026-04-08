@@ -132,6 +132,37 @@
 }
 
 /* USER MENU */
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #064635;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.lang-btn:hover {
+  background: #eef4f2;
+}
+
+.lang-btn.active {
+  background: #064635;
+  color: #fff;
+  border-color: #064635;
+}
+
 .user-menu{
   display:flex;
   align-items:center;
@@ -162,6 +193,21 @@
   font-weight:600;
   font-size:14px;
   flex-shrink: 0;
+}
+
+/* Match legacy avatar dimensions on shared {@link ErpUserAvatarComponent} */
+app-erp-user-avatar.topbar-erp-avatar ::ng-deep .erp-avatar--md {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #064635;
+  color: #fff;
+  font-size: 14px;
+}
+
+app-erp-user-avatar.topbar-erp-avatar ::ng-deep .erp-avatar__img {
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
 }
 
 .user-avatar-img {

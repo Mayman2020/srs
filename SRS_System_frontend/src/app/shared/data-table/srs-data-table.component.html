@@ -1,0 +1,34 @@
+<div class="srs-dt-root">
+  <ng-content select="[srsDtToolbar]"></ng-content>
+
+  <div class="srs-dt-scroll" [class.srs-dt-scroll--busy]="loading && useOverlay">
+    <srs-table-skeleton
+      *ngIf="showSkeletonLayer"
+      [rows]="skeletonRows"
+      [columns]="skeletonColumns"
+      [ariaLabel]="skeletonAriaLabel"
+    />
+
+    <div class="srs-dt-inner" [class.srs-dt-inner--ghost]="ghostInner">
+      <ng-content></ng-content>
+    </div>
+
+    <div
+      *ngIf="loading && useOverlay"
+      class="srs-dt-overlay"
+      role="status"
+      [attr.aria-label]="skeletonAriaLabel || null"
+    ></div>
+  </div>
+
+  <srs-table-pagination
+    *ngIf="showPagination && (!loading || preservePaginationWhileLoading)"
+    [page]="page"
+    [pageSize]="pageSize"
+    [total]="total"
+    [pageSizeOptions]="pageSizeOptions"
+    [legacyCountOnPage]="legacyCountOnPage"
+    (pageChange)="paginationPage.emit($event)"
+    (pageSizeChange)="paginationPageSize.emit($event)"
+  />
+</div>
