@@ -9,18 +9,23 @@
 
   <nav class="tab-strip" aria-label="admin sections">
     <button type="button" class="tab" [class.active]="activeTab === 'users'" (click)="selectTab('users')">
+      <i class="fa-solid fa-users"></i>
       {{ 'admin.tabUsers' | t }}
     </button>
     <button type="button" class="tab" [class.active]="activeTab === 'permissions'" (click)="selectTab('permissions')">
+      <i class="fa-solid fa-key"></i>
       {{ 'admin.tabPermissions' | t }}
     </button>
     <button type="button" class="tab" [class.active]="activeTab === 'screens'" (click)="selectTab('screens')">
+      <i class="fa-solid fa-tablet-screen-button"></i>
       {{ 'admin.tabScreens' | t }}
     </button>
     <button type="button" class="tab" [class.active]="activeTab === 'roles'" (click)="selectTab('roles')">
+      <i class="fa-solid fa-shield-halved"></i>
       {{ 'admin.tabRolesMatrix' | t }}
     </button>
     <button type="button" class="tab tab-warn" [class.active]="activeTab === 'issues'" (click)="selectTab('issues')">
+      <i class="fa-solid fa-triangle-exclamation"></i>
       {{ 'admin.tabIssues' | t }}
     </button>
   </nav>
@@ -29,283 +34,132 @@
   <section class="panel" *ngIf="activeTab === 'users'">
     <div class="panel-head">
       <h2>{{ 'admin.usersTitle' | t }}</h2>
-      <button type="button" class="btn primary" (click)="openAddUser()">{{ 'admin.add' | t }}</button>
+      <button type="button" class="btn primary" (click)="openAddUser()">
+        <i class="fa-solid fa-user-plus"></i>
+        {{ 'admin.add' | t }}
+      </button>
     </div>
-    <srs-data-table
-      [loading]="loading"
-      [skeletonRows]="6"
-      [skeletonColumns]="6"
-      [skeletonAriaLabel]="'common.loading' | t"
-      [page]="adminUsersPage"
-      [pageSize]="adminUsersPageSize"
-      [total]="usersViewTotal"
-      [legacyCountOnPage]="0"
-      (paginationPage)="onAdminUserPage($event)"
-      (paginationPageSize)="onAdminUserPageSize($event)"
-    >
-      <div srsDtToolbar *ngIf="!loading">
-        <input
-          type="text"
-          [(ngModel)]="adminUsersQuery"
-          (ngModelChange)="onAdminUsersQueryChange()"
-          [attr.placeholder]="'dataTable.filterPlaceholder' | t"
-        />
-      </div>
-      <table>
+    <div class="table-wrap" *ngIf="!loading">
+      <table class="data-table">
         <thead>
           <tr>
-            <th>
-              <srs-sort-header
-                columnId="name"
-                labelKey="admin.colName"
-                [activeColumn]="adminUsersSortCol"
-                [direction]="adminUsersSortDir"
-                (sortChange)="onAdminUserSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="username"
-                labelKey="admin.colUsername"
-                [activeColumn]="adminUsersSortCol"
-                [direction]="adminUsersSortDir"
-                (sortChange)="onAdminUserSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="email"
-                labelKey="admin.colEmail"
-                [activeColumn]="adminUsersSortCol"
-                [direction]="adminUsersSortDir"
-                (sortChange)="onAdminUserSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="dept"
-                labelKey="admin.colDept"
-                [activeColumn]="adminUsersSortCol"
-                [direction]="adminUsersSortDir"
-                (sortChange)="onAdminUserSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="status"
-                labelKey="admin.colStatus"
-                [activeColumn]="adminUsersSortCol"
-                [direction]="adminUsersSortDir"
-                (sortChange)="onAdminUserSort($event)"
-              />
-            </th>
-            <th class="srs-dt-th-plain actions">{{ 'admin.colActions' | t }}</th>
+            <th>{{ 'admin.colName' | t }}</th>
+            <th>{{ 'admin.colUsername' | t }}</th>
+            <th>{{ 'admin.colEmail' | t }}</th>
+            <th>{{ 'admin.colDept' | t }}</th>
+            <th>{{ 'admin.colStatus' | t }}</th>
+            <th class="actions">{{ 'admin.colActions' | t }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let u of usersView; trackBy: trackByUserListId" [@srsTableRowEnter]>
+          <tr *ngFor="let u of users">
             <td>{{ u.fullNameAr || u.fullNameEn || u.username }}</td>
             <td>{{ u.username }}</td>
             <td>{{ u.email }}</td>
             <td>{{ u.departmentCode || ('common.dash' | t) }}</td>
             <td>{{ u.active ? ('users.statusActive' | t) : ('users.statusSuspended' | t) }}</td>
             <td class="actions">
-              <button type="button" class="link" (click)="openViewUser(u)">{{ 'admin.view' | t }}</button>
-              <button type="button" class="link" (click)="openEditUser(u)">{{ 'admin.edit' | t }}</button>
-              <button type="button" class="link" (click)="openAssignRole(u)">{{ 'admin.assignRole' | t }}</button>
-              <button type="button" class="link danger" (click)="confirmDeleteUser(u)">{{ 'admin.delete' | t }}</button>
+              <button type="button" class="link" (click)="openViewUser(u)"><i class="fa-solid fa-eye"></i>{{ 'admin.view' | t }}</button>
+              <button type="button" class="link" (click)="openEditUser(u)"><i class="fa-solid fa-pen"></i>{{ 'admin.edit' | t }}</button>
+              <button type="button" class="link" (click)="openAssignRole(u)"><i class="fa-solid fa-user-tag"></i>{{ 'admin.assignRole' | t }}</button>
+              <button type="button" class="link danger" (click)="confirmDeleteUser(u)"><i class="fa-solid fa-trash"></i>{{ 'admin.delete' | t }}</button>
             </td>
           </tr>
-          <tr *ngIf="!loading && usersViewTotal === 0">
-            <td colspan="6" class="srs-dt-empty">{{ 'common.empty' | t }}</td>
+          <tr *ngIf="!loading && users.length === 0">
+            <td colspan="6" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
       </table>
-    </srs-data-table>
+    </div>
+    <p *ngIf="loading" class="muted">{{ 'common.loading' | t }}</p>
   </section>
 
   <!-- PERMISSIONS -->
   <section class="panel" *ngIf="activeTab === 'permissions'">
     <div class="panel-head">
       <h2>{{ 'admin.permsTitle' | t }}</h2>
-      <button type="button" class="btn primary" (click)="openAddPerm()">{{ 'admin.add' | t }}</button>
+      <button type="button" class="btn primary" (click)="openAddPerm()">
+        <i class="fa-solid fa-plus"></i>
+        {{ 'admin.add' | t }}
+      </button>
     </div>
-    <srs-data-table
-      [loading]="permissionsLoading"
-      [skeletonRows]="6"
-      [skeletonColumns]="6"
-      [skeletonAriaLabel]="'common.loading' | t"
-      [page]="permPage"
-      [pageSize]="permPageSize"
-      [total]="permissionsTableTotal"
-      [legacyCountOnPage]="0"
-      (paginationPage)="onPermPage($event)"
-      (paginationPageSize)="onPermPageSize($event)"
-    >
-      <div srsDtToolbar *ngIf="!permissionsLoading">
-        <input
-          type="text"
-          [(ngModel)]="permQuery"
-          (ngModelChange)="onPermQueryChange()"
-          [attr.placeholder]="'dataTable.filterPlaceholder' | t"
-        />
-      </div>
-      <table>
+    <div class="table-wrap">
+      <table class="data-table">
         <thead>
           <tr>
-            <th>
-              <srs-sort-header
-                columnId="code"
-                labelKey="admin.colCode"
-                [activeColumn]="permSortCol"
-                [direction]="permSortDir"
-                (sortChange)="onPermSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="nameAr"
-                labelKey="admin.colNameAr"
-                [activeColumn]="permSortCol"
-                [direction]="permSortDir"
-                (sortChange)="onPermSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="nameEn"
-                labelKey="admin.colNameEn"
-                [activeColumn]="permSortCol"
-                [direction]="permSortDir"
-                (sortChange)="onPermSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="sortOrder"
-                labelKey="admin.colSort"
-                [activeColumn]="permSortCol"
-                [direction]="permSortDir"
-                (sortChange)="onPermSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="active"
-                labelKey="admin.colActive"
-                [activeColumn]="permSortCol"
-                [direction]="permSortDir"
-                (sortChange)="onPermSort($event)"
-              />
-            </th>
-            <th class="srs-dt-th-plain actions">{{ 'admin.colActions' | t }}</th>
+            <th>{{ 'admin.colCode' | t }}</th>
+            <th>{{ 'admin.colNameAr' | t }}</th>
+            <th>{{ 'admin.colNameEn' | t }}</th>
+            <th>{{ 'admin.colSort' | t }}</th>
+            <th>{{ 'admin.colActive' | t }}</th>
+            <th>{{ 'admin.screensTitle' | t }}</th>
+            <th class="actions">{{ 'admin.colActions' | t }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of permissionsView; trackBy: trackByPermId" [@srsTableRowEnter]>
+          <tr *ngFor="let p of permissions">
             <td><code>{{ p.code }}</code></td>
             <td>{{ p.nameAr }}</td>
             <td>{{ p.nameEn }}</td>
             <td>{{ p.sortOrder }}</td>
             <td>{{ p.active ? ('common.toastOk' | t) : ('common.empty' | t) }}</td>
+            <td><code>{{ labelScreen(p.uiScreenId) }}</code></td>
             <td class="actions">
-              <button type="button" class="link" (click)="openEditPerm(p)">{{ 'admin.edit' | t }}</button>
-              <button type="button" class="link danger" (click)="deletePerm(p)">{{ 'admin.delete' | t }}</button>
+              <button type="button" class="link" (click)="openEditPerm(p)"><i class="fa-solid fa-pen"></i>{{ 'admin.edit' | t }}</button>
+              <button type="button" class="link danger" (click)="deletePerm(p)"><i class="fa-solid fa-trash"></i>{{ 'admin.delete' | t }}</button>
             </td>
           </tr>
-          <tr *ngIf="!permissionsLoading && permissionsTableTotal === 0">
-            <td colspan="6" class="srs-dt-empty">{{ 'common.empty' | t }}</td>
+          <tr *ngIf="permissions.length === 0">
+            <td colspan="7" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
       </table>
-    </srs-data-table>
+    </div>
   </section>
 
   <!-- SCREENS -->
   <section class="panel" *ngIf="activeTab === 'screens'">
     <div class="panel-head">
       <h2>{{ 'admin.screensTitle' | t }}</h2>
-      <button type="button" class="btn primary" (click)="openAddScreen()">{{ 'admin.add' | t }}</button>
+      <button type="button" class="btn primary" (click)="openAddScreen()">
+        <i class="fa-solid fa-plus"></i>
+        {{ 'admin.add' | t }}
+      </button>
     </div>
-    <srs-data-table
-      [loading]="screensLoading"
-      [skeletonRows]="5"
-      [skeletonColumns]="5"
-      [skeletonAriaLabel]="'common.loading' | t"
-      [page]="screenPage"
-      [pageSize]="screenPageSize"
-      [total]="screensTableTotal"
-      [legacyCountOnPage]="0"
-      (paginationPage)="onScreenPage($event)"
-      (paginationPageSize)="onScreenPageSize($event)"
-    >
-      <div srsDtToolbar *ngIf="!screensLoading">
-        <input
-          type="text"
-          [(ngModel)]="screenQuery"
-          (ngModelChange)="onScreenQueryChange()"
-          [attr.placeholder]="'dataTable.filterPlaceholder' | t"
-        />
-      </div>
-      <table>
+    <div class="table-wrap">
+      <table class="data-table">
         <thead>
           <tr>
-            <th>
-              <srs-sort-header
-                columnId="code"
-                labelKey="admin.colCode"
-                [activeColumn]="screenSortCol"
-                [direction]="screenSortDir"
-                (sortChange)="onScreenSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="route"
-                labelKey="admin.colRoute"
-                [activeColumn]="screenSortCol"
-                [direction]="screenSortDir"
-                (sortChange)="onScreenSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="nameAr"
-                labelKey="admin.colNameAr"
-                [activeColumn]="screenSortCol"
-                [direction]="screenSortDir"
-                (sortChange)="onScreenSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="nameEn"
-                labelKey="admin.colNameEn"
-                [activeColumn]="screenSortCol"
-                [direction]="screenSortDir"
-                (sortChange)="onScreenSort($event)"
-              />
-            </th>
-            <th class="srs-dt-th-plain actions">{{ 'admin.colActions' | t }}</th>
+            <th>{{ 'admin.colCode' | t }}</th>
+            <th>{{ 'admin.colRoute' | t }}</th>
+            <th>{{ 'admin.colIcon' | t }}</th>
+            <th>{{ 'admin.colShellNav' | t }}</th>
+            <th>{{ 'admin.screenRequiredPerm' | t }}</th>
+            <th>{{ 'admin.colNameAr' | t }}</th>
+            <th>{{ 'admin.colNameEn' | t }}</th>
+            <th class="actions">{{ 'admin.colActions' | t }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of screensView; trackBy: trackByScreenId" [@srsTableRowEnter]>
+          <tr *ngFor="let s of screens">
             <td><code>{{ s.code }}</code></td>
             <td><code>{{ s.routePath }}</code></td>
+            <td><code>{{ s.iconKey }}</code></td>
+            <td>{{ s.showInShellNav ? ('admin.shellNavYes' | t) : ('admin.shellNavNo' | t) }}</td>
+            <td>{{ screenRequiredPermLabel(s) || ('admin.screenPermNone' | t) }}</td>
             <td>{{ s.nameAr }}</td>
             <td>{{ s.nameEn }}</td>
             <td class="actions">
-              <button type="button" class="link" (click)="openEditScreen(s)">{{ 'admin.edit' | t }}</button>
-              <button type="button" class="link danger" (click)="deleteScreen(s)">{{ 'admin.delete' | t }}</button>
+              <button type="button" class="link" (click)="openEditScreen(s)"><i class="fa-solid fa-pen"></i>{{ 'admin.edit' | t }}</button>
+              <button type="button" class="link danger" (click)="deleteScreen(s)"><i class="fa-solid fa-trash"></i>{{ 'admin.delete' | t }}</button>
             </td>
           </tr>
-          <tr *ngIf="!screensLoading && screensTableTotal === 0">
-            <td colspan="5" class="srs-dt-empty">{{ 'common.empty' | t }}</td>
+          <tr *ngIf="screens.length === 0">
+            <td colspan="8" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
       </table>
-    </srs-data-table>
+    </div>
   </section>
 
   <!-- ROLES + MATRIX -->
@@ -332,26 +186,14 @@
       <div class="panel-head">
         <h2>{{ 'admin.matrixTitle' | t }}</h2>
         <button type="button" class="btn primary" (click)="saveMatrix()" [disabled]="matrixSaving || matrixRoleId == null">
+          <i class="fa-solid fa-floppy-disk"></i>
           {{ 'admin.saveMatrix' | t }}
         </button>
       </div>
       <p class="muted" *ngIf="matrixRoleId == null">{{ 'admin.pickRole' | t }}</p>
-      <div *ngIf="matrixSaving" class="loader-screen">
-        <div class="loading"></div>
-        <span>{{ 'common.loading' | t }}</span>
-      </div>
-      <cdk-virtual-scroll-viewport
-        *ngIf="matrixRoleId != null && !matrixSaving && useMatrixVirtualScroll()"
-        itemSize="48"
-        class="matrix-viewport"
-      >
-        <label *cdkVirtualFor="let row of matrixChecks; trackBy: trackByMatrixRow" class="matrix-row">
-          <input type="checkbox" [(ngModel)]="row.checked" />
-          <span class="matrix-label"><strong>{{ row.code }}</strong> — {{ row.label }}</span>
-        </label>
-      </cdk-virtual-scroll-viewport>
-      <div class="matrix-list" *ngIf="matrixRoleId != null && !matrixSaving && !useMatrixVirtualScroll()">
-        <label class="matrix-row" *ngFor="let row of matrixChecks; trackBy: trackByMatrixRow">
+      <p class="muted" *ngIf="matrixSaving">{{ 'common.loading' | t }}</p>
+      <div class="matrix-list" *ngIf="matrixRoleId != null">
+        <label class="matrix-row" *ngFor="let row of matrixChecks">
           <input type="checkbox" [(ngModel)]="row.checked" />
           <span class="matrix-label"><strong>{{ row.code }}</strong> — {{ row.label }}</span>
         </label>
@@ -363,90 +205,26 @@
   <section class="panel" *ngIf="activeTab === 'issues'">
     <div class="panel-head">
       <h2>{{ 'admin.issuesTitle' | t }}</h2>
-      <button type="button" class="btn ghost" (click)="loadIssues()">{{ 'admin.refresh' | t }}</button>
+      <button type="button" class="btn ghost" (click)="loadIssues()">
+        <i class="fa-solid fa-rotate-right"></i>
+        {{ 'admin.refresh' | t }}
+      </button>
     </div>
-    <srs-data-table
-      [loading]="loading"
-      [skeletonRows]="5"
-      [skeletonColumns]="7"
-      [skeletonAriaLabel]="'common.loading' | t"
-      [page]="issuePage"
-      [pageSize]="issuePageSize"
-      [total]="issuesTableTotal"
-      [legacyCountOnPage]="0"
-      (paginationPage)="onIssuePage($event)"
-      (paginationPageSize)="onIssuePageSize($event)"
-    >
-      <div srsDtToolbar *ngIf="!loading">
-        <input
-          type="text"
-          [(ngModel)]="issueQuery"
-          (ngModelChange)="onIssueQueryChange()"
-          [attr.placeholder]="'dataTable.filterPlaceholder' | t"
-        />
-      </div>
-      <table>
+    <div class="table-wrap" *ngIf="!loading">
+      <table class="data-table">
         <thead>
           <tr>
-            <th>
-              <srs-sort-header
-                columnId="when"
-                labelKey="admin.colWhen"
-                [activeColumn]="issueSortCol"
-                [direction]="issueSortDir"
-                (sortChange)="onIssueSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="severity"
-                labelKey="admin.colSeverity"
-                [activeColumn]="issueSortCol"
-                [direction]="issueSortDir"
-                (sortChange)="onIssueSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="message"
-                labelKey="admin.colMessage"
-                [activeColumn]="issueSortCol"
-                [direction]="issueSortDir"
-                (sortChange)="onIssueSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="url"
-                labelKey="admin.colUrl"
-                [activeColumn]="issueSortCol"
-                [direction]="issueSortDir"
-                (sortChange)="onIssueSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="http"
-                labelKey="admin.colHttp"
-                [activeColumn]="issueSortCol"
-                [direction]="issueSortDir"
-                (sortChange)="onIssueSort($event)"
-              />
-            </th>
-            <th>
-              <srs-sort-header
-                columnId="resolved"
-                labelKey="admin.colResolved"
-                [activeColumn]="issueSortCol"
-                [direction]="issueSortDir"
-                (sortChange)="onIssueSort($event)"
-              />
-            </th>
-            <th class="srs-dt-th-plain actions">{{ 'admin.colActions' | t }}</th>
+            <th>{{ 'admin.colWhen' | t }}</th>
+            <th>{{ 'admin.colSeverity' | t }}</th>
+            <th>{{ 'admin.colMessage' | t }}</th>
+            <th>{{ 'admin.colUrl' | t }}</th>
+            <th>{{ 'admin.colHttp' | t }}</th>
+            <th>{{ 'admin.colResolved' | t }}</th>
+            <th class="actions">{{ 'admin.colActions' | t }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let i of issuesView; trackBy: trackByIssueId" [class.resolved]="issueResolved(i)" [@srsTableRowEnter]>
+          <tr *ngFor="let i of issues" [class.resolved]="issueResolved(i)">
             <td>{{ i.createdAt | date: 'short' }}</td>
             <td>{{ i.severity }}</td>
             <td class="msg-cell">{{ i.message }}</td>
@@ -455,16 +233,17 @@
             <td>{{ issueResolved(i) ? ('common.toastOk' | t) : ('common.empty' | t) }}</td>
             <td class="actions">
               <button type="button" class="link" *ngIf="!issueResolved(i)" (click)="openResolveIssue(i)">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
                 {{ 'admin.resolve' | t }}
               </button>
             </td>
           </tr>
-          <tr *ngIf="!loading && issuesTableTotal === 0">
-            <td colspan="7" class="srs-dt-empty">{{ 'common.empty' | t }}</td>
+          <tr *ngIf="!loading && issues.length === 0">
+            <td colspan="7" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
       </table>
-    </srs-data-table>
+    </div>
   </section>
 </div>
 
@@ -472,6 +251,7 @@
 <div class="modal-overlay" *ngIf="userModal === 'add' || userModal === 'edit'" (click)="closeUserModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <h3>{{ userModal === 'add' ? ('admin.userAdd' | t) : ('admin.userEdit' | t) }}</h3>
+    <app-erp-auto-reference-field *ngIf="userModal === 'add'" />
     <label *ngIf="userModal === 'add'">{{ 'admin.colUsername' | t }}
       <input [(ngModel)]="userForm.username" name="u" />
     </label>
@@ -491,8 +271,8 @@
       <input type="checkbox" [(ngModel)]="userForm.active" /> {{ 'admin.colActive' | t }}
     </label>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="closeUserModal()">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="saveUser()">{{ 'common.apply' | t }}</button>
+      <button type="button" class="btn ghost" (click)="closeUserModal()"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
+      <button type="button" class="btn primary" (click)="saveUser()"><i class="fa-solid fa-floppy-disk"></i>{{ 'common.apply' | t }}</button>
     </div>
   </div>
 </div>
@@ -505,7 +285,7 @@
     <p><strong>{{ 'admin.colNameEn' | t }}:</strong> {{ userForm.fullNameEn }}</p>
     <p><strong>{{ 'admin.colEmail' | t }}:</strong> {{ userForm.email }}</p>
     <p><strong>{{ 'admin.colActive' | t }}:</strong> {{ userForm.active ? ('users.statusActive' | t) : ('users.statusSuspended' | t) }}</p>
-    <button type="button" class="btn primary" (click)="closeUserModal()">{{ 'common.close' | t }}</button>
+    <button type="button" class="btn primary" (click)="closeUserModal()"><i class="fa-solid fa-check"></i>{{ 'common.close' | t }}</button>
   </div>
 </div>
 
@@ -516,8 +296,8 @@
       <option *ngFor="let r of rolesLookup" [ngValue]="r.id">{{ labelRoleCard(r) }}</option>
     </select>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="closeUserModal()">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="saveAssignRole()">{{ 'common.apply' | t }}</button>
+      <button type="button" class="btn ghost" (click)="closeUserModal()"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
+      <button type="button" class="btn primary" (click)="saveAssignRole()"><i class="fa-solid fa-user-tag"></i>{{ 'common.apply' | t }}</button>
     </div>
   </div>
 </div>
@@ -526,15 +306,22 @@
 <div class="modal-overlay" *ngIf="permModal" (click)="permModal = null">
   <div class="modal modal-wide" (click)="$event.stopPropagation()">
     <h3>{{ permModal === 'add' ? ('admin.permAdd' | t) : ('admin.permEdit' | t) }}</h3>
+    <app-erp-auto-reference-field [value]="permModal === 'edit' && permForm.id != null ? permForm.id : null" />
     <label>{{ 'admin.colCode' | t }}<input [(ngModel)]="permForm.code" /></label>
     <label>{{ 'admin.colNameAr' | t }}<input [(ngModel)]="permForm.nameAr" /></label>
     <label>{{ 'admin.colNameEn' | t }}<input [(ngModel)]="permForm.nameEn" /></label>
     <label>{{ 'admin.description' | t }}<textarea [(ngModel)]="permForm.description" rows="2"></textarea></label>
+    <label>{{ 'admin.screensTitle' | t }}
+      <select [(ngModel)]="permForm.uiScreenId">
+        <option [ngValue]="null">—</option>
+        <option *ngFor="let s of screens" [ngValue]="s.id">{{ s.code }} — {{ s.routePath }}</option>
+      </select>
+    </label>
     <label>{{ 'admin.colSort' | t }}<input type="number" [(ngModel)]="permForm.sortOrder" /></label>
     <label><input type="checkbox" [(ngModel)]="permForm.active" /> {{ 'admin.colActive' | t }}</label>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="permModal = null">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="savePerm()">{{ 'common.apply' | t }}</button>
+      <button type="button" class="btn ghost" (click)="permModal = null"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
+      <button type="button" class="btn primary" (click)="savePerm()"><i class="fa-solid fa-floppy-disk"></i>{{ 'common.apply' | t }}</button>
     </div>
   </div>
 </div>
@@ -543,16 +330,25 @@
 <div class="modal-overlay" *ngIf="screenModal" (click)="screenModal = null">
   <div class="modal modal-wide" (click)="$event.stopPropagation()">
     <h3>{{ screenModal === 'add' ? ('admin.screenAdd' | t) : ('admin.screenEdit' | t) }}</h3>
+    <app-erp-auto-reference-field [value]="screenModal === 'edit' && screenForm.id != null ? screenForm.id : null" />
     <label>{{ 'admin.colCode' | t }}<input [(ngModel)]="screenForm.code" /></label>
     <label>{{ 'admin.colRoute' | t }}<input [(ngModel)]="screenForm.routePath" /></label>
+    <label>{{ 'admin.screenIconKey' | t }}<input [(ngModel)]="screenForm.iconKey" /></label>
     <label>{{ 'admin.colNameAr' | t }}<input [(ngModel)]="screenForm.nameAr" /></label>
     <label>{{ 'admin.colNameEn' | t }}<input [(ngModel)]="screenForm.nameEn" /></label>
     <label>{{ 'admin.description' | t }}<textarea [(ngModel)]="screenForm.description" rows="2"></textarea></label>
     <label>{{ 'admin.colSort' | t }}<input type="number" [(ngModel)]="screenForm.sortOrder" /></label>
     <label><input type="checkbox" [(ngModel)]="screenForm.active" /> {{ 'admin.colActive' | t }}</label>
+    <label><input type="checkbox" [(ngModel)]="screenForm.showInShellNav" /> {{ 'admin.screenShowInShellNav' | t }}</label>
+    <label>{{ 'admin.screenRequiredPerm' | t }}
+      <select [(ngModel)]="screenForm.requiredPermissionId">
+        <option [ngValue]="null">{{ 'admin.screenPermNone' | t }}</option>
+        <option *ngFor="let p of permissions" [ngValue]="p.id">{{ labelPermission(p) }} ({{ p.code }})</option>
+      </select>
+    </label>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="screenModal = null">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="saveScreen()">{{ 'common.apply' | t }}</button>
+      <button type="button" class="btn ghost" (click)="screenModal = null"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
+      <button type="button" class="btn primary" (click)="saveScreen()"><i class="fa-solid fa-floppy-disk"></i>{{ 'common.apply' | t }}</button>
     </div>
   </div>
 </div>
@@ -563,8 +359,8 @@
     <h3>{{ 'admin.resolveIssue' | t }}</h3>
     <textarea [(ngModel)]="issueResolveNote" rows="3" [placeholder]="'admin.resolveNotePh' | t"></textarea>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="issueResolveId = null">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="saveResolveIssue()">{{ 'admin.resolve' | t }}</button>
+      <button type="button" class="btn ghost" (click)="issueResolveId = null"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
+      <button type="button" class="btn primary" (click)="saveResolveIssue()"><i class="fa-solid fa-check-circle"></i>{{ 'admin.resolve' | t }}</button>
     </div>
   </div>
 </div>

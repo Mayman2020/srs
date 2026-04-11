@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.YearMonth;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,7 +37,11 @@ public class AttachmentController {
   private final AttachmentStorageProperties storageProperties;
 
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public AttachmentUploadResponse upload(@RequestPart("file") MultipartFile file) throws IOException {
+  public AttachmentUploadResponse upload(
+      @RequestPart("file") MultipartFile file,
+      @org.springframework.web.bind.annotation.RequestParam(name = "fileCode", required = false)
+          String fileCode)
+      throws IOException {
     if (file == null || file.isEmpty()) {
       throw new BadRequestException("file is required");
     }
@@ -53,15 +57,31 @@ public class AttachmentController {
     Path root = Paths.get(storageProperties.root()).toAbsolutePath().normalize();
     Files.createDirectories(root);
 
-    String ym = YearMonth.now().toString();
-    String relativeDir = "uploads/" + ym;
+    UUID userId = SecurityUtils.requireCurrentUserId();
+    LocalDate today = LocalDate.now();
+    String codePart = "UPLOAD";
+    if (fileCode != null && !fileCode.isBlank()) {
+      codePart = fileCode.replaceAll("[^a-zA-Z0-9._-]", "_");
+      if (codePart.length() > 80) {
+        codePart = codePart.substring(codePart.length() - 80);
+      }
+    }
+    String relativeDir =
+        "SRS/"
+            + userId
+            + "/"
+            + today.getYear()
+            + "/"
+            + String.format("%02d", today.getMonthValue())
+            + "/"
+            + String.format("%02d", today.getDayOfMonth());
     Path dir = root.resolve(relativeDir).normalize();
     if (!dir.startsWith(root)) {
       throw new IllegalStateException("Invalid storage root");
     }
     Files.createDirectories(dir);
 
-    String unique = UUID.randomUUID() + "_" + original;
+    String unique = codePart + "_" + UUID.randomUUID() + "_" + original;
     Path target = dir.resolve(unique).normalize();
     if (!target.startsWith(root)) {
       throw new IllegalStateException("Invalid path");

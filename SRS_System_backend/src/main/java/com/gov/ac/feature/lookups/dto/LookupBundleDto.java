@@ -9,4 +9,5 @@ public record LookupBundleDto(
     List<LookupItemDto> confidentialities,
     List<LookupItemDto> classifications,
     List<LookupItemDto> workflowActionTypes,
-    List<LookupItemDto> workflowHistoryEventTypes) {}
+    List<LookupItemDto> workflowHistoryEventTypes,
+    List<LookupItemDto> orgVisualNodeStatuses) {}

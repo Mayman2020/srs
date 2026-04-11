@@ -19,11 +19,20 @@ import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
 import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
 import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
+import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
 @Component({
   selector: 'app-transactions-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, LookupTranslatePipe, SrsDataTableComponent, SrsSortHeaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    LookupTranslatePipe,
+    SrsDataTableComponent,
+    SrsSortHeaderComponent,
+    StatusBadgeComponent,
+  ],
   templateUrl: './transactions-list.component.html',
   styleUrls: ['./transactions-list.component.css'],
   animations: [srsTableRowEnter]
@@ -45,8 +54,8 @@ export class TransactionsListComponent implements OnInit {
   total = 0;
 
   tableLoading = true;
-  sortColumn = 'id';
-  sortDir: SortDirection = 'asc';
+  sortColumn = 'createdAt';
+  sortDir: SortDirection = 'desc';
 
   statusFilterCodes: string[] = [];
 
@@ -121,6 +130,14 @@ export class TransactionsListComponent implements OnInit {
     this.applyPagination();
   }
 
+  resetFilters(): void {
+    this.fNo = '';
+    this.fSubject = '';
+    this.fFrom = '';
+    this.fStatus = '';
+    this.applyFilters();
+  }
+
   applyPagination(): void {
     const sorted = this.sortTransactions(this.filtered);
     const r = srsClientPaginate(sorted, this.page, this.pageSize);
@@ -156,6 +173,8 @@ export class TransactionsListComponent implements OnInit {
     const dir = this.sortDir;
     return [...rows].sort((a, b) => {
       switch (col) {
+        case 'createdAt':
+          return compareSortValues(a.createdAt.getTime(), b.createdAt.getTime(), dir);
         case 'id': {
           const na = Number(a.id);
           const nb = Number(b.id);

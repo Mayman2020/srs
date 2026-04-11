@@ -4,6 +4,7 @@ import com.gov.ac.correspondence.dto.AttachmentVersionDto;
 import com.gov.ac.correspondence.dto.CorrespondenceAttachmentDetailDto;
 import com.gov.ac.correspondence.dto.CorrespondenceCommentDetailDto;
 import com.gov.ac.correspondence.dto.CorrespondenceDetailResponse;
+import com.gov.ac.correspondence.dto.WorkflowActionAvailableDto;
 import com.gov.ac.correspondence.dto.CorrespondenceTimelineEntryDto;
 import com.gov.ac.correspondence.dto.DepartmentSummaryDto;
 import com.gov.ac.correspondence.dto.LookupLabelDto;
@@ -12,6 +13,7 @@ import com.gov.ac.correspondence.dto.UserSummaryDto;
 import com.gov.ac.domain.correspondence.Attachment;
 import com.gov.ac.domain.correspondence.AttachmentVersion;
 import com.gov.ac.domain.correspondence.Correspondence;
+import com.gov.ac.domain.workflow.ServiceWorkflowRoute;
 import com.gov.ac.domain.correspondence.CorrespondenceComment;
 import com.gov.ac.domain.lookup.AttachmentContentType;
 import com.gov.ac.domain.lookup.Confidentiality;
@@ -36,7 +38,9 @@ public class CorrespondenceDetailMapper {
       List<Attachment> attachments,
       Map<Long, List<AttachmentVersion>> versionsByAttachmentId,
       List<CorrespondenceComment> comments,
-      List<WorkflowHistory> historyRows) {
+      List<WorkflowHistory> historyRows,
+      List<WorkflowActionAvailableDto> availableWorkflowActions,
+      boolean cancelAllowed) {
 
     List<CorrespondenceAttachmentDetailDto> attachmentDtos = new ArrayList<>();
     for (Attachment a : attachments) {
@@ -82,9 +86,20 @@ public class CorrespondenceDetailMapper {
         .totalAttachmentBytes(c.getTotalAttachmentBytes() != null ? c.getTotalAttachmentBytes() : 0L)
         .createdAt(c.getCreatedAt())
         .updatedAt(c.getUpdatedAt())
+        .workflowRouteMode(
+            c.getWorkflowRouteMode() != null ? c.getWorkflowRouteMode() : "AUTO")
+        .serviceWorkflowRouteId(
+            c.getServiceWorkflowRoute() != null ? c.getServiceWorkflowRoute().getId() : null)
+        .workflowProcessDefinitionKey(workflowProcessKey(c.getServiceWorkflowRoute()))
+        .supplyTransaction(Boolean.TRUE.equals(c.getSupplyTransaction()))
+        .beneficiaryName(c.getBeneficiaryName())
+        .beneficiaryOrganization(c.getBeneficiaryOrganization())
+        .beneficiaryIdentifier(c.getBeneficiaryIdentifier())
         .attachments(attachmentDtos)
         .timeline(timeline)
         .comments(commentDtos)
+        .availableWorkflowActions(availableWorkflowActions != null ? availableWorkflowActions : List.of())
+        .cancelAllowed(cancelAllowed)
         .build();
   }
 
@@ -168,6 +183,7 @@ public class CorrespondenceDetailMapper {
         .code(s.getCode())
         .nameAr(s.getNameAr())
         .nameEn(s.getNameEn())
+        .uiVariant(s.getUiVariant())
         .build();
   }
 
@@ -185,6 +201,10 @@ public class CorrespondenceDetailMapper {
         .nameAr(c.getNameAr())
         .nameEn(c.getNameEn())
         .build();
+  }
+
+  private static String workflowProcessKey(ServiceWorkflowRoute r) {
+    return r != null ? r.getProcessDefinitionKey() : null;
   }
 
   private static LookupLabelDto label(Classification c) {

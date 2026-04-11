@@ -6,9 +6,9 @@ import { NotificationItemDto } from '../../core/api/api-types';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { forkJoin } from 'rxjs';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface NotificationItem {
   id: string;
@@ -24,7 +24,7 @@ export interface NotificationItem {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, MatSnackBarModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss',
 })
@@ -38,7 +38,7 @@ export class NotificationsComponent implements OnInit {
     private notificationApi: NotificationApiService,
     private router: Router,
     private i18n: I18nService,
-    private snackBar: MatSnackBar,
+    private notification: NotificationService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
@@ -63,7 +63,7 @@ export class NotificationsComponent implements OnInit {
         this.unreadCount = 0;
         this.applyFilter();
         const msg = httpErr.userMessage ?? this.i18n.instant('errors.generic');
-        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
+        this.notification.errorRaw(msg);
       },
     });
   }
@@ -141,11 +141,7 @@ export class NotificationsComponent implements OnInit {
         this.unreadCount = Math.max(0, this.unreadCount - 1);
         this.applyFilter();
       },
-      error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        console.error('[Notifications] markRead failed', err);
-        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 5000 });
-      },
+      error: () => undefined,
     });
   }
 
@@ -162,11 +158,7 @@ export class NotificationsComponent implements OnInit {
         this.unreadCount = 0;
         this.applyFilter();
       },
-      error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        console.error('[Notifications] markAllAsRead failed', err);
-        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
-      },
+      error: () => undefined,
     });
   }
 
@@ -223,19 +215,8 @@ export class NotificationsComponent implements OnInit {
         this.notifications = this.notifications.filter((n) => n.id !== id);
         this.unreadCount = this.notifications.filter((n) => !n.read).length;
         this.applyFilter();
-        this.snackBar.open(
-          this.i18n.instant('notifications.deleteSuccess'),
-          this.i18n.instant('common.close'),
-          { duration: 3000 }
-        );
       },
-      error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.snackBar.open(
-          err.userMessage ?? this.i18n.instant('errors.generic'),
-          this.i18n.instant('common.close'),
-          { duration: 5000 }
-        );
-      },
+      error: () => undefined,
     });
   }
 }

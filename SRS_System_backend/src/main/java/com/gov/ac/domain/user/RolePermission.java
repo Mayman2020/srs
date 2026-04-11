@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "role_permission")
+@Table(name = "role_permission", schema = "srs_system")
 @Getter
 @Setter
 public class RolePermission {

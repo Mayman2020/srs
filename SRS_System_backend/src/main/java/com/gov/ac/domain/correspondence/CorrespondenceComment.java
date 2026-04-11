@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "correspondence_comment")
+@Table(name = "correspondence_comment", schema = "srs_system")
 @Getter
 @Setter
 public class CorrespondenceComment extends SoftDeletableEntity {

@@ -11,6 +11,8 @@ import { DepartmentApiService } from '../../../core/api/department-api.service';
 import { DepartmentFlatDto } from '../../../core/api/api-types';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
+import { MatButtonModule } from '@angular/material/button';
+import { ErpDialogComponent } from '../../../shared/erp/erp-dialog.component';
 
 export interface DepartmentTreeNode {
   id: number;
@@ -30,7 +32,9 @@ export interface DepartmentTreeNode {
     MatCheckboxModule,
     CdkTreeModule,
     MatDialogModule,
-    TranslatePipe
+    MatButtonModule,
+    TranslatePipe,
+    ErpDialogComponent
   ]
 })
 export class DepartmentTreeDialogComponent implements OnInit {

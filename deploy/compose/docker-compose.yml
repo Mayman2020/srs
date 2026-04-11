@@ -13,14 +13,18 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
-      POSTGRES_DB: ${POSTGRES_DB:-ac_communications}
+      # Same pattern as local dev: single catalogue `postgres`, app schema `srs_system` (see SPRING_DATASOURCE_URL).
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      # Host access for local IDE / mvn spring-boot:run. If another PostgreSQL already listens on 5432, set POSTGRES_EXPORT_PORT=5433 (and point DB_URL / SPRING_DATASOURCE_URL at that port).
+      - "${POSTGRES_EXPORT_PORT:-5432}:5432"
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ac_communications}",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}",
         ]
       interval: 5s
       timeout: 5s
@@ -35,7 +39,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-staging}
       SERVER_PORT: "8080"
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ac_communications}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-postgres}?currentSchema=srs_system
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       AC_JWT_SECRET: ${AC_JWT_SECRET:?AC_JWT_SECRET must be set (min 32 UTF-8 bytes)}
@@ -51,7 +55,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health/readiness"]
       interval: 15s
       timeout: 5s
       retries: 10

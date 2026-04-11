@@ -1,0 +1,59 @@
+<div class="org-page">
+  <h1>{{ 'orgStructure.pageTitle' | t }}</h1>
+  <div class="tabs">
+    <button type="button" [class.active]="tab === 'dept'" (click)="tab = 'dept'">
+      {{ 'orgStructure.deptTab' | t }}
+    </button>
+    <button type="button" [class.active]="tab === 'org'" (click)="tab = 'org'">
+      {{ 'orgStructure.orgTab' | t }}
+    </button>
+  </div>
+
+  <div class="panel" *ngIf="tab === 'dept'">
+    <table class="data-table" *ngIf="departments.length">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Parent</th>
+          <th>Code</th>
+          <th>Name (AR)</th>
+          <th>Name (EN)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of treeRowsDept()">
+          <td>{{ d.id }}</td>
+          <td>{{ d.parentId ?? '—' }}</td>
+          <td><code>{{ d.code }}</code></td>
+          <td>{{ d.nameAr }}</td>
+          <td>{{ d.nameEn }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="!departments.length && !loading" class="muted">{{ 'orgStructure.empty' | t }}</p>
+  </div>
+
+  <div class="panel" *ngIf="tab === 'org'">
+    <table class="data-table" *ngIf="organizations.length">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Parent</th>
+          <th>Code</th>
+          <th>Name (AR)</th>
+          <th>External</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let o of organizations">
+          <td>{{ o.id }}</td>
+          <td>{{ o.parentId ?? '—' }}</td>
+          <td><code>{{ o.code || '—' }}</code></td>
+          <td>{{ o.nameAr }}</td>
+          <td>{{ o.external ? 'Y' : 'N' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="!organizations.length && !loading" class="muted">{{ 'orgStructure.empty' | t }}</p>
+  </div>
+</div>

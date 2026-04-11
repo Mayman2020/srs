@@ -9,5 +9,13 @@ public interface CorrespondenceTypeRepository extends JpaRepository<Corresponden
 
   List<CorrespondenceType> findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc();
 
+  List<CorrespondenceType> findByDeletedAtIsNullOrderBySortOrderAsc();
+
   Optional<CorrespondenceType> findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(String code);
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
+
+  boolean existsByCodeIgnoreCaseAndIdNotAndDeletedAtIsNull(String code, Long id);
+
+  Optional<CorrespondenceType> findByIdAndDeletedAtIsNull(Long id);
 }

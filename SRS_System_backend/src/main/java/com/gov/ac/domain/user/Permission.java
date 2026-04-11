@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "permission")
+@Table(name = "permission", schema = "srs_system")
 @Getter
 @Setter
 public class Permission extends SoftDeletableEntity {
@@ -37,4 +37,8 @@ public class Permission extends SoftDeletableEntity {
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;
+
+  /** Optional link to a primary {@code ui_screen} row (admin metadata / capabilities). */
+  @Column(name = "ui_screen_id")
+  private Long uiScreenId;
 }

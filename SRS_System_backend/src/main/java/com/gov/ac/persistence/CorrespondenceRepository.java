@@ -32,7 +32,8 @@ public interface CorrespondenceRepository
         "classification",
         "senderOrganization",
         "recipientOrganization",
-        "ownerDepartment"
+        "ownerDepartment",
+        "serviceWorkflowRoute"
       })
   @Query("select c from Correspondence c where c.id = :id and c.deletedAt is null")
   Optional<Correspondence> findDetailGraphByIdAndDeletedAtIsNull(@Param("id") UUID id);
@@ -78,9 +79,20 @@ public interface CorrespondenceRepository
   long countOverdueOpen(@Param("now") Instant now);
 
   @Query(
+      "select count(c) from Correspondence c join c.correspondenceStatus s "
+          + "where c.deletedAt is null and s.deletedAt is null and s.kpiSegment = :segment")
+  long countActiveByKpiSegment(@Param("segment") String segment);
+
+  @Query(
+      "select count(c) from Correspondence c join c.correspondenceType t "
+          + "where c.deletedAt is null and t.deletedAt is null "
+          + "and t.dashboardOutboundHighlight = true")
+  long countActiveOutboundHighlighted();
+
+  @Query(
       value =
           "select date_trunc('month', c.created_at), count(*) "
-              + "from correspondence c "
+              + "from srs_system.correspondence c "
               + "where c.deleted_at is null "
               + "and c.created_at >= :fromInclusive "
               + "and c.created_at < :toExclusive "
@@ -94,9 +106,9 @@ public interface CorrespondenceRepository
           "select d.id, d.code, d.name_ar, d.name_en, count(c.id), "
               + "sum(case when c.due_date is not null and c.due_date < :now "
               + "and coalesce(s.is_terminal, false) = false then 1 else 0 end) "
-              + "from correspondence c "
-              + "join department d on d.id = c.owner_department_id and d.deleted_at is null "
-              + "join correspondence_status s on s.id = c.correspondence_status_id and s.deleted_at is null "
+              + "from srs_system.correspondence c "
+              + "join srs_system.department d on d.id = c.owner_department_id and d.deleted_at is null "
+              + "join srs_system.correspondence_status s on s.id = c.correspondence_status_id and s.deleted_at is null "
               + "where c.deleted_at is null and c.owner_department_id is not null "
               + "group by d.id, d.code, d.name_ar, d.name_en, d.sort_order "
               + "order by d.sort_order, d.id",

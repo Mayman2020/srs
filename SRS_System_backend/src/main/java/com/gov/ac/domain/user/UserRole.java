@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "user_role")
+@Table(name = "user_role", schema = "srs_system")
 @Getter
 @Setter
 public class UserRole extends AuditableEntity {

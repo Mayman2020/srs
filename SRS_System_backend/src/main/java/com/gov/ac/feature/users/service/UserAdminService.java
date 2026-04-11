@@ -48,7 +48,7 @@ public class UserAdminService {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
         .toList();
   }
 
@@ -103,7 +103,7 @@ public class UserAdminService {
   @Transactional
   public UserDetailDto createUser(UUID actorId, CreateAppUserRequest req) {
     String username = req.username().trim();
-    if (appUserRepository.findByUsernameIgnoreCaseAndDeletedAtIsNull(username).isPresent()) {
+    if (appUserRepository.findByUsernameAndDeletedAtIsNull(username).isPresent()) {
       throw new BadRequestException("Username already exists");
     }
     Department dept =

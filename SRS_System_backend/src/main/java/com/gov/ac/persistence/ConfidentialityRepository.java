@@ -9,5 +9,13 @@ public interface ConfidentialityRepository extends JpaRepository<Confidentiality
 
   List<Confidentiality> findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc();
 
+  List<Confidentiality> findByDeletedAtIsNullOrderBySortOrderAsc();
+
   Optional<Confidentiality> findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(String code);
+
+  Optional<Confidentiality> findByIdAndDeletedAtIsNull(Long id);
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
+
+  boolean existsByCodeIgnoreCaseAndIdNotAndDeletedAtIsNull(String code, Long id);
 }

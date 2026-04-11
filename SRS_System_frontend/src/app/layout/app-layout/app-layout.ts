@@ -19,14 +19,4 @@ export class AppLayout {
 
   /** One subscription via signal — avoids leaking a new `collapsed$` subscription per toggle. */
   readonly sidebarCollapsed = toSignal(this.sidebarService.collapsed$, { initialValue: false });
-
-  toggleTheme() {
-    const root = document.documentElement;
-    root.dataset['theme'] = root.dataset['theme'] === 'dark' ? 'light' : 'dark';
-  }
-
-  logout() {
-    sessionStorage.clear();
-    location.href = '/login';
-  }
 }

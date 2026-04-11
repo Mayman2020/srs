@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { LoginResponseDto } from './api-types';
 import { AuthTokenService } from '../auth/auth-token.service';
+import { withSilentNotifications, withSilentSuccess } from '../interceptors/http-notification-context';
 
 export interface LoginRequestDto {
   username: string;
@@ -33,7 +34,9 @@ export class AuthApiService {
   ) {}
 
   login(body: LoginRequestDto): Observable<LoginResponseDto> {
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/login`, body).pipe(
+    return this.http.post<LoginResponseDto>(`${this.base}/auth/login`, body, {
+      context: withSilentNotifications()
+    }).pipe(
       tap((r) => {
         this.tokens.applySessionPayload({
           accessToken: r.accessToken,
@@ -49,11 +52,15 @@ export class AuthApiService {
   }
 
   mfaChallenge(username: string, channel: 'EMAIL' | 'SMS'): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/mfa/challenge`, { username, channel });
+    return this.http.post<void>(`${this.base}/auth/mfa/challenge`, { username, channel }, {
+      context: withSilentNotifications()
+    });
   }
 
   mfaVerify(body: MfaVerifyRequestDto): Observable<LoginResponseDto> {
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/mfa/verify`, body).pipe(
+    return this.http.post<LoginResponseDto>(`${this.base}/auth/mfa/verify`, body, {
+      context: withSilentNotifications()
+    }).pipe(
       tap((r) => {
         this.tokens.applySessionPayload({
           accessToken: r.accessToken,
@@ -70,7 +77,9 @@ export class AuthApiService {
 
   refresh(refreshToken: string): Observable<LoginResponseDto> {
     const body: RefreshRequestDto = { refreshToken };
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/refresh`, body).pipe(
+    return this.http.post<LoginResponseDto>(`${this.base}/auth/refresh`, body, {
+      context: withSilentNotifications()
+    }).pipe(
       tap((r) => {
         this.tokens.applySessionPayload({
           accessToken: r.accessToken,
@@ -87,7 +96,9 @@ export class AuthApiService {
 
   switchRole(roleCode: string): Observable<LoginResponseDto> {
     const body: SwitchRoleRequestDto = { roleCode };
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/switch-role`, body).pipe(
+    return this.http.post<LoginResponseDto>(`${this.base}/auth/switch-role`, body, {
+      context: withSilentSuccess()
+    }).pipe(
       tap((r) => {
         this.tokens.applySessionPayload({
           accessToken: r.accessToken,

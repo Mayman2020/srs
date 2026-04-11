@@ -17,7 +17,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "system_issue")
+@Table(name = "system_issue", schema = "srs_system")
 @Getter
 @Setter
 public class SystemIssue {

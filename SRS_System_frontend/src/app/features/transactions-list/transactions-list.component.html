@@ -11,38 +11,52 @@
 
   <section class="card search-card">
 
-    <div class="search-row">
-
-      <div class="field">
-        <label>{{ 'transactions.refNo' | t }}</label>
-        <input [(ngModel)]="fNo">
-      </div>
-
-      <div class="field">
-        <label>{{ 'transactions.subject' | t }}</label>
-        <input [(ngModel)]="fSubject">
-      </div>
-
-      <div class="field">
-        <label>{{ 'transactionsList.entity' | t }}</label>
-        <input [(ngModel)]="fFrom">
-      </div>
-
-      <div class="field">
-        <label>{{ 'transactions.status' | t }}</label>
-        <select [(ngModel)]="fStatus">
-
-          <option value="">{{ 'common.all' | t }}</option>
-          <option *ngFor="let code of statusFilterCodes" [value]="code">{{ code | lk:'correspondenceStatus' }}</option>
-
-        </select>
-      </div>
-
-      <button type="button" class="btn primary" (click)="applyFilters()">
-        {{ 'transactionsList.search' | t }}
-      </button>
-
+    <div class="title">
+      <h3>{{ 'transactions.searchTitle' | t }}</h3>
+      <small>{{ 'transactions.searchSubtitle' | t }}</small>
     </div>
+
+    <form (ngSubmit)="applyFilters()">
+      <div class="search-row">
+
+        <div class="field">
+          <label>{{ 'transactions.refNo' | t }}</label>
+          <input [(ngModel)]="fNo" name="fNo">
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactions.subject' | t }}</label>
+          <input [(ngModel)]="fSubject" name="fSubject">
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactionsList.entity' | t }}</label>
+          <input [(ngModel)]="fFrom" name="fFrom">
+        </div>
+
+        <div class="field">
+          <label>{{ 'transactions.status' | t }}</label>
+          <select [(ngModel)]="fStatus" name="fStatus">
+
+            <option value="">{{ 'common.all' | t }}</option>
+            <option *ngFor="let code of statusFilterCodes" [value]="code">{{ code | lk:'correspondenceStatus' }}</option>
+
+          </select>
+        </div>
+
+        <div class="search-buttons">
+          <button class="btn primary" type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            {{ 'transactionsList.search' | t }}
+          </button>
+          <button class="btn clear" type="button" (click)="resetFilters()">
+            <i class="fa-solid fa-rotate-left"></i>
+            {{ 'common.clear' | t }}
+          </button>
+        </div>
+
+      </div>
+    </form>
 
   </section>
 
@@ -184,12 +198,11 @@
             <td>{{ t.attachments.length }}</td>
 
             <td>
-              <span class="pill" [ngClass]="{
-                ok: t.statusCode === 'COMPLETED',
-                warn: t.statusCode === 'IN_PROGRESS'
-              }">
-                {{ t.statusCode | lk:'correspondenceStatus' }}
-              </span>
+              <app-status-badge
+                [code]="t.statusCode"
+                [uiVariant]="t.statusUiVariant"
+                size="sm"
+              />
             </td>
 
             <td>

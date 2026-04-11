@@ -4,6 +4,7 @@ import { Transaction } from '../../models/transaction.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ViewEncapsulation } from '@angular/core';
@@ -17,31 +18,27 @@ import { ViewEncapsulation } from '@angular/core';
   encapsulation: ViewEncapsulation.None
 })
 export class ChatBubbleComponent implements OnInit {
-
   open = false;
   query = '';
+
+  /** i18n keys for quick-reply chips (resolved in template via `| t`). */
+  readonly suggestionKeys = ['chat.suggestion1', 'chat.suggestion2', 'chat.suggestion3'] as const;
 
   /** Loaded from API; chat intents run client-side over this cache. */
   private txCache: Transaction[] = [];
 
-  suggestions = [
-    'اعرض المعاملات المتأخرة',
-    'كم معاملة قيد الإجراء؟',
-    'لخّص آخر 5 معاملات'
-  ];
-
-  messages: { role: string, text: SafeHtml, time: string }[] = [];
-
+  messages: { role: string; text: SafeHtml; time: string }[] = [];
 
   constructor(
     private txService: TransactionService,
-    private sanitizer: DomSanitizer
-  ) { }
+    private sanitizer: DomSanitizer,
+    private readonly i18n: I18nService
+  ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.messages.push({
       role: 'bot',
-      text: 'مرحباً 👋 كيف يمكنني مساعدتك؟',
+      text: this.sanitizer.bypassSecurityTrustHtml(this.i18n.instant('chat.greeting')),
       time: this.now()
     });
 
@@ -51,19 +48,19 @@ export class ChatBubbleComponent implements OnInit {
     });
   }
 
-  toggle() {
+  toggle(): void {
     this.open = !this.open;
   }
 
-  now() {
-    return new Date().toLocaleTimeString('ar-SA', {
+  now(): string {
+    const loc = this.i18n.currentLang() === 'en' ? 'en-GB' : 'ar-SA';
+    return new Date().toLocaleTimeString(loc, {
       hour: '2-digit',
       minute: '2-digit'
     });
   }
 
-  send() {
-
+  send(): void {
     if (!this.query.trim()) return;
 
     const q = this.query;
@@ -82,15 +79,15 @@ export class ChatBubbleComponent implements OnInit {
     });
 
     this.query = '';
-
   }
 
-  sendSuggestion(text: string) {
-    this.query = text;
+  /** Sends the translated suggestion text as the user query (intent parsing uses both AR/EN tokens). */
+  sendSuggestionKey(key: string): void {
+    this.query = this.i18n.instant(key);
     this.send();
   }
 
-  isLate(tx: Transaction) {
+  isLate(tx: Transaction): boolean {
     const created = new Date(tx.created);
     const now = new Date();
     const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
@@ -99,8 +96,34 @@ export class ChatBubbleComponent implements OnInit {
     if (tx.statusCode === 'IN_PROGRESS' && diffDays > tx.maxDays) return true;
     return false;
   }
-  transactionCard(t: Transaction) {
 
+  private intentMatches(text: string, tokenKey: string): boolean {
+    const raw = this.i18n.instant(`chat.intentTokens.${tokenKey}`).toLowerCase();
+    const parts = raw
+      .split('|')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const t = text.toLowerCase();
+    return parts.some((p) => t.includes(p));
+  }
+
+  private extractAfterAny(text: string, tokenKey: string): string | null {
+    const lower = text.toLowerCase();
+    const raw = this.i18n.instant(`chat.intentTokens.${tokenKey}`);
+    for (const marker of raw
+      .split('|')
+      .map((s) => s.trim())
+      .filter(Boolean)) {
+      const idx = lower.indexOf(marker.toLowerCase());
+      if (idx >= 0) return text.slice(idx + marker.length).trim();
+    }
+    return null;
+  }
+
+  transactionCard(t: Transaction): string {
+    const sender = this.i18n.instant('chat.labelSender');
+    const recipient = this.i18n.instant('chat.labelRecipient');
+    const status = this.i18n.instant('chat.labelStatus');
     return `
 
 <div class="ai-tx-card">
@@ -124,17 +147,17 @@ ${t.subject}
 <div class="ai-tx-meta">
 
 <div>
-<span class="label">المرسل</span>
+<span class="label">${sender}</span>
 ${t.from}
 </div>
 
 <div>
-<span class="label">المستلم</span>
+<span class="label">${recipient}</span>
 ${t.to}
 </div>
 
 <div>
-<span class="label">الحالة</span>
+<span class="label">${status}</span>
 <span class="status">${t.status}</span>
 </div>
 
@@ -145,90 +168,84 @@ ${t.to}
 `;
   }
 
-
-
-  intentReply(q: string) {
+  intentReply(q: string): string {
     const data = this.txCache;
 
     const uuidMatch = q.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
     if (uuidMatch) {
       const tx = data.find((t) => t.id === uuidMatch[0]);
-      if (!tx) return 'لم يتم العثور على المعاملة';
+      if (!tx) return this.i18n.instant('chat.notFound');
       return this.transactionCard(tx);
     }
 
     const legacyId = q.match(/\d{4}\/\d+/);
     if (legacyId) {
       const tx = data.find((t) => t.id === legacyId[0] || t.referenceNumber === legacyId[0]);
-      if (!tx) return 'لم يتم العثور على المعاملة';
+      if (!tx) return this.i18n.instant('chat.notFound');
       return this.transactionCard(tx);
     }
 
-
-    // البحث الذكي
-
     const list = this.filterTransactions(q);
 
-    if (!list.length)
-      return 'لا توجد معاملات مطابقة للبحث';
+    if (!list.length) return this.i18n.instant('chat.noMatches');
 
-
+    const header = this.i18n.instant('chat.resultsHeader', { count: list.length });
     return `
-النتائج: ${list.length}
+${header}
 
 <br><br>
 
-${list.map(t => this.transactionCard(t)).join('')}
+${list.map((t) => this.transactionCard(t)).join('')}
 `;
-
   }
 
-  parseQuery(q: string) {
+  parseQuery(q: string): {
+    type: string | null;
+    status: string | null;
+    secrecy: string | null;
+    late: boolean;
+    from: string | null;
+    to: string | null;
+    today: boolean;
+  } {
     const text = q.toLowerCase();
 
     return {
-      type: text.includes('وارد')
+      type: this.intentMatches(text, 'inbound')
         ? 'INBOUND'
-        : text.includes('صادر')
+        : this.intentMatches(text, 'outbound')
           ? 'OUTBOUND'
-          : text.includes('داخلية')
+          : this.intentMatches(text, 'internal')
             ? 'INTERNAL'
-            : text.includes('خارجية')
+            : this.intentMatches(text, 'external')
               ? 'EXTERNAL'
               : null,
 
-      status:
-        text.includes('منجزة') || text.includes('مكتملة')
-          ? 'COMPLETED'
-          : text.includes('قيد')
-            ? 'IN_PROGRESS'
-            : text.includes('جديدة')
-              ? 'NEW'
-              : text.includes('مرفوضة')
-                ? 'REJECTED'
-                : text.includes('معادة')
-                  ? 'RETURNED'
-                  : null,
+      status: this.intentMatches(text, 'statusCompleted')
+        ? 'COMPLETED'
+        : this.intentMatches(text, 'statusInProgress')
+          ? 'IN_PROGRESS'
+          : this.intentMatches(text, 'statusNew')
+            ? 'NEW'
+            : this.intentMatches(text, 'statusRejected')
+              ? 'REJECTED'
+              : this.intentMatches(text, 'statusReturned')
+                ? 'RETURNED'
+                : null,
 
-      secrecy: text.includes('سري') ? 'SECRET' : null,
+      secrecy: this.intentMatches(text, 'secrecySecret') ? 'SECRET' : null,
 
-      late:
-        text.includes('متأخر') || text.includes('متأخرة'),
+      late: this.intentMatches(text, 'late'),
 
-      from:
-        text.includes('من ') ? text.split('من ')[1] : null,
+      from: this.extractAfterAny(q, 'fromMarker'),
 
-      to:
-        text.includes('إلى ') ? text.split('إلى ')[1] : null,
+      to: this.extractAfterAny(q, 'toMarker'),
 
-      today:
-        text.includes('اليوم')
-
+      today: this.intentMatches(text, 'today')
     };
-
   }
 
-  filterTransactions(q: string) {
+  filterTransactions(q: string): Transaction[] {
     const filters = this.parseQuery(q);
 
     let data = [...this.txCache];
@@ -241,51 +258,27 @@ ${list.map(t => this.transactionCard(t)).join('')}
       data = data.filter((t) => t.statusCode === filters.status);
     }
 
-
     if (filters.late) {
-
-      data = data.filter(
-        t => this.isLate(t)
-      );
-
+      data = data.filter((t) => this.isLate(t));
     }
 
     if (filters.secrecy) {
-
-      data = data.filter(
-        t => t.secrecy === filters.secrecy
-      );
-
+      data = data.filter((t) => t.secrecy === filters.secrecy);
     }
 
     if (filters.from) {
-
-      data = data.filter(
-        t => t.from.includes(filters.from!)
-      );
-
+      data = data.filter((t) => t.from.includes(filters.from!));
     }
 
     if (filters.to) {
-
-      data = data.filter(
-        t => t.to.includes(filters.to!)
-      );
-
+      data = data.filter((t) => t.to.includes(filters.to!));
     }
 
     if (filters.today) {
-
       const today = new Date().toDateString();
-
-      data = data.filter(
-        t => new Date(t.created).toDateString() === today
-      );
-
+      data = data.filter((t) => new Date(t.created).toDateString() === today);
     }
 
     return data;
-
   }
-
 }

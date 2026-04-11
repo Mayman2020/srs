@@ -2,14 +2,22 @@
 # Optional: backup template — committed defaults live in application-local.yml.
 # If you remove application-local.yml, run-backend.ps1 recreates it from this file.
 #
-# PostgreSQL must accept the credentials below. Default matches hesabaty-backend: DB_PASSWORD with default "admin".
-# Override: AC_LOCAL_DB_PASSWORD (SRS) or DB_PASSWORD (shared). See run-backend.secrets.EXAMPLE.ps1.
+# PostgreSQL must accept the credentials below. Default "admin" (same idea as erp-system-backend dev).
+# Password chain: DB_PASS (ERP-style) then AC_LOCAL_DB_PASSWORD (SRS) then DB_PASSWORD. See run-backend.secrets.EXAMPLE.ps1.
 # Avoid SPRING_DATASOURCE_PASSWORD on Windows for local — it overrides YAML; run-backend.ps1 clears it for profile local.
 # -----------------------------------------------------------------------------
 
 spring:
   datasource:
-    password: ${AC_LOCAL_DB_PASSWORD:${DB_PASSWORD:admin}}
+    password: ${DB_PASS:${AC_LOCAL_DB_PASSWORD:${DB_PASSWORD:admin}}}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  # Flyway: do not use ignore-missing-migrations (see application-local.yml note).
+  jpa:
+    hibernate:
+      ddl-auto: validate
 
 camunda.bpm:
   admin-user:

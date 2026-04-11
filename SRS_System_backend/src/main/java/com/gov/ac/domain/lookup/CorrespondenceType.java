@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "correspondence_type")
+@Table(name = "correspondence_type", schema = "srs_system")
 @Getter
 @Setter
 public class CorrespondenceType extends SoftDeletableEntity {
@@ -34,6 +34,12 @@ public class CorrespondenceType extends SoftDeletableEntity {
 
   @Column(name = "sort_order", nullable = false)
   private Integer sortOrder = 0;
+
+  @Column(name = "dashboard_outbound_highlight", nullable = false)
+  private Boolean dashboardOutboundHighlight = false;
+
+  @Column(name = "dashboard_inbound_highlight", nullable = false)
+  private Boolean dashboardInboundHighlight = false;
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;

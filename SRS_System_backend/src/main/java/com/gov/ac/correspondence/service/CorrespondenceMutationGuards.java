@@ -8,12 +8,11 @@ public final class CorrespondenceMutationGuards {
   private CorrespondenceMutationGuards() {}
 
   public static void assertCorrespondenceMutable(Correspondence c) {
-    if (c.getCorrespondenceStatus() == null || c.getCorrespondenceStatus().getCode() == null) {
+    if (c.getCorrespondenceStatus() == null) {
       return;
     }
-    String code = c.getCorrespondenceStatus().getCode().trim().toUpperCase();
-    if ("CANCELLED".equals(code)) {
-      throw new BadRequestException("Correspondence is cancelled");
+    if (Boolean.TRUE.equals(c.getCorrespondenceStatus().getTerminal())) {
+      throw new BadRequestException("Correspondence cannot be modified in the current status");
     }
   }
 }

@@ -9,4 +9,5 @@ public record UpsertPermissionRequest(
     @NotBlank String nameEn,
     String description,
     @NotNull Integer sortOrder,
-    @NotNull Boolean active) {}
+    @NotNull Boolean active,
+    Long uiScreenId) {}

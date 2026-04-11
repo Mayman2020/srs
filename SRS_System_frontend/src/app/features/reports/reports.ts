@@ -20,6 +20,7 @@ import { LookupService } from '../../core/api/lookup.service';
 import { ReportsApiService } from '../../core/api/reports-api.service';
 import { CorrespondenceListParams } from '../../core/api/correspondence-api.service';
 import {
+  CorrespondenceKpiSegment,
   DashboardBucketDto,
   DashboardResponseDto,
   DepartmentSlaRowDto,
@@ -32,6 +33,9 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
@@ -42,6 +46,7 @@ import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
 import type { SortDirection } from '../../shared/data-table/table-sort.util';
 import { REPORT_TABLE_SORT_PROPERTY, reportSpringSort } from './report-table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
+import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
 Chart.register(...registerables);
 
@@ -54,10 +59,14 @@ Chart.register(...registerables);
     TranslatePipe,
     LookupTranslatePipe,
     MatSnackBarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
     SrsDataTableComponent,
     SrsSortHeaderComponent,
     SrsFilterBarComponent,
-    SrsEmptyStateComponent
+    SrsEmptyStateComponent,
+    StatusBadgeComponent,
   ],
   templateUrl: './reports.html',
   styleUrls: ['./reports.css'],
@@ -158,9 +167,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.correspondenceStatuses = lookups.correspondenceStatuses ?? [];
         this.kpis.total = dash.totalCorrespondences;
         this.kpis.late = dash.overdueCount;
-        this.kpis.done = (dash.byStatus ?? [])
-          .filter((b) => ['COMPLETED', 'ARCHIVED'].includes(b.code.toUpperCase()))
-          .reduce((s, b) => s + b.count, 0);
+        this.kpis.done = dash.kpiSlaDoneCount ?? 0;
         this.kpis.avg = 0;
         if (this.chartsReady) {
           this.renderCharts();
@@ -332,16 +339,24 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private applyKpisFromStats(rows: Transaction[], total: number): void {
     this.kpis.total = total;
-    this.kpis.done = rows.filter((t) =>
-      ['COMPLETED', 'ARCHIVED'].includes((t.statusCode ?? '').toUpperCase())
-    ).length;
+    this.kpis.done = rows.filter((t) => this.statusIsSlaDoneSegment(t.statusCode)).length;
     this.kpis.late = rows.filter(
       (t) =>
         t.dueDateIso &&
         new Date(t.dueDateIso) < new Date() &&
-        !['COMPLETED', 'ARCHIVED'].includes((t.statusCode ?? '').toUpperCase())
+        !this.statusIsSlaDoneSegment(t.statusCode)
     ).length;
     this.kpis.avg = this.avgResolutionDays(rows);
+  }
+
+  /** Aligns with `correspondence_status.kpi_segment = SLA_DONE` (see lookup bundle). */
+  private statusIsSlaDoneSegment(code: string | undefined): boolean {
+    const c = (code ?? '').trim();
+    if (!c) return false;
+    const row = this.correspondenceStatuses.find(
+      (s) => (s.code ?? '').toUpperCase() === c.toUpperCase()
+    );
+    return row?.kpiSegment === CorrespondenceKpiSegment.SLA_DONE;
   }
 
   private reloadMonthlyFromForm(): void {
@@ -366,9 +381,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!rows.length) {
       return 0;
     }
-    const done = rows.filter((t) =>
-      ['COMPLETED', 'ARCHIVED'].includes((t.statusCode ?? '').toUpperCase())
-    );
+    const done = rows.filter((t) => this.statusIsSlaDoneSegment(t.statusCode));
     if (!done.length) {
       return 0;
     }

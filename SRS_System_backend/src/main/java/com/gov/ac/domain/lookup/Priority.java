@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "priority")
+@Table(name = "priority", schema = "srs_system")
 @Getter
 @Setter
 public class Priority extends SoftDeletableEntity {

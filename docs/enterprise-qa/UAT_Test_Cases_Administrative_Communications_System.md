@@ -240,7 +240,7 @@ Personal names and wet/electronic signatures are stored in the **controlled regi
 
 ## 16. UAT execution results — v1.1 closure (5 Apr 2026)
 
-**Execution source:** `tests/api-e2e/run-api-tests.mjs` — **10/10** steps **PASS**, `API_BASE_URL=http://localhost:8081/api/v1`, PostgreSQL `ac_communications`, Spring Boot **8081**, after `SecurityConfig` auth-chain fix and `AuthService.login` transaction fix. **No browser**, **no TLS**, **no load test**.
+**Execution source:** `tests/api-e2e/run-api-tests.mjs` — **10/10** steps **PASS**, `API_BASE_URL=http://localhost:8081/api/v1`, PostgreSQL `postgres` / schema `srs_system`, Spring Boot **8081**, after `SecurityConfig` auth-chain fix and `AuthService.login` transaction fix. **No browser**, **no TLS**, **no load test**.
 
 | TC-ID | Result | Comments |
 |-------|--------|----------|

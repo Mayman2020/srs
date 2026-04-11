@@ -1,0 +1,41 @@
+.leave-page {
+  padding: 1rem 1.25rem;
+  max-width: 900px;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+.btn {
+  grid-column: 1 / -1;
+  padding: 0.5rem 1rem;
+  background: #0b6e4f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th,
+.data-table td {
+  border: 1px solid #e0e0e0;
+  padding: 6px;
+}
+.muted {
+  color: #666;
+}

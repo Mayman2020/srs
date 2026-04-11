@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
@@ -11,10 +11,16 @@ export class AttachmentApiService {
     @Inject(API_BASE_URL) private base: string
   ) {}
 
-  upload(file: File): Observable<AttachmentUploadResponseDto> {
+  upload(file: File, fileCode?: string | null): Observable<AttachmentUploadResponseDto> {
     const fd = new FormData();
     fd.append('file', file, file.name);
-    return this.http.post<AttachmentUploadResponseDto>(`${this.base}/attachments/upload`, fd);
+    let params = new HttpParams();
+    if (fileCode != null && fileCode !== '') {
+      params = params.set('fileCode', fileCode);
+    }
+    return this.http.post<AttachmentUploadResponseDto>(`${this.base}/attachments/upload`, fd, {
+      params
+    });
   }
 
   downloadUrl(attachmentId: number): string {

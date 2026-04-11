@@ -1,0 +1,11 @@
+<span
+  class="app-status-badge"
+  [class.sm]="size === 'sm'"
+  [class.md]="size === 'md'"
+  [ngClass]="'badge-' + badgeClass()">
+  @if (plain) {
+    {{ code }}
+  } @else {
+    {{ code | lk: 'correspondenceStatus' }}
+  }
+</span>

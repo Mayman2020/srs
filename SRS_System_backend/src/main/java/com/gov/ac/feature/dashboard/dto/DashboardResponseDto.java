@@ -6,4 +6,8 @@ public record DashboardResponseDto(
     long totalCorrespondences,
     List<DashboardBucketDto> byStatus,
     List<DashboardBucketDto> byPriority,
-    long overdueCount) {}
+    long overdueCount,
+    long kpiSlaDoneCount,
+    long kpiPipelineCount,
+    long kpiInboxCount,
+    long kpiOutboundCount) {}

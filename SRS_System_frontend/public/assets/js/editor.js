@@ -40,7 +40,7 @@
   <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;">
     <div>
       <h2 style="margin:0;color:#064635">المملكة العربية السعودية</h2>
-      <div style="color:#0B6E4F;font-weight:800">نظام الاتصالات الإدارية</div>
+      <div style="color:#0B6E4F;font-weight:800">نظام تخطيط موارد المؤسسات الحكومي — المراسلات الإدارية</div>
       <div style="color:#6B7280;font-size:12px">خطاب رسمي (قالب افتراضي)</div>
     </div>
     <div style="text-align:left;min-width:210px;font-size:12px;color:#6B7280">
@@ -81,7 +81,7 @@
     <div style="font-size:12px;color:#6B7280"><b>مرفقات:</b> —</div>
     <div style="text-align:center;min-width:240px">
       <div style="font-weight:900;color:#064635">الموقّع</div>
-      <div style="font-size:13px">مدير الاتصالات الإدارية</div>
+      <div style="font-size:13px">المسؤول المختص</div>
       <div style="height:34px"></div>
       <div style="border-top:2px solid #0B6E4F;width:180px;margin:0 auto"></div>
       <div style="font-size:12px;color:#6B7280;margin-top:6px">(توقيع وختم)</div>

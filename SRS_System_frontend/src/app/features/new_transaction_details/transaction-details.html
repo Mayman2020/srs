@@ -43,7 +43,7 @@
   <div class="stat-card stat-info">
     <div class="stat-icon"><i class="fa-solid fa-paperclip"></i></div>
     <div class="stat-info">
-      <span class="stat-value">{{ transaction.attachments.length || 0 }}</span>
+      <span class="stat-value">{{ transaction.attachments?.length || 0 }}</span>
       <span class="stat-label">{{ 'transactions.table.attachments' | t }}</span>
     </div>
   </div>
@@ -51,7 +51,7 @@
   <div class="stat-card stat-purple">
     <div class="stat-icon"><i class="fa-solid fa-comment-dots"></i></div>
     <div class="stat-info">
-      <span class="stat-value">{{ transaction.notes.length || 0 }}</span>
+      <span class="stat-value">{{ transaction.notes?.length || 0 }}</span>
       <span class="stat-label">{{ 'transactionDetails.statComments' | t }}</span>
     </div>
   </div>
@@ -118,6 +118,14 @@
     {{ 'transactionDetails.tabRelated' | t }}
   </button>
 
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'nonarchived'"
+    (click)="activeTab='nonarchived'">
+    <i class="fa-solid fa-box-open"></i>
+    {{ 'transactionDetails.tabNonarchived' | t }}
+  </button>
+
 
 
 </div>
@@ -139,9 +147,11 @@
       <h3>{{ 'transactionDetails.basicDataTitle' | t }}</h3>
     </div>
 
-    <span class="status-badge" [ngClass]="'badge-' + transaction.statusClass">
-      {{ transaction.status }}
-    </span>
+    <app-status-badge
+      [code]="transaction.status"
+      [uiVariant]="transaction.statusUiVariant"
+      size="md"
+    />
 
   </div>
 
@@ -563,7 +573,7 @@
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-paperclip"></i></div>
           <h3>{{ 'transactionDetails.attachmentsHeading' | t }}</h3>
-          <span class="count-badge">{{ transaction.attachments.length || 0 }}</span>
+          <span class="count-badge">{{ transaction.attachments?.length || 0 }}</span>
         </div>
         <button class="btn secondary btn-sm" (click)="addAttachment()">
           <i class="fa-solid fa-plus"></i> {{ 'transactionDetails.addAttachment' | t }}
@@ -601,9 +611,31 @@
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
+          <div class="att-index" *ngIf="indexEntriesByAttachmentId[att.id]?.length">
+            <h4 class="att-index-title">{{ 'transactionDetails.indexTitle' | t }}</h4>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>{{ 'transactionDetails.indexPages' | t }}</th>
+                  <th>{{ 'transactionDetails.indexSubject' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let ix of indexEntriesByAttachmentId[att.id]">
+                  <td>
+                    <ng-container *ngIf="ix.pageFrom != null || ix.pageTo != null; else dashIx">
+                      {{ ix.pageFrom ?? '—' }} – {{ ix.pageTo ?? '—' }}
+                    </ng-container>
+                    <ng-template #dashIx>—</ng-template>
+                  </td>
+                  <td>{{ ix.subjectText || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="empty-state" *ngIf="!transaction.attachments.length">
+        <div class="empty-state" *ngIf="!transaction.attachments?.length">
           <i class="fa-solid fa-paperclip empty-icon"></i>
           <p>{{ 'transactionDetails.noAttachments' | t }}</p>
         </div>
@@ -650,7 +682,7 @@
                  (keyup.enter)="submitNote()" />
           <button class="btn primary btn-sm"
                   (click)="submitNote()"
-                  [disabled]="!newNote.trim()">
+                  [disabled]="!newNote?.trim()">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
@@ -661,8 +693,8 @@
 
 
     <!-- ── RELATED ── -->
-   <div *ngIf="activeTab==='related'"> 
-    <div class="card full-width" *ngIf="relatedTransactions.length">
+   <div *ngIf="activeTab==='related'">
+    <div class="card full-width">
 
       <div class="card-header">
         <div class="card-header-title">
@@ -672,7 +704,7 @@
         </div>
       </div>
 
-      <div class="related-list">
+      <div class="related-list" *ngIf="relatedTransactions?.length">
         <div class="related-item"
              *ngFor="let rel of relatedTransactions"
              (click)="navigateToTransaction(rel.id)">
@@ -680,15 +712,55 @@
           <div class="related-info">
             <span class="related-title">{{ rel.subject }}</span>
             <span class="related-meta">
-              {{ rel.id }} · {{ rel.created | date:'d MMM y' : '' : 'en' }}
+              {{ rel.referenceNumber || rel.id }}
+              <ng-container *ngIf="rel.created"> · {{ rel.created | date:'d MMM y' : '' : 'en' }}</ng-container>
+              · {{ rel.status }}
             </span>
           </div>
-          <span class="status-badge sm" [ngClass]="'badge-' + rel.statusClass">
-            {{ rel.status }}
-          </span>
+          <app-status-badge [code]="rel.status" [plain]="true" [uiVariant]="null" size="sm" />
         </div>
       </div>
 
+      <div class="empty-state" *ngIf="!relatedTransactions?.length">
+        <p>{{ 'transactionDetails.relatedEmpty' | t }}</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── NON-ARCHIVED ── -->
+  <div *ngIf="activeTab==='nonarchived'">
+    <div class="card full-width">
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-box-open"></i></div>
+          <h3>{{ 'transactionDetails.nonarchivedTitle' | t }}</h3>
+          <span class="count-badge">{{ nonarchivedItems.length }}</span>
+        </div>
+      </div>
+      <div class="mini-table-wrap" *ngIf="nonarchivedItems.length">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{{ 'transactions.type' | t }}</th>
+              <th>{{ 'transactionDetails.colDescription' | t }}</th>
+              <th>{{ 'transactionDetails.colQuantity' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of nonarchivedItems; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ it.itemType }}</td>
+              <td>{{ it.descriptionText || '—' }}</td>
+              <td>{{ it.quantity }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!nonarchivedItems.length">
+        <p>{{ 'transactionDetails.nonarchivedEmpty' | t }}</p>
+      </div>
     </div>
   </div>
 
@@ -706,32 +778,27 @@
     {{ 'transactionDetails.actionImageTransfer' | t }}
   </button>
 
-  <button type="button" class="action-btn gray" (click)="referTransaction()">
-    <i class="fa-solid fa-share"></i>
-    {{ 'transactionDetails.actionReferralForm' | t }}
-  </button>
-
-  <button type="button" class="action-btn blue" (click)="transferTransaction()">
-    <i class="fa-solid fa-right-left"></i>
-    {{ 'transactionDetails.actionTransfer' | t }}
-  </button>
-
-  <button type="button" class="action-btn orange" (click)="returnTransaction()">
-    <i class="fa-solid fa-reply"></i>
-    {{ 'transactionDetails.actionReplyTx' | t }}
-  </button>
-
-  <button type="button" class="action-btn red-outline" (click)="rejectTransaction()">
-    <i class="fa-solid fa-ban"></i>
-    {{ 'transactionDetails.actionRejectWorkflow' | t }}
-  </button>
+  <ng-container *ngFor="let wa of transaction.workflowActions">
+    <button
+      type="button"
+      class="action-btn"
+      [ngClass]="workflowActionUiClass(wa.uiVariant)"
+      (click)="onWorkflowAction(wa)">
+      <i class="fa-solid fa-bolt"></i>
+      {{ workflowActionLabel(wa) }}
+    </button>
+  </ng-container>
 
   <button type="button" class="action-btn yellow" (click)="openSendMailDialog()">
     <i class="fa-solid fa-envelope"></i>
     {{ 'transactionDetails.actionSendMail' | t }}
   </button>
 
-  <button type="button" class="action-btn gray" (click)="openCancelDialog()">
+  <button
+    type="button"
+    class="action-btn gray"
+    *ngIf="transaction.cancelAllowed !== false && cap.can('CANCEL_TRANSACTION')"
+    (click)="openCancelDialog()">
     <i class="fa-solid fa-xmark"></i>
     {{ 'transactionDetails.actionCancel' | t }}
   </button>
@@ -762,9 +829,11 @@
 
         <div class="qi-row">
           <span class="qi-label">{{ 'transactionDetails.qiStatus' | t }}</span>
-          <span class="status-badge sm" [ngClass]="'badge-' + transaction.statusClass">
-            {{ transaction.status }}
-          </span>
+          <app-status-badge
+            [code]="transaction.status"
+            [uiVariant]="transaction.statusUiVariant"
+            size="sm"
+          />
         </div>
 
         <div class="qi-row">
@@ -832,9 +901,9 @@
 
       </div>
 
-      <div class="quick-info-footer">
-        <button class="btn primary full-width" (click)="approveTransaction()">
-          <i class="fa-solid fa-circle-check"></i> {{ 'transactionDetails.approveTransaction' | t }}
+      <div class="quick-info-footer" *ngIf="primaryWorkflowAction() as pa">
+        <button class="btn primary full-width" type="button" (click)="onWorkflowAction(pa)">
+          <i class="fa-solid fa-circle-check"></i> {{ workflowActionLabel(pa) }}
         </button>
       </div>
 

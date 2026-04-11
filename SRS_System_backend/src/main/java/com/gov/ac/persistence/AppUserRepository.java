@@ -19,6 +19,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
 
   List<AppUser> findByDepartment_IdAndDeletedAtIsNullAndActiveTrue(Long departmentId);
 
-  Optional<AppUser> findByUsernameIgnoreCaseAndDeletedAtIsNull(String username);
-}
+  @EntityGraph(attributePaths = "department")
+  Optional<AppUser> findByUsernameAndDeletedAtIsNull(String username);
 
+  boolean existsByEmailAndDeletedAtIsNullAndIdNot(String email, UUID id);
+}

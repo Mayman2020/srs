@@ -9,24 +9,45 @@ spring:
       max-file-size: 50MB
       max-request-size: 55MB
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ac_communications}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    # Single schema for the whole app: Flyway + JPA entities + Camunda engine tables all use srs_system only.
+    # Never point tools (DBeaver, psql) at the same DB without the same search_path — otherwise you see missing/wrong tables.
+    # currentSchema=srs_system on the JDBC URL + Hikari init below keep unqualified DDL/DML in srs_system (Camunda ACT_* included).
+    # Optional overrides: DB_URL, DB_USER (then SPRING_DATASOURCE_*). If you set DB_URL / SPRING_DATASOURCE_URL yourself, keep ?currentSchema=srs_system.
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=srs_system}}
+    username: ${DB_USER:${SPRING_DATASOURCE_USERNAME:postgres}}
     # Password: profile `local` sets it in application-local.yml. Other profiles / Docker: set SPRING_DATASOURCE_PASSWORD.
     # Do not use ${SPRING_DATASOURCE_PASSWORD:} here — an empty env var would override the local profile and break auth.
     driver-class-name: org.postgresql.Driver
+    hikari:
+      # Belt-and-suspenders: some clients strip URL options; this guarantees srs_system is first on the search_path every checkout.
+      connection-init-sql: SET search_path TO srs_system, public
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: srs_system
         jdbc:
           time_zone: UTC
         format_sql: true
   flyway:
     enabled: true
     locations: classpath:db/migration
+    # Run on every Flyway-managed connection before migrations. Hikari connection-init-sql alone is
+    # not always applied to the same JDBC session Flyway uses; without this, unqualified DDL in V1/V2
+    # can land in public while verification expects srs_system.
+    init-sqls:
+      - SET search_path TO srs_system, public
     baseline-on-migrate: true
+    repair-on-migrate: true
+    # Single baseline DDL (see V1__srs_system_full_baseline.sql); history table lives in srs_system.
+    # Stale history (e.g. DB version 2 but only V1 on classpath) skips V1 and breaks the app — run
+    # docs/db/srs_system_full_clean_reset.sql (drops srs_system + public.flyway_schema_history if present).
+    schemas: srs_system
+    default-schema: srs_system
+    create-schemas: true
   mail:
     host: ${SMTP_HOST:localhost}
     port: ${SMTP_PORT:1025}
@@ -35,6 +56,11 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 springdoc:
   api-docs:
@@ -46,6 +72,13 @@ camunda.bpm:
   admin-user:
     id: ${CAMUNDA_BPM_ADMIN_USER:admin}
     password: ${CAMUNDA_BPM_ADMIN_PASSWORD:}
+  # Same DB as the app; engine tables in srs_system. Prefix must be schema + '.' (Camunda validation).
+  database:
+    type: postgres
+    # DDL is applied by Flyway V2__camunda_schema.sql — engine must not mutate schema at runtime.
+    schema-update: false
+    schema-name: srs_system
+    table-prefix: srs_system.
   webapp:
     enabled: false
   job-execution:

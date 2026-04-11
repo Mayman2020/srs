@@ -32,7 +32,12 @@ export class TransactionService {
 
   listPage(params: CorrespondenceListParams = {}): Observable<Transaction[]> {
     return this.correspondenceApi
-      .list({ size: params.size ?? 500, page: params.page ?? 0, ...params })
+      .list({
+        sort: ['createdAt,desc'],
+        size: params.size ?? 500,
+        page: params.page ?? 0,
+        ...params
+      })
       .pipe(map((p) => (p.content ?? []).map((row) => this.mapListRow(row))));
   }
 
@@ -94,7 +99,7 @@ export class TransactionService {
 
   workflowAction(
     id: string,
-    opts?: { action?: 'APPROVE' | 'REJECT' | 'RETURN' | 'REFER'; comment?: string | null }
+    opts?: { action?: string | null; comment?: string | null }
   ): Observable<void> {
     return this.correspondenceApi.workflowAction(id, {
       action: opts?.action,
@@ -188,6 +193,7 @@ export class TransactionService {
       typeCode,
       status: statusCode,
       statusCode,
+      statusUiVariant: dto.correspondenceStatus?.uiVariant ?? null,
       priorityCode,
       subject: dto.subject,
       description: '',

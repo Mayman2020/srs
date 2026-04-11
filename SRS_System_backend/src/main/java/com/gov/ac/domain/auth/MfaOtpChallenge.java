@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "mfa_otp_challenge")
+@Table(name = "mfa_otp_challenge", schema = "srs_system")
 @Getter
 @Setter
 @NoArgsConstructor

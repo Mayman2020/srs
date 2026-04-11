@@ -1,0 +1,44 @@
+/* Mirrors correspondence_status.ui_variant (Flyway V29); single source for status badge look. */
+.app-status-badge {
+  display: inline-block;
+  padding: 4px 13px;
+  border-radius: 30px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.sm {
+    padding: 3px 10px;
+    font-size: 0.7rem;
+  }
+
+  &.md {
+    padding: 5px 14px;
+    font-size: 0.82rem;
+  }
+
+  &.badge-success {
+    background: #dcfce7;
+    color: #14532d;
+  }
+  &.badge-danger {
+    background: #fee2e2;
+    color: #7f1d1d;
+  }
+  &.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  &.badge-info {
+    background: #dbeafe;
+    color: #1e3a8a;
+  }
+  &.badge-secondary {
+    background: #f1f5f9;
+    color: #334155;
+  }
+  &.badge-neutral {
+    background: #e5e7eb;
+    color: #374151;
+  }
+}

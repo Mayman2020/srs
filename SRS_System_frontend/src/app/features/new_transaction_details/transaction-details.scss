@@ -205,25 +205,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
 
 .card-divider { height: 1px; background: $border; margin: 0 22px; }
 
-// ══════════════════════════════════════════════════════════════════
-//  STATUS BADGE
-// ══════════════════════════════════════════════════════════════════
-
-.status-badge {
-  display      : inline-block;
-  padding      : 4px 13px;
-  border-radius: 30px;
-  font-size    : .76rem;
-  font-weight  : 700;
-  white-space  : nowrap;
-
-  &.badge-active   { background: #dcfce7; color: #14532d; }
-  &.badge-done     { background: #dbeafe; color: #1e3a8a; }
-  &.badge-pending  { background: #fef3c7; color: #92400e; }
-  &.badge-rejected { background: #fee2e2; color: #7f1d1d; }
-
-  &.sm { padding: 3px 10px; font-size: .7rem; }
-}
+// Status colors: shared `app-status-badge` (see status-badge.component.scss).
 
 // ══════════════════════════════════════════════════════════════════
 //  SECRECY BADGE
@@ -780,6 +762,7 @@ $shadow-lg   : 0 8px 32px rgba(0,0,0,.13);
 
 .attachment {
   display      : flex;
+  flex-wrap    : wrap;
   align-items  : center;
   gap          : 12px;
   padding      : 12px 14px;
@@ -1447,4 +1430,41 @@ opacity:.9;
 .wf-delegate-btn:hover {
   border-color: rgba(124, 58, 237, 0.35);
   box-shadow: 0 14px 34px rgba(124, 58, 237, 0.12);
+}
+
+.mini-table-wrap {
+  overflow: auto;
+  padding: 0 1rem 1rem;
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 0.45rem 0.35rem;
+  border-bottom: 1px solid $border;
+  text-align: start;
+}
+
+.att-index {
+  flex: 0 0 100%;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed $border;
+}
+
+.att-index-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: $text-med;
+}
+
+.muted {
+  opacity: 0.75;
+  font-size: 0.88rem;
 }

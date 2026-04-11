@@ -10,7 +10,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { MfaOtpDialogComponent } from '../../../shared/dialogs/mfa-otp-dialog.component';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
-import { catchError, of, timeout } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 declare var particlesJS: unknown;
 
@@ -67,6 +67,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     if (isPlatformBrowser(this.platformId)) {
       document.body.classList.add('login-page');
+      // Public login defaults to Arabic; use ?lang=en for English (overrides prior localStorage).
+      const params = new URLSearchParams(window.location.search);
+      const lang = params.get('lang') === 'en' ? 'en' : 'ar';
+      this.i18n.loadLang(lang).subscribe({ error: () => {} });
     }
   }
 
@@ -106,7 +110,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   login(): void {
     if (this.form.invalid || this.submitting) {
-      this.form.markAllAsTouched();
       this.showToast(
         this.i18n.instant('auth.validationRequired'),
         this.i18n.instant('auth.validationRequired'),
@@ -137,10 +140,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
           this.openMfaDialog(u, p);
           return;
         }
-        const msg =
-          err.status === 401 || err.status === 403
-            ? this.i18n.instant('errors.badCredentials')
-            : err.userMessage ?? this.i18n.instant('errors.generic');
+        const msg = err.userMessage ?? this.i18n.instant('errors.generic');
         this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg, 'error');
       }
     });
@@ -169,18 +169,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       this.i18n.instant('auth.loginSuccessMessage'),
       'success'
     );
-    
-    // Load lookup labels in background with timeout to prevent hanging
-    this.lookupLabels
-      .load()
-      .pipe(
-        timeout(5000), // 5 second timeout
-        catchError(() => of(undefined))
-      )
-      .subscribe();
-    
-    // Navigate quickly - toast will still be visible during navigation
-    setTimeout(() => this.router.navigate(['/dashboard']), 800);
+    this.lookupLabels.load().pipe(catchError(() => of(undefined))).subscribe();
+    setTimeout(() => this.router.navigate(['/dashboard']), 2200);
   }
 
   forgotPassword(): void {

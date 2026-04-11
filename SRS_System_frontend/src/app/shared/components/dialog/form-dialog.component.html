@@ -1,0 +1,7 @@
+<app-dialog-shell
+  [titleKey]="data.titleKey"
+  [wide]="true"
+  icon="edit_square"
+  (closeRequested)="close()">
+  <ng-container *ngComponentOutlet="data.component; injector: contentInjector()"></ng-container>
+</app-dialog-shell>

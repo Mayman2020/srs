@@ -1,5 +1,5 @@
 /* =====================================
-   GOVERNMENT ERP LOGIN - FINAL COMPACT
+   Government ERP System — login (compact)
 ===================================== */
 
 .login-shell {
@@ -244,25 +244,6 @@
   color: white;
   cursor: pointer;
   transition: 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.btn-primary[disabled] {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.button-spinner {
-  width: 18px;
-  height: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
 }
 
 .btn-primary:hover {
@@ -292,82 +273,31 @@
 /* Toast */
 
 .toast {
-  margin-top: 16px;
-  padding: 14px 16px;
-  font-size: 0.85rem;
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
   background: #f5f7f6;
-  border-radius: 10px;
-  border-right: 5px solid var(--primary-green);
+  border-radius: 8px;
+  border-right: 4px solid var(--primary-green);
   position: relative;
   z-index: 5;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  animation: slideInUp 0.3s ease-out;
-  overflow: hidden;
-}
-
-.toast::before {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  padding: 0;
-}
-
-.toast b {
-  display: block;
-  font-weight: 700;
-  margin-bottom: 4px;
-  font-size: 0.9rem;
-  letter-spacing: 0.3px;
-}
-
-.toast p {
-  margin: 0;
-  line-height: 1.5;
-  opacity: 0.85;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .toast.toast-success {
-  border-right-color: #10b981;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  color: #065f46;
-}
-
-.toast.toast-success b {
-  color: #059669;
+  border-right-color: var(--primary-green);
+  background: #ecfdf5;
 }
 
 .toast.toast-error {
-  border-right-color: #ef4444;
-  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
-  color: #7f1d1d;
-}
-
-.toast.toast-error b {
-  color: #dc2626;
+  border-right-color: #c0392b;
+  background: #fff5f5;
+  color: #1f2937;
 }
 
 .toast.toast-info {
-  border-right-color: #3b82f6;
-  background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
-  color: #1e3a8a;
-}
-
-.toast.toast-info b {
-  color: #2563eb;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  border-right-color: #2563eb;
+  background: #eff6ff;
 }
 
 /* =========================

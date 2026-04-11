@@ -14,6 +14,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { NotificationDispatchApiService } from '../../core/api/notification-dispatch-api.service';
+import { ErpDialogComponent } from '../erp/erp-dialog.component';
 
 export interface SendMailDialogData {
   defaultSubject: string;
@@ -32,10 +33,10 @@ export interface SendMailDialogData {
     MatButtonModule,
     MatSnackBarModule,
     TranslatePipe,
+    ErpDialogComponent,
   ],
   template: `
-    <h2 mat-dialog-title>{{ 'transactionDetails.sendMailTitle' | t }}</h2>
-    <mat-dialog-content>
+    <app-erp-dialog [titleKey]="'transactionDetails.sendMailTitle'" icon="mail" [wide]="true">
       <form [formGroup]="form" class="form">
         <mat-form-field appearance="outline" class="full">
           <mat-label>{{ 'transactionDetails.sendMailTo' | t }}</mat-label>
@@ -50,29 +51,28 @@ export interface SendMailDialogData {
           <textarea matInput rows="6" formControlName="body"></textarea>
         </mat-form-field>
       </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="ref.close(false)" [disabled]="sending">
-        {{ 'common.close' | t }}
-      </button>
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        (click)="submit()"
-        [disabled]="form.invalid || sending">
-        <span *ngIf="!sending">{{ 'transactionDetails.sendMailSubmit' | t }}</span>
-        <span *ngIf="sending">{{ 'common.loading' | t }}</span>
-      </button>
-    </mat-dialog-actions>
+      <div erpDialogActions>
+        <button mat-button type="button" (click)="ref.close(false)" [disabled]="sending">
+          {{ 'common.close' | t }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="submit()"
+          [disabled]="form.invalid || sending">
+          <span *ngIf="!sending">{{ 'transactionDetails.sendMailSubmit' | t }}</span>
+          <span *ngIf="sending">{{ 'common.loading' | t }}</span>
+        </button>
+      </div>
+    </app-erp-dialog>
   `,
   styles: [
     `
       .form {
         display: flex;
         flex-direction: column;
-        min-width: min(420px, 88vw);
-        padding-top: 8px;
+        padding-top: 4px;
       }
       .full {
         width: 100%;

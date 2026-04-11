@@ -20,6 +20,7 @@ import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
 import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
 import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
+import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
 @Component({
   selector: 'app-transactions',
@@ -31,7 +32,8 @@ import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination
     TranslatePipe,
     LookupTranslatePipe,
     SrsDataTableComponent,
-    SrsSortHeaderComponent
+    SrsSortHeaderComponent,
+    StatusBadgeComponent,
   ],
   templateUrl: './transactions.component.html',
   styleUrls: ['./transactions.component.css'],
@@ -53,8 +55,8 @@ export class TransactionsComponent implements OnInit {
   total = 0;
 
   tableLoading = true;
-  sortColumn = 'id';
-  sortDir: SortDirection = 'asc';
+  sortColumn = 'createdAt';
+  sortDir: SortDirection = 'desc';
 
   correspondenceTypes: LookupItemDto[] = [];
   correspondenceStatuses: LookupItemDto[] = [];
@@ -90,16 +92,14 @@ export class TransactionsComponent implements OnInit {
         this.lookupLabels.hydrateFromBundle(lookups);
         this.all = list;
         this.dashTotal = dash.totalCorrespondences;
-        const inbound = list.filter((t) => (t.typeCode ?? '').toUpperCase() === 'INBOUND').length;
-        const outbound = list.filter((t) => (t.typeCode ?? '').toUpperCase() === 'OUTBOUND').length;
+        const inSet = this.typeCodesFlagged(lookups.correspondenceTypes ?? [], 'inbound');
+        const outSet = this.typeCodesFlagged(lookups.correspondenceTypes ?? [], 'outbound');
+        const inbound = list.filter((t) => inSet.has((t.typeCode ?? '').toUpperCase())).length;
+        const outbound = list.filter((t) => outSet.has((t.typeCode ?? '').toUpperCase())).length;
         this.dashInbound = inbound;
         this.dashOutbound = outbound;
-        this.dashInProgress = (dash.byStatus ?? [])
-          .filter((b) => ['IN_PROGRESS', 'PENDING_APPROVAL', 'RETURNED'].includes(b.code.toUpperCase()))
-          .reduce((s, b) => s + b.count, 0);
-        this.dashCompleted = (dash.byStatus ?? [])
-          .filter((b) => ['ARCHIVED', 'COMPLETED'].includes(b.code.toUpperCase()))
-          .reduce((s, b) => s + b.count, 0);
+        this.dashInProgress = dash.kpiPipelineCount ?? 0;
+        this.dashCompleted = dash.kpiSlaDoneCount ?? 0;
         this.correspondenceTypes = lookups.correspondenceTypes;
         this.correspondenceStatuses = lookups.correspondenceStatuses;
         this.applyFilters();
@@ -110,6 +110,16 @@ export class TransactionsComponent implements OnInit {
         this.applyFilters();
       }
     });
+  }
+
+  private typeCodesFlagged(types: LookupItemDto[], which: 'inbound' | 'outbound'): Set<string> {
+    const flag =
+      which === 'inbound'
+        ? (t: LookupItemDto) => t.dashboardInboundHighlight === true
+        : (t: LookupItemDto) => t.dashboardOutboundHighlight === true;
+    return new Set(
+      types.filter(flag).map((t) => (t.code ?? '').toUpperCase())
+    );
   }
 
   applyFilters(): void {
@@ -174,6 +184,8 @@ export class TransactionsComponent implements OnInit {
     const dir = this.sortDir;
     return [...rows].sort((a, b) => {
       switch (col) {
+        case 'createdAt':
+          return compareSortValues(a.createdAt.getTime(), b.createdAt.getTime(), dir);
         case 'id': {
           const na = Number(a.id);
           const nb = Number(b.id);

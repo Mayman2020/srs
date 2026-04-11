@@ -1,6 +1,22 @@
 {
   "app": {
-    "title": "Administrative communications"
+    "title": "Government ERP System"
+  },
+  "languages": {
+    "ar": {
+      "label": "Arabic",
+      "native": "العربية"
+    },
+    "en": {
+      "label": "English",
+      "native": "English"
+    }
+  },
+  "i18n": {
+    "langAr": "Arabic",
+    "langEn": "English",
+    "switchToArabic": "Switch language to Arabic",
+    "switchToEnglish": "Switch language to English"
   },
   "common": {
     "all": "All",
@@ -18,14 +34,94 @@
     "roleNA": "—",
     "empty": "No data",
     "toastOk": "Done",
+    "confirm": "Confirm",
     "close": "Close",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "recordReferenceLabel": "Record / reference number",
+    "recordReferencePendingPlaceholder": "The number will be assigned automatically after you save."
   },
   "profile": {
     "avatarAlt": "Profile photo",
     "avatarFallbackAlt": "Default profile image",
     "sidebarSignedIn": "Signed in",
-    "toolbarMeta": ""
+    "toolbarMeta": "",
+    "pageTitle": "My profile",
+    "loadError": "Could not load profile details.",
+    "loadNeedsSession": "Please sign in to view your profile.",
+    "tabs": {
+      "info": "Information",
+      "roles": "Roles",
+      "activity": "Activity",
+      "settings": "Settings"
+    },
+    "fields": {
+      "username": "Username",
+      "fullName": "Full name",
+      "fullNameAr": "Full name (Arabic)",
+      "fullNameEn": "Full name (English)",
+      "email": "Email",
+      "phone": "Phone",
+      "nationalId": "National ID",
+      "status": "Status",
+      "lastLogin": "Last sign-in",
+      "department": "Department",
+      "passwordChangedAt": "Password updated",
+      "mfa": "Multi-factor authentication",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password"
+    },
+    "rolesFromServer": "Assigned roles",
+    "rolesSession": "Current session roles",
+    "rolesEmpty": "No roles are assigned to this user.",
+    "activityPlaceholder": "Activity history will appear here when provided by the server.",
+    "settingsPlaceholder": "Account and notification preferences — coming soon.",
+    "mfaEnabled": "Enabled",
+    "mfaDisabled": "Disabled",
+    "passwordSectionTitle": "Change password",
+    "passwordSectionHint": "Use a strong password that is different from your current one.",
+    "avatarSectionTitle": "Profile photo",
+    "avatarSectionHint": "Choose a square image. It will be saved under the system storage path for your account.",
+    "actions": {
+      "selectAvatar": "Choose image",
+      "saveProfile": "Save profile changes",
+      "changePassword": "Update password"
+    },
+    "messages": {
+      "saved": "Profile details were saved.",
+      "saveFailed": "Could not save profile details.",
+      "passwordChanged": "Password updated successfully.",
+      "passwordChangeFailed": "Could not update the password."
+    },
+    "validation": {
+      "required": "Please complete the required profile fields.",
+      "passwordFormInvalid": "Please complete the password form correctly.",
+      "passwordMismatch": "Password confirmation does not match.",
+      "fullNameArRequired": "Arabic full name is required.",
+      "fullNameEnRequired": "English full name is required.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "fullNameArTooLong": "Arabic full name is too long.",
+      "fullNameEnTooLong": "English full name is too long.",
+      "emailTooLong": "Email is too long.",
+      "phoneTooLong": "Phone is too long.",
+      "nationalIdTooLong": "National ID is too long.",
+      "currentPasswordRequired": "Current password is required.",
+      "newPasswordRequired": "New password is required.",
+      "newPasswordTooShort": "New password must be at least 8 characters.",
+      "newPasswordTooLong": "New password is too long.",
+      "avatarTooLarge": "The profile image must be 5 MB or smaller."
+    },
+    "errors": {
+      "emailInUse": "This email address is already in use.",
+      "passwordNotConfigured": "This account does not have a local password configured.",
+      "currentPasswordIncorrect": "Current password is incorrect.",
+      "passwordReuse": "New password must be different from the current password.",
+      "accountInactive": "This account is currently inactive.",
+      "avatarRequired": "Choose an image first.",
+      "avatarInvalidType": "Only JPG, PNG, WEBP, or GIF images are allowed.",
+      "avatarMissing": "No profile image is available for this account."
+    }
   },
   "dataTable": {
     "pagerRange": "{{start}}–{{end}} of {{total}}",
@@ -52,6 +148,28 @@
     }
   },
   "notification": {
+    "types": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "create": {
+      "success": "Created successfully."
+    },
+    "save": {
+      "success": "Saved successfully."
+    },
+    "delete": {
+      "success": "Deleted successfully."
+    },
+    "error": {
+      "general": "Something went wrong. Please try again.",
+      "network": "Could not reach the server. Check your connection and try again.",
+      "unauthorized": "Your session expired or you are not signed in.",
+      "forbidden": "You do not have permission to do this.",
+      "notFound": "The requested resource was not found."
+    },
     "correspondence": {
       "created": "New correspondence: {{referenceNumber}}",
       "comment_added": "New comment on {{referenceNumber}}"
@@ -59,6 +177,27 @@
     "workflow": {
       "task_completed": "Workflow update ({{taskName}}): {{referenceNumber}}"
     }
+  },
+  "supplyTx": {
+    "pageTitle": "Supply transaction",
+    "beneficiaryName": "Beneficiary name",
+    "beneficiaryOrg": "Beneficiary organization",
+    "beneficiaryId": "Beneficiary identifier (national ID / file no.)"
+  },
+  "orgStructure": {
+    "pageTitle": "Organization structure",
+    "deptTab": "Departments (internal)",
+    "orgTab": "Entities (external / partners)",
+    "empty": "No rows."
+  },
+  "leave": {
+    "pageTitle": "Leave requests",
+    "submit": "Submit request",
+    "start": "Start date",
+    "end": "End date",
+    "reason": "Reason",
+    "status": "Status",
+    "listMine": "My requests"
   },
   "reports": {
     "pageTitle": "Reports & statistics",
@@ -106,6 +245,27 @@
       "charts": "Charts"
     }
   },
+  "shellNav": {
+    "login": "Login",
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "transactions_list": "Transactions list",
+    "create_transaction": "Create transaction",
+    "transaction_details": "Transaction details",
+    "notifications": "Notifications",
+    "circulars": "Circulars",
+    "reports": "Reports & statistics",
+    "admin_main": "System administration",
+    "users": "Users",
+    "roles": "Roles & permissions",
+    "profile": "Profile",
+    "org_structure": "Organization structure",
+    "leave_requests": "Leave requests",
+    "supply_transaction": "Supply transaction",
+    "correspondence_search": "Correspondence search",
+    "delegations": "Authority delegations",
+    "lookup_admin": "Lookup management"
+  },
   "sidebar": {
     "demoUser": "Demo user",
     "demoRole": "Employee"
@@ -119,6 +279,79 @@
     "loadError": "Could not load circulars.",
     "noUserId": "Sign in again to view circulars.",
     "broadcast": "Broadcast"
+  },
+  "correspondenceSearch": {
+    "pageTitle": "Correspondence search",
+    "subtitle": "Filter by type, status, priority, and creation period.",
+    "createdFrom": "Created from",
+    "createdTo": "Created to",
+    "results": "Results",
+    "colCreatedBy": "Created by"
+  },
+  "delegations": {
+    "pageTitle": "Authority delegations",
+    "subtitle": "Delegate actions on correspondence.",
+    "formTitle": "New delegation",
+    "delegateUser": "Delegatee",
+    "selectUser": "Select a user",
+    "validFrom": "Valid from",
+    "validTo": "Valid to",
+    "canSignOnBehalf": "Sign on behalf",
+    "typeCodesHint": "Allowed types (comma-separated codes, empty = all)",
+    "confidentialityCodesHint": "Allowed confidentiality (comma-separated codes, empty = all)",
+    "notes": "Notes",
+    "submit": "Save delegation",
+    "listTitle": "Delegations",
+    "colDelegator": "Delegator",
+    "colDelegate": "Delegate",
+    "colFrom": "From",
+    "colTo": "To",
+    "colSign": "Sign",
+    "revoke": "Revoke",
+    "revokeConfirmTitle": "Revoke delegation",
+    "revokeConfirmMessage": "Revoke this delegation?",
+    "revokeConfirm": "Revoke",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "lookupAdmin": {
+    "pageTitle": "Lookup management",
+    "subtitle": "Master data from lookup tables (Arabic/English) with parent links where applicable.",
+    "groups": "Lookup group",
+    "newRow": "New row",
+    "createRow": "Add value",
+    "editRow": "Edit value",
+    "fieldCode": "Stable code",
+    "fieldNameAr": "Name (Arabic)",
+    "fieldNameEn": "Name (English)",
+    "fieldDescription": "Description",
+    "fieldSort": "Sort order",
+    "fieldActive": "Active",
+    "fieldParent": "Parent (id)",
+    "parentNone": "— none —",
+    "fieldTerminal": "Terminal status",
+    "fieldStatusUiVariant": "Status badge style",
+    "colStatusUiVariant": "Badge",
+    "fieldSlaDays": "SLA days (optional)",
+    "restrictsExport": "Restricts export/print",
+    "requiresClearance": "Requires clearance",
+    "fieldParentId": "Parent",
+    "colCode": "Code",
+    "colNameAr": "Name AR",
+    "colNameEn": "Name EN",
+    "colParentId": "Parent id",
+    "colSort": "Sort",
+    "colActive": "Active",
+    "save": "Save",
+    "create": "Create",
+    "cancelEdit": "Cancel edit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete value",
+    "deleteMessage": "This will soft-delete the lookup row. Continue?",
+    "deleteConfirm": "Delete",
+    "yes": "Yes",
+    "no": "No"
   },
   "transactions": {
     "createButton": "Create transaction",
@@ -247,6 +480,8 @@
     "pagerLabel": "Users: {{n}}"
   },
   "notifications": {
+    "pageTitle": "Notifications",
+    "empty": "No notifications yet.",
     "markAllRead": "Mark all as read",
     "filterAll": "All",
     "filterUnread": "Unread",
@@ -313,6 +548,8 @@
       "step4": "Attachments",
       "step5": "Done"
     },
+    "referenceNumberLabel": "Reference number",
+    "referenceAutoPlaceholder": "The reference number will be assigned automatically after you save.",
     "subject": "Subject",
     "descriptionShort": "Short description (optional)",
     "recipients": "Recipients",
@@ -326,7 +563,11 @@
       "firstAssigneeUserIdPh": "User UUID — leave empty to use initiator or role pool below",
       "firstCandidateGroup": "Workflow: first task for role pool (optional)",
       "firstCandidateGroupPh": "Role code from directory, e.g. STAFF",
-      "hintExclusive": "Use only one of user UUID or role code, not both."
+      "hintExclusive": "Use only one of user UUID or role code, not both.",
+      "routeMode": "Workflow path",
+      "routeAuto": "Automatic (default route for this service type)",
+      "routeManual": "Manual (choose Camunda route)",
+      "pickRoute": "Camunda route"
     },
     "attachmentsTitle": "Attachments",
     "attachmentsHint": "Drag files here or click to browse",
@@ -360,7 +601,8 @@
       "step1": "Complete basic data (all required fields; subject at least 5 characters)",
       "step2Form": "Check reply period and optional workflow fields",
       "recipientsRequired": "Select at least one recipient department",
-      "step3": "Enter letter content or choose a valid template"
+      "step3": "Enter letter content or choose a valid template",
+      "workflowRouteManual": "Choose a Camunda route when using manual workflow path"
     },
     "submit": {
       "success": "Transaction created successfully",
@@ -374,9 +616,9 @@
       "dateLabel": "Date:",
       "refAuto": "[Filled automatically]",
       "refFilledPlain": "Filled in automatically",
-      "headerEntity": "[Organization name]",
-      "headerSubtitle": "General Department of Administrative Communications",
-      "footerManager": "Department manager",
+      "headerEntity": "Government ERP System",
+      "headerSubtitle": "An integrated platform for institutional resource management with AI, supporting digital governance and Saudi Vision 2030",
+      "footerManager": "Authorized signatory",
       "footerSignature": "Signature",
       "toLabel": "To:",
       "refPlaceholderBracket": "[Reference number]",
@@ -442,6 +684,16 @@
     "tabReply": "Reply",
     "tabNotes": "Notes",
     "tabRelated": "Related transactions",
+    "tabNonarchived": "Non-archived",
+    "relatedEmpty": "No linked correspondences.",
+    "nonarchivedTitle": "Non-archived items",
+    "nonarchivedEmpty": "No items recorded.",
+    "colQuantity": "Qty",
+    "colDescription": "Description",
+    "indexTitle": "Attachment index",
+    "indexEmpty": "No index rows.",
+    "indexPages": "Pages",
+    "indexSubject": "Subject",
     "basicDataTitle": "Basic information",
     "labelType": "Type",
     "labelCreated": "Created on",
@@ -523,23 +775,23 @@
   },
   "login": {
     "title": "Sign in",
-    "subtitle": "Administrative communications",
+    "subtitle": "An integrated platform for institutional resource management with AI, supporting digital governance and Saudi Vision 2030",
     "username": "Username",
     "password": "Password",
     "submit": "Sign in",
     "demo": "Quick demo",
-    "heroTitle": "Government ERP system",
-    "heroLead": "An integrated platform for institutional resource management with AI, digital governance, and Vision 2030 alignment.",
-    "feat1Title": "Advanced AI",
-    "feat1Desc": "Smart analytics and automated financial and administrative forecasts",
-    "feat2Title": "Digital governance",
-    "feat2Desc": "Full alignment with governance and transparency standards",
-    "feat3Title": "Integrated resources",
-    "feat3Desc": "Finance, HR, procurement, and inventory",
-    "feat4Title": "Vision 2030",
-    "feat4Desc": "Supporting digital transformation and strategic goals",
-    "visionBadge": "Aligned with Vision 2030",
-    "copyrightLine": "© 2024 — Government institutional use",
+    "heroTitle": "Government ERP System",
+    "heroLead": "An integrated platform for institutional resource management with AI, supporting digital governance and Saudi Vision 2030. It covers correspondence and transactions, workflow routing, circulars, attachments, delegations, and records—with roles, permissions, and auditability.",
+    "feat1Title": "Unified correspondence registry",
+    "feat1Desc": "Track inbound/outbound items, status, and attachments in one place",
+    "feat2Title": "Workflow routes",
+    "feat2Desc": "Route items through approved paths with a full action history",
+    "feat3Title": "Governance & classification",
+    "feat3Desc": "RBAC, secrecy levels, and audit trails for access and changes",
+    "feat4Title": "Circulars, delegation & search",
+    "feat4Desc": "Circulars, authority delegation, and powerful filtering/search",
+    "visionBadge": "Saudi Vision 2030",
+    "copyrightLine": "© 2026 — Government ERP System",
     "panelSub": "Enter your credentials to access the system",
     "usernamePlaceholder": "Enter username",
     "passwordPlaceholder": "••••••••",
@@ -550,7 +802,33 @@
   "chat": {
     "assistant": "AI assistant",
     "send": "Send",
-    "inputPlaceholder": "Ask about a transaction…"
+    "inputPlaceholder": "Ask about a transaction…",
+    "greeting": "Hi 👋 How can I help?",
+    "suggestion1": "Show overdue transactions",
+    "suggestion2": "How many transactions are in progress?",
+    "suggestion3": "Summarize the last 5 transactions",
+    "notFound": "Transaction not found",
+    "noMatches": "No transactions match your search",
+    "resultsHeader": "Results: {{count}}",
+    "labelSender": "Sender",
+    "labelRecipient": "Recipient",
+    "labelStatus": "Status",
+    "intentTokens": {
+      "inbound": "inbound|incoming|وارد",
+      "outbound": "outbound|صادر",
+      "internal": "internal|داخلية",
+      "external": "external|خارجية",
+      "statusCompleted": "completed|done|منجزة|مكتملة",
+      "statusInProgress": "in progress|progress|قيد",
+      "statusNew": "new|جديدة",
+      "statusRejected": "rejected|مرفوضة",
+      "statusReturned": "returned|معادة",
+      "secrecySecret": "secret|confidential|سري",
+      "late": "late|overdue|متأخر|متأخرة",
+      "fromMarker": "from |من ",
+      "toMarker": "to |إلى ",
+      "today": "today|اليوم"
+    }
   },
   "workflowDialog": {
     "title": "Visual tracking",
@@ -582,6 +860,12 @@
     "mfaSendFailed": "Could not send the verification code."
   },
   "topbar": {
+    "themeSwitchLight": "Switch to light mode",
+    "themeSwitchDark": "Switch to dark mode",
+    "languageMenu": "Language",
+    "profileMenuAria": "Account menu",
+    "menuProfile": "My profile",
+    "menuSettings": "Settings",
     "markAllRead": "Mark all as read",
     "notificationsTitle": "Notifications",
     "notificationsIconTitle": "Notifications",
@@ -624,6 +908,16 @@
     "resolveNotePh": "Optional resolution note",
     "issueResolved": "Issue marked resolved.",
     "add": "Add",
+    "tooltip": {
+      "add": "Add user",
+      "addPerm": "Add permission",
+      "addScreen": "Add screen",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "assignRole": "Assign role",
+      "resolve": "Resolve issue"
+    },
     "loadUserFailed": "Could not load this user from the server.",
     "view": "View",
     "edit": "Edit",
@@ -641,6 +935,14 @@
     "colSort": "Sort",
     "colActive": "Active",
     "colRoute": "Route",
+    "colIcon": "Icon",
+    "colShellNav": "Sidebar",
+    "screenIconKey": "Material icon ligature (e.g. dashboard)",
+    "screenShowInShellNav": "Show in shell sidebar for authorized users",
+    "screenRequiredPerm": "Required permission (optional)",
+    "screenPermNone": "None — any signed-in user",
+    "shellNavYes": "Yes",
+    "shellNavNo": "No",
     "colWhen": "When",
     "colSeverity": "Severity",
     "colMessage": "Message",
@@ -667,5 +969,279 @@
     "roleAssigned": "Role assigned.",
     "confirmDelete": "Confirm delete?",
     "confirmDeleteUser": "Delete this user?"
+  },
+  "legacyCharts": {
+    "donutStatusLabels": ["New", "In progress", "Returned", "Completed"],
+    "barDeptLabels": ["Administrative correspondence", "Operations", "Logistics", "Legal affairs", "IT"],
+    "barDatasetLabel": "Completed",
+    "lineSeriesLabel": "Correspondence volume",
+    "lineQuarterLabels": ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7"],
+    "reportsDonutStatusLabels": ["New", "In progress", "Returned", "Completed"]
+  },
+  "legacyPages": {
+    "common": {
+      "done": "OK",
+      "day": " day"
+    },
+    "theme": {
+      "switchedToLight": "Light mode enabled.",
+      "switchedToDark": "Dark mode enabled."
+    },
+    "auth": {
+      "logoutDemo": "Signed out (demo)."
+    },
+    "txStatus": {
+      "NEW": "New",
+      "IN_PROGRESS": "In progress",
+      "RETURNED": "Returned",
+      "DONE": "Completed",
+      "REJECTED": "Rejected"
+    },
+    "txType": {
+      "INBOUND": "Inbound",
+      "OUTBOUND": "Outbound",
+      "INTERNAL": "Internal",
+      "EXTERNAL": "External"
+    },
+    "priority": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "notifType": {
+      "ALERT": "Alert",
+      "REMINDER": "Reminder",
+      "INFO": "Info"
+    },
+    "dashboard": {
+      "open": "Open",
+      "emptyTx": "No transactions.",
+      "aiChartTxCount": "Transaction count",
+      "aiStatusesOrder": ["NEW", "IN_PROGRESS", "RETURNED", "DONE", "REJECTED"],
+      "aiPrioritiesOrder": ["HIGH", "MEDIUM", "LOW"]
+    },
+    "reports": {
+      "runSuccessTitle": "OK",
+      "runSuccessMsg": "Report ran and charts were updated.",
+      "pdfTitle": "Export PDF",
+      "pdfMsg": "Demo: wiring later.",
+      "xlsTitle": "Export Excel",
+      "xlsMsg": "Demo: wiring later."
+    },
+    "notificationsPage": {
+      "recommended": {
+        "REMINDER": "Follow up SLA",
+        "ALERT": "Open the transaction and record an action",
+        "INFO": "General review",
+        "DEFAULT": "General review"
+      },
+      "slaShort": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      },
+      "prioShort": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      },
+      "ownerDepts": [
+        "Administrative correspondence",
+        "Human resources",
+        "Legal affairs",
+        "Finance",
+        "Procurement"
+      ],
+      "sourceTx": "Transactions system",
+      "sourceSys": "System",
+      "channelSystem": "System",
+      "channelManual": "Manual",
+      "readPill": "Read",
+      "unreadPill": "Unread",
+      "impPill": "Important",
+      "normalPill": "Normal",
+      "detailsLink": "Details",
+      "openLink": "Open",
+      "toggleUnread": "Mark unread",
+      "toggleRead": "Mark read",
+      "unmarkImportant": "Unmark important",
+      "markImportant": "Mark important",
+      "delete": "Delete",
+      "toastFilter": "Filters applied.",
+      "toastResetFilters": "Filters cleared.",
+      "toastAllRead": "All notifications marked as read.",
+      "toastNoTx": "No transaction number is linked to this notification.",
+      "toastDeleted": "Notification removed (demo).",
+      "toastTitleOk": "OK",
+      "infoTitle": "Info"
+    },
+    "transactionsList": {
+      "open": "Open",
+      "empty": "No matching results.",
+      "toastFilter": "Filters applied.",
+      "toastReset": "Filters reset.",
+      "toastTitleOk": "OK"
+    },
+    "userStatus": {
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended"
+    },
+    "usersPage": {
+      "toggleStatus": "Toggle status",
+      "edit": "Edit",
+      "toastValidation": "Enter name, national ID, and department.",
+      "toastAdded": "User added (demo).",
+      "toastUpdated": "User status updated (demo).",
+      "toastEditLater": "Editing users will be added in a later iteration.",
+      "alertTitle": "Notice",
+      "infoTitle": "Info",
+      "toastTitleOk": "OK"
+    },
+    "transactionDetails": {
+      "act": {
+        "APPROVE": "Approve",
+        "FORWARD": "Forward",
+        "RETURN": "Return",
+        "REJECT": "Reject"
+      },
+      "toastNoteTitle": "Notice",
+      "toastNoteMsg": "Please enter a reason or note for this action.",
+      "toastOkTitle": "OK",
+      "toastOkMsg": "Action applied and status updated (demo).",
+      "toastAttachTitle": "Info",
+      "toastAttachMsg": "Preview/download in the demo has no real files.",
+      "secrecyDefault": "Normal",
+      "demoUser": "Demo user",
+      "viewDownload": "View / download",
+      "tlTotalLabel": "Total events:",
+      "tlLastLabel": "Last action:",
+      "timelineDefaults": [
+        {
+          "action": "Receipt",
+          "by": "Demo user",
+          "note": "Transaction details opened (demo)."
+        },
+        {
+          "action": "Under review",
+          "by": "Communications office",
+          "note": "Transaction registered and basic data captured (demo)."
+        },
+        {
+          "action": "Referral",
+          "by": "System",
+          "note": "Referred to the responsible department (demo)."
+        },
+        {
+          "action": "Approval",
+          "by": "Responsible manager",
+          "note": "Approved electronically (demo)."
+        },
+        {
+          "action": "Archiving",
+          "by": "Communications office",
+          "note": "Archived and closed (demo)."
+        }
+      ],
+      "attachmentDemoRows": [
+        {
+          "kind": "Electronic",
+          "type": "PDF",
+          "name": "referral_letter.pdf",
+          "secrecy": "Limited circulation",
+          "by": "Demo user"
+        },
+        {
+          "kind": "Electronic",
+          "type": "Word",
+          "name": "draft_reply.docx",
+          "secrecy": "Normal",
+          "by": "Demo user"
+        },
+        {
+          "kind": "Electronic",
+          "type": "Excel",
+          "name": "followup_form.xlsx",
+          "secrecy": "Normal",
+          "by": "Demo user"
+        },
+        {
+          "kind": "Electronic",
+          "type": "Image",
+          "name": "illustration.png",
+          "secrecy": "Normal",
+          "by": "Demo user"
+        },
+        {
+          "kind": "Physical",
+          "type": "Paper document",
+          "name": "Original letter",
+          "secrecy": "Secret",
+          "by": "Demo user"
+        },
+        {
+          "kind": "Electronic",
+          "type": "ZIP",
+          "name": "attachments_bundle.zip",
+          "secrecy": "Limited circulation",
+          "by": "Demo user"
+        }
+      ]
+    },
+    "demo": {
+      "r1": {
+        "subject": "Committee minutes approval request",
+        "from": "Ministry / higher authority",
+        "to": "Department"
+      },
+      "r2": {
+        "subject": "Clarification regarding a previous letter",
+        "from": "Government entity",
+        "to": "Employee"
+      },
+      "r3": {
+        "subject": "Circular on archiving procedures",
+        "from": "Administrative correspondence unit",
+        "to": "Group of departments"
+      },
+      "r4": {
+        "subject": "Supplier correspondence on a contract",
+        "from": "Government entity",
+        "to": "Department"
+      },
+      "r5": {
+        "subject": "Data provision request",
+        "from": "Government entity",
+        "to": "Employee"
+      },
+      "r6": {
+        "subject": "Request to complete documents",
+        "from": "Government entity",
+        "to": "Department"
+      },
+      "n1": {
+        "text": "You have a new inbound transaction 1445/10304"
+      },
+      "n2": {
+        "text": "Response time is approaching for 1445/10293"
+      },
+      "n3": {
+        "text": "Transaction 1445/10294 was closed successfully"
+      },
+      "u1": {
+        "name": "Demo user",
+        "dept": "Administrative correspondence unit",
+        "statusCode": "ACTIVE"
+      },
+      "u2": {
+        "name": "Sarah Al-Shehri",
+        "dept": "General administration",
+        "statusCode": "ACTIVE"
+      },
+      "u3": {
+        "name": "Mohammed Al-Harbi",
+        "dept": "Human resources",
+        "statusCode": "SUSPENDED"
+      }
+    }
   }
 }

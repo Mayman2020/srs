@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
@@ -12,9 +12,11 @@ export class UserDirectoryApiService {
   ) {}
 
   list(page = 0, size = 50): Observable<SpringPage<UserListDto>> {
-    return this.http.get<SpringPage<UserListDto>>(`${this.base}/users`, {
-      params: { page: String(page), size: String(size) }
-    });
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .append('sort', 'createdAt,desc');
+    return this.http.get<SpringPage<UserListDto>>(`${this.base}/users`, { params });
   }
 
   getOne(userId: string): Observable<UserDetailDto> {

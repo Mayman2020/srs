@@ -8,4 +8,6 @@ export interface ErpUserProfileViewModel {
   avatarPrimarySrc: string | null;
   currentRole: string | null;
   roles: readonly string[];
+  /** ISO time of last sign-in from {@code GET /api/v1/profile/me}; null if not recorded yet. */
+  lastLoginAt: string | null;
 }

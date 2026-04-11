@@ -1,6 +1,7 @@
 package com.gov.ac.correspondence.service;
 
 import com.gov.ac.correspondence.dto.CorrespondenceDetailResponse;
+import com.gov.ac.correspondence.dto.WorkflowActionAvailableDto;
 import com.gov.ac.correspondence.mapper.CorrespondenceDetailMapper;
 import com.gov.ac.correspondence.security.CorrespondenceViewAuthorization;
 import com.gov.ac.domain.correspondence.Attachment;
@@ -39,6 +40,8 @@ public class CorrespondenceDetailService {
   private final CorrespondenceCommentRepository correspondenceCommentRepository;
   private final WorkflowHistoryRepository workflowHistoryRepository;
   private final CorrespondenceDetailMapper correspondenceDetailMapper;
+  private final CorrespondenceWorkflowAvailabilityService correspondenceWorkflowAvailabilityService;
+  private final CorrespondenceCancelService correspondenceCancelService;
 
   @Transactional(readOnly = true)
   public CorrespondenceDetailResponse getById(UUID correspondenceId, UUID viewerId) {
@@ -84,7 +87,13 @@ public class CorrespondenceDetailService {
     List<WorkflowHistory> history =
         workflowHistoryRepository.findByCorrespondence_IdOrderBySequenceNoAsc(correspondenceId);
 
+    List<WorkflowActionAvailableDto> actions =
+        correspondenceWorkflowAvailabilityService.listAvailableWorkflowActions(
+            correspondenceId, viewerId);
+
+    boolean cancelAllowed = correspondenceCancelService.isUserCancelAllowed(correspondence);
+
     return correspondenceDetailMapper.toResponse(
-        correspondence, attachments, versionsByAttachmentId, comments, history);
+        correspondence, attachments, versionsByAttachmentId, comments, history, actions, cancelAllowed);
   }
 }

@@ -11,6 +11,8 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
 
   Optional<Permission> findByIdAndDeletedAtIsNull(Long id);
 
+  Optional<Permission> findByCodeIgnoreCaseAndDeletedAtIsNull(String code);
+
   boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
 
   boolean existsByCodeIgnoreCaseAndDeletedAtIsNullAndIdNot(String code, Long id);

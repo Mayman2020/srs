@@ -1,10 +1,14 @@
 package com.gov.ac.correspondence.service;
 
 import com.gov.ac.correspondence.security.CorrespondenceViewAuthorization;
+import com.gov.ac.correspondence.workflow.CorrespondenceCamundaTaskSupport;
 import com.gov.ac.correspondence.workflow.CorrespondenceWorkflowTaskPersistenceService;
+import com.gov.ac.correspondence.workflow.WorkflowActionResolutionService;
 import com.gov.ac.domain.correspondence.Correspondence;
+import com.gov.ac.domain.lookup.WorkflowActionType;
 import com.gov.ac.domain.user.AppUser;
 import com.gov.ac.persistence.AppUserRepository;
+import com.gov.ac.modules.workflow.service.WorkflowService;
 import com.gov.ac.persistence.CorrespondenceRepository;
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.ForbiddenException;
@@ -14,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.task.Task;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +31,9 @@ public class CorrespondenceWorkflowActionService {
   private final CorrespondenceRepository correspondenceRepository;
   private final AppUserRepository appUserRepository;
   private final CorrespondenceViewAuthorization correspondenceViewAuthorization;
-  private final TaskService taskService;
+  private final WorkflowService workflowService;
+  private final CorrespondenceCamundaTaskSupport camundaTaskSupport;
+  private final WorkflowActionResolutionService workflowActionResolution;
 
   @Transactional
   public void completeActiveAssigneeTask(
@@ -49,11 +54,15 @@ public class CorrespondenceWorkflowActionService {
       throw new NotFoundException("Correspondence not found");
     }
     if (correspondence.getCorrespondenceStatus() != null
-        && "CANCELLED".equalsIgnoreCase(correspondence.getCorrespondenceStatus().getCode())) {
-      throw new BadRequestException("Correspondence was cancelled");
+        && Boolean.TRUE.equals(correspondence.getCorrespondenceStatus().getTerminal())) {
+      throw new BadRequestException("Correspondence is not open for workflow actions");
     }
 
     correspondenceViewAuthorization.assertCanView(viewer, correspondence);
+
+    if (correspondence.getCorrespondenceStatus() == null) {
+      throw new BadRequestException("Correspondence has no status");
+    }
 
     String businessKey = correspondence.getReferenceNumber();
     if (!StringUtils.hasText(businessKey)) {
@@ -61,23 +70,24 @@ public class CorrespondenceWorkflowActionService {
     }
 
     String assignee = viewerId.toString();
-    List<Task> tasks = findActiveTasksForUser(businessKey, assignee);
+    List<Task> tasks = camundaTaskSupport.findActiveTasksForUser(businessKey, viewerId);
 
     if (tasks.isEmpty()) {
       throw new BadRequestException(
           "No active workflow task for you on this correspondence (assignee or candidate)");
     }
 
-    String decision =
-        StringUtils.hasText(action) ? action.trim().toUpperCase() : "APPROVE";
-    if (!decision.equals("APPROVE")
-        && !decision.equals("REJECT")
-        && !decision.equals("RETURN")
-        && !decision.equals("REFER")) {
-      throw new BadRequestException("Invalid workflow action");
+    if (!StringUtils.hasText(action)) {
+      throw new BadRequestException("Workflow action is required");
     }
-    if ((decision.equals("REJECT") || decision.equals("RETURN") || decision.equals("REFER"))
-        && !StringUtils.hasText(comment)) {
+    String decision = action.trim().toUpperCase();
+
+    WorkflowActionType rule =
+        workflowActionResolution
+            .resolveTransition(decision, correspondence.getCorrespondenceStatus().getId())
+            .orElseThrow(() -> new BadRequestException("Invalid workflow action"));
+
+    if (Boolean.TRUE.equals(rule.getRequiresComment()) && !StringUtils.hasText(comment)) {
       throw new BadRequestException("Comment is required for this workflow action");
     }
 
@@ -90,21 +100,17 @@ public class CorrespondenceWorkflowActionService {
     }
 
     if (task.getAssignee() == null) {
-      taskService.claim(task.getId(), assignee);
+      workflowService.claimTask(task.getId(), assignee);
     }
 
     HashMap<String, Object> vars = new HashMap<>();
-    vars.put(CorrespondenceWorkflowTaskPersistenceService.VAR_WF_DECISION, decision);
+    vars.put(CorrespondenceWorkflowTaskPersistenceService.VAR_WF_DECISION, rule.getCode().toUpperCase());
     if (StringUtils.hasText(comment)) {
       vars.put(CorrespondenceWorkflowTaskPersistenceService.VAR_ACTION_COMMENT, comment.trim());
     }
-    taskService.complete(task.getId(), vars);
+    workflowService.completeTask(task.getId(), vars);
   }
 
-  /**
-   * Delegates the current user's active Camunda task for this correspondence to another user (by
-   * UUID string assignee).
-   */
   @Transactional
   public void delegateActiveAssigneeTask(
       UUID correspondenceId, UUID viewerId, UUID delegateeUserId) {
@@ -131,8 +137,8 @@ public class CorrespondenceWorkflowActionService {
       throw new NotFoundException("Correspondence not found");
     }
     if (correspondence.getCorrespondenceStatus() != null
-        && "CANCELLED".equalsIgnoreCase(correspondence.getCorrespondenceStatus().getCode())) {
-      throw new BadRequestException("Correspondence was cancelled");
+        && Boolean.TRUE.equals(correspondence.getCorrespondenceStatus().getTerminal())) {
+      throw new BadRequestException("Correspondence is not open for workflow actions");
     }
 
     correspondenceViewAuthorization.assertCanView(viewer, correspondence);
@@ -143,7 +149,7 @@ public class CorrespondenceWorkflowActionService {
     }
 
     String assignee = viewerId.toString();
-    List<Task> tasks = findActiveTasksForUser(businessKey, assignee);
+    List<Task> tasks = camundaTaskSupport.findActiveTasksForUser(businessKey, viewerId);
 
     if (tasks.isEmpty()) {
       throw new BadRequestException(
@@ -151,25 +157,8 @@ public class CorrespondenceWorkflowActionService {
     }
     Task task = tasks.get(0);
     if (task.getAssignee() == null) {
-      taskService.claim(task.getId(), assignee);
+      workflowService.claimTask(task.getId(), assignee);
     }
-    taskService.delegateTask(task.getId(), delegateeUserId.toString());
-  }
-
-  /**
-   * Active tasks where the user is assignee, or is a candidate user (e.g. role-based pool task).
-   */
-  private List<Task> findActiveTasksForUser(String businessKey, String userId) {
-    return taskService
-        .createTaskQuery()
-        .processInstanceBusinessKey(businessKey)
-        .or()
-        .taskAssignee(userId)
-        .taskCandidateUser(userId)
-        .endOr()
-        .active()
-        .orderByTaskCreateTime()
-        .asc()
-        .list();
+    workflowService.delegateTask(task.getId(), delegateeUserId.toString());
   }
 }

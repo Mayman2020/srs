@@ -17,7 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "app_user", schema = "srs_system")
 @Getter
 @Setter
 public class AppUser extends SoftDeletableEntity {
@@ -26,6 +26,7 @@ public class AppUser extends SoftDeletableEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  /** PostgreSQL {@code citext}. Do not use {@code Types#OTHER} here: Hibernate 6 maps it to varbinary for bind/read. */
   @Column(nullable = false, columnDefinition = "citext")
   private String username;
 
@@ -67,4 +68,18 @@ public class AppUser extends SoftDeletableEntity {
 
   @Column(name = "mfa_enabled", nullable = false)
   private Boolean mfaEnabled = false;
+
+  /** {@code light} or {@code dark} — persisted for UI theme. */
+  @Column(name = "profile_image_path", length = 512)
+  private String profileImagePath;
+
+  @Column(name = "profile_image_content_type", length = 128)
+  private String profileImageContentType;
+
+  @Column(name = "ui_theme", nullable = false, length = 16)
+  private String uiTheme = "light";
+
+  /** {@code ar} or {@code en} — persisted UI language. */
+  @Column(name = "ui_locale", nullable = false, length = 8)
+  private String uiLocale = "ar";
 }

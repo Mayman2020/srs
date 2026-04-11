@@ -1,0 +1,5 @@
+# Thin wrapper - stack lives in deploy/compose (single source of truth).
+# From repo root: docker compose --env-file deploy/env/.env up --build
+
+include:
+  - path: deploy/compose/docker-compose.yml

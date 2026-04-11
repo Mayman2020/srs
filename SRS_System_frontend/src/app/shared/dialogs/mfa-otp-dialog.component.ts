@@ -10,6 +10,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
+import { ErpDialogComponent } from '../erp/erp-dialog.component';
 
 export interface MfaOtpDialogData {
   username: string;
@@ -28,58 +29,60 @@ export interface MfaOtpDialogData {
     MatButtonModule,
     MatSnackBarModule,
     TranslatePipe,
+    ErpDialogComponent,
   ],
   template: `
-    <h2 mat-dialog-title>{{ 'auth.mfaStepTitle' | t }}</h2>
-    <mat-dialog-content class="content">
-      <p class="lead">{{ 'auth.mfaStepLead' | t }}</p>
-      <div class="channels">
-        <span class="label">{{ 'auth.mfaChannelLabel' | t }}</span>
-        <label class="radio">
+    <app-erp-dialog [titleKey]="'auth.mfaStepTitle'" icon="verified_user">
+      <div class="content">
+        <p class="lead">{{ 'auth.mfaStepLead' | t }}</p>
+        <div class="channels">
+          <span class="label">{{ 'auth.mfaChannelLabel' | t }}</span>
+          <label class="radio">
+            <input
+              type="radio"
+              name="ch"
+              value="EMAIL"
+              [checked]="channel === 'EMAIL'"
+              (change)="channel = 'EMAIL'" />
+            {{ 'auth.mfaChannelEmail' | t }}
+          </label>
+          <label class="radio">
+            <input
+              type="radio"
+              name="ch"
+              value="SMS"
+              [checked]="channel === 'SMS'"
+              (change)="channel = 'SMS'" />
+            {{ 'auth.mfaChannelSms' | t }}
+          </label>
+        </div>
+        <button
+          mat-stroked-button
+          type="button"
+          class="resend"
+          (click)="sendCode()"
+          [disabled]="sending">
+          {{ 'auth.mfaSendCode' | t }}
+        </button>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>{{ 'auth.mfaCodeLabel' | t }}</mat-label>
           <input
-            type="radio"
-            name="ch"
-            value="EMAIL"
-            [checked]="channel === 'EMAIL'"
-            (change)="channel = 'EMAIL'" />
-          {{ 'auth.mfaChannelEmail' | t }}
-        </label>
-        <label class="radio">
-          <input
-            type="radio"
-            name="ch"
-            value="SMS"
-            [checked]="channel === 'SMS'"
-            (change)="channel = 'SMS'" />
-          {{ 'auth.mfaChannelSms' | t }}
-        </label>
+            matInput
+            [(ngModel)]="code"
+            name="otp"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="12"
+            [attr.placeholder]="'auth.mfaCodePlaceholder' | t" />
+        </mat-form-field>
       </div>
-      <button
-        mat-stroked-button
-        type="button"
-        class="resend"
-        (click)="sendCode()"
-        [disabled]="sending">
-        {{ 'auth.mfaSendCode' | t }}
-      </button>
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>{{ 'auth.mfaCodeLabel' | t }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="code"
-          name="otp"
-          inputmode="numeric"
-          autocomplete="one-time-code"
-          maxlength="12"
-          [attr.placeholder]="'auth.mfaCodePlaceholder' | t" />
-      </mat-form-field>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="cancel()">{{ 'auth.mfaBack' | t }}</button>
-      <button mat-flat-button color="primary" type="button" (click)="verify()" [disabled]="verifying">
-        {{ 'auth.mfaVerifySubmit' | t }}
-      </button>
-    </mat-dialog-actions>
+      <div erpDialogActions>
+        <button mat-button type="button" (click)="cancel()">{{ 'auth.mfaBack' | t }}</button>
+        <button mat-flat-button color="primary" type="button" (click)="verify()" [disabled]="verifying">
+          {{ 'auth.mfaVerifySubmit' | t }}
+        </button>
+      </div>
+    </app-erp-dialog>
   `,
   styles: [
     `
@@ -87,13 +90,12 @@ export interface MfaOtpDialogData {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        min-width: min(360px, 86vw);
-        padding-top: 4px;
+        padding-top: 0;
       }
       .lead {
         margin: 0;
         font-size: 0.9rem;
-        color: #475569;
+        color: var(--muted, #475569);
         line-height: 1.45;
       }
       .channels {

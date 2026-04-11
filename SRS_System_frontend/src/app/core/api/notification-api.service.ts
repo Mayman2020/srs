@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { NotificationItemDto, SpringPage } from './api-types';
+import { withSilentSuccess } from '../interceptors/http-notification-context';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationApiService {
@@ -12,12 +13,17 @@ export class NotificationApiService {
   ) {}
 
   list(page = 0, size = 50): Observable<SpringPage<NotificationItemDto>> {
-    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .append('sort', 'createdAt,desc');
     return this.http.get<SpringPage<NotificationItemDto>>(`${this.base}/notifications`, { params });
   }
 
   markRead(id: string): Observable<void> {
-    return this.http.patch<void>(`${this.base}/notifications/${id}/read`, {});
+    return this.http.patch<void>(`${this.base}/notifications/${id}/read`, {}, {
+      context: withSilentSuccess()
+    });
   }
 
   delete(id: string): Observable<void> {

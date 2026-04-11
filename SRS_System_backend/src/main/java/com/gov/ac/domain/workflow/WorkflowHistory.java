@@ -24,7 +24,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "workflow_history")
+@Table(name = "workflow_history", schema = "srs_system")
 @Getter
 @Setter
 public class WorkflowHistory extends AuditableEntity {

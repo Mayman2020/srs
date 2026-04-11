@@ -10,6 +10,9 @@ import {
   CorrespondenceCommentDetailDto,
   CorrespondenceAttachmentDetailDto,
   CorrespondenceListItemDto,
+  CorrespondenceLinkListItemDto,
+  CorrespondenceNonarchivedItemDto,
+  AttachmentIndexEntryDto,
   SpringPage,
   WorkflowHistoryEntryDto
 } from './api-types';
@@ -99,5 +102,91 @@ export class CorrespondenceApiService {
 
   sendReply(id: string, bodyHtml: string): Observable<void> {
     return this.http.post<void>(`${this.base}/correspondence/${id}/reply`, { bodyHtml });
+  }
+
+  listLinks(correspondenceId: string): Observable<CorrespondenceLinkListItemDto[]> {
+    return this.http.get<CorrespondenceLinkListItemDto[]>(
+      `${this.base}/correspondence/${correspondenceId}/links`
+    );
+  }
+
+  addLink(
+    correspondenceId: string,
+    body: { linkedCorrespondenceId: string; linkKind?: string | null; notes?: string | null }
+  ): Observable<CorrespondenceLinkListItemDto> {
+    return this.http.post<CorrespondenceLinkListItemDto>(
+      `${this.base}/correspondence/${correspondenceId}/links`,
+      body
+    );
+  }
+
+  deleteLink(correspondenceId: string, linkId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/correspondence/${correspondenceId}/links/${linkId}`);
+  }
+
+  listNonarchived(correspondenceId: string): Observable<CorrespondenceNonarchivedItemDto[]> {
+    return this.http.get<CorrespondenceNonarchivedItemDto[]>(
+      `${this.base}/correspondence/${correspondenceId}/nonarchived-items`
+    );
+  }
+
+  addNonarchived(
+    correspondenceId: string,
+    body: { itemType: string; descriptionText?: string | null; quantity: number; sortOrder: number }
+  ): Observable<CorrespondenceNonarchivedItemDto> {
+    return this.http.post<CorrespondenceNonarchivedItemDto>(
+      `${this.base}/correspondence/${correspondenceId}/nonarchived-items`,
+      body
+    );
+  }
+
+  updateNonarchived(
+    correspondenceId: string,
+    itemId: number,
+    body: { itemType: string; descriptionText?: string | null; quantity: number; sortOrder: number }
+  ): Observable<CorrespondenceNonarchivedItemDto> {
+    return this.http.put<CorrespondenceNonarchivedItemDto>(
+      `${this.base}/correspondence/${correspondenceId}/nonarchived-items/${itemId}`,
+      body
+    );
+  }
+
+  deleteNonarchived(correspondenceId: string, itemId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base}/correspondence/${correspondenceId}/nonarchived-items/${itemId}`
+    );
+  }
+
+  listAttachmentIndexEntries(attachmentId: number): Observable<AttachmentIndexEntryDto[]> {
+    return this.http.get<AttachmentIndexEntryDto[]>(
+      `${this.base}/attachments/${attachmentId}/index-entries`
+    );
+  }
+
+  addAttachmentIndexEntry(
+    attachmentId: number,
+    body: { pageFrom?: number | null; pageTo?: number | null; subjectText?: string | null; sortOrder: number }
+  ): Observable<AttachmentIndexEntryDto> {
+    return this.http.post<AttachmentIndexEntryDto>(
+      `${this.base}/attachments/${attachmentId}/index-entries`,
+      body
+    );
+  }
+
+  updateAttachmentIndexEntry(
+    attachmentId: number,
+    entryId: number,
+    body: { pageFrom?: number | null; pageTo?: number | null; subjectText?: string | null; sortOrder: number }
+  ): Observable<AttachmentIndexEntryDto> {
+    return this.http.put<AttachmentIndexEntryDto>(
+      `${this.base}/attachments/${attachmentId}/index-entries/${entryId}`,
+      body
+    );
+  }
+
+  deleteAttachmentIndexEntry(attachmentId: number, entryId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base}/attachments/${attachmentId}/index-entries/${entryId}`
+    );
   }
 }

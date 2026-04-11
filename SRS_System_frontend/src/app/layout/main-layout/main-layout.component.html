@@ -1,0 +1,15 @@
+<div class="main-layout" [class.main-layout--collapsed]="sidebarCollapsed()">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-layout__body">
+    <app-header-container></app-header-container>
+
+    <main class="main-layout__content">
+      <router-outlet></router-outlet>
+    </main>
+
+    <app-chat-bubble></app-chat-bubble>
+  </div>
+
+  <app-toast-container></app-toast-container>
+</div>

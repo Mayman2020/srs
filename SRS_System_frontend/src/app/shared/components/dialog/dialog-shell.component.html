@@ -1,0 +1,28 @@
+<div class="dialog-shell" [class.dialog-shell--wide]="wide">
+  <div class="dialog-shell__header" mat-dialog-title>
+    @if (icon) {
+      <mat-icon class="dialog-shell__icon" aria-hidden="true">{{ icon }}</mat-icon>
+    }
+    <span class="dialog-shell__title">{{ titleKey | t }}</span>
+    <span class="dialog-shell__spacer"></span>
+    @if (showClose) {
+      <button
+        mat-icon-button
+        type="button"
+        mat-dialog-close
+        class="dialog-shell__close"
+        [matTooltip]="closeTooltipKey | t"
+        (click)="onClose()">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <div class="dialog-shell__content" mat-dialog-content>
+    <ng-content></ng-content>
+  </div>
+
+  <div class="dialog-shell__actions" mat-dialog-actions align="end">
+    <ng-content select="[dialogActions]"></ng-content>
+  </div>
+</div>

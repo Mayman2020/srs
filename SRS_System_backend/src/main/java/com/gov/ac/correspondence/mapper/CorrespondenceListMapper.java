@@ -39,7 +39,12 @@ public class CorrespondenceListMapper {
     if (s == null) {
       return null;
     }
-    return LookupLabelDto.builder().code(s.getCode()).nameAr(s.getNameAr()).nameEn(s.getNameEn()).build();
+    return LookupLabelDto.builder()
+        .code(s.getCode())
+        .nameAr(s.getNameAr())
+        .nameEn(s.getNameEn())
+        .uiVariant(s.getUiVariant())
+        .build();
   }
 
   private static LookupLabelDto toPriorityLabel(Priority p) {

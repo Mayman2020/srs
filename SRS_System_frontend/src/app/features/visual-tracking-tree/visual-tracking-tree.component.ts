@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, ViewChild, inject } from '@angular/core';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import {
   NgxInteractiveOrgChart,
@@ -25,14 +26,13 @@ export interface Transaction {
   timeline: TimelineStep[];
 }
 
-type StepStatus = 'done' | 'active' | 'pending' | 'info';
-
 export interface NodeData {
   title: string;
   note?: string;
   user?: string;
   date?: Date | string | null;
-  status: StepStatus;
+  /** Lookup `org_visual_node_status.code` (drives card CSS class). */
+  status: string;
 
   /** Used for stagger reveal animation */
   delayMs?: number;
@@ -49,6 +49,7 @@ type OrgNode = OrgChartNode<NodeData>;
 })
 export class VisualTrackingTreeComponent implements OnChanges {
   private readonly i18n = inject(I18nService);
+  private readonly lookupLabels = inject(LookupLabelsService);
 
   @Input({ required: true }) transaction!: Transaction;
   @Input() activeIndex = 0;
@@ -57,8 +58,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
   orgChart!: NgxInteractiveOrgChart<NodeData>;
 
   /**
-   * مهم: لا تبدأ بـ {} عشان TypeScript ما يحولها unknown.
-   * خليها null واعمل *ngIf في الـ HTML
+   * Keep null (not `{}`) so the value is not widened to unknown; use *ngIf in the template.
    */
   data: OrgNode | null = null;
 
@@ -84,15 +84,14 @@ export class VisualTrackingTreeComponent implements OnChanges {
     },
   };
 
-  // سرعة التدرج (عدّلها على ذوقك)
-  private readonly baseLevelDelay = 420; // فرق بين المستويات (root -> handler -> steps)
-  private readonly baseItemDelay = 170;  // فرق بين عناصر نفس المستوى (الخطوات)
+  /** Stagger timing (tune as needed) */
+  private readonly baseLevelDelay = 420; // delay between levels (root → handler → steps)
+  private readonly baseItemDelay = 170; // delay between siblings on the same level
 
   ngOnChanges(): void {
     if (!this.transaction) return;
 
     const rawTree = this.mapTxToTree(this.transaction, this.activeIndex);
-    // ✅ لازم تسند return value (مش مجرد استدعاء)
     this.data = this.applyStaggerDelays(rawTree);
   }
 
@@ -109,9 +108,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
     this.orgChart?.resetPanAndZoom(80);
   }
 
-  /**
-   * استدعيها من الـ Dialog بعد afterOpened() عشان يبقى root في النص.
-   */
+  /** Call from the dialog after `afterOpened()` so the root stays centered. */
   focusRoot(): void {
     if (!this.orgChart) return;
 
@@ -127,10 +124,33 @@ export class VisualTrackingTreeComponent implements OnChanges {
   }
 
   // ===== Mapping =====
-  private statusFor(i: number, activeIndex: number): StepStatus {
+  /** Border style codes — must stay aligned with `org_visual_node_status` seed / admin rows. */
+  private statusFor(i: number, activeIndex: number): string {
     if (i < activeIndex) return 'done';
     if (i === activeIndex) return 'active';
     return 'pending';
+  }
+
+  /**
+   * Restricts the CSS class to codes present in the lookup bundle (safe if admins add rows or fix typos).
+   */
+  cardStatusClass(code: string | undefined): string {
+    const rows = this.lookupLabels.orderedRows('orgVisualNodeStatus');
+    const allowed = new Set(rows.map((r) => r.code));
+    const fallback = 'pending';
+    const c = (code ?? fallback).trim();
+    if (allowed.size === 0) {
+      return c;
+    }
+    if (allowed.has(c)) {
+      return c;
+    }
+    return allowed.has(fallback) ? fallback : (rows[0]?.code ?? fallback);
+  }
+
+  /** Localized label from DB-backed lookup (`org_visual_node_status`). */
+  statusLookupLabel(code: string | undefined): string {
+    return this.lookupLabels.label('orgVisualNodeStatus', code);
   }
 
   private mapTxToTree(tx: Transaction, activeIndex: number): OrgNode {
@@ -175,8 +195,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
   }
 
   /**
-   * ✅ مهم: data في OrgChartNode غالباً readonly
-   * لذلك لا نعدّل الـ tree الحالي، بل نرجع نسخة جديدة مع delayMs.
+   * Org chart node data is effectively readonly — return a new tree with `delayMs` instead of mutating.
    */
   private applyStaggerDelays(root: OrgNode): OrgNode {
     const perLevelIndex = new Map<number, number>();

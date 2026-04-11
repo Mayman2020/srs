@@ -1,63 +1,77 @@
-# Deployment — Administrative Communications System
+# Deployment - Administrative Communications System
 
-Production-oriented Docker Compose stack: **PostgreSQL 16**, **Spring Boot** API, **Angular** SPA (Nginx), **Nginx** edge gateway (`/api/` → API, `/` → SPA).
+Production-oriented Docker Compose stack: PostgreSQL 16, Spring Boot API, Angular SPA (Nginx), and an Nginx edge gateway (`/api/` to API, `/` to SPA).
 
 ## Layout
 
 | Path | Purpose |
 |------|---------|
-| `docker/backend/Dockerfile` | Multi-stage Maven build + JRE runtime (non-root `ac` user, `curl` health). |
-| `docker/frontend/Dockerfile` | `npm ci` + `ng build` + Nginx static. |
-| `docker/frontend/nginx-spa.conf` | SPA fallback routing. |
-| `docker/nginx/gateway.conf` | Reverse proxy, upload size **55m**, baseline security headers. |
-| `compose/docker-compose.yml` | Base stack + health checks + `unless-stopped`. |
-| `compose/docker-compose.staging.yml` | Staging profile overlay. |
-| `compose/docker-compose.prod.yml` | Production profile overlay. |
-| `env/*.env.example` | Required variables (copy to real env files; never commit secrets). |
+| `docker/backend/Dockerfile` | Multi-stage Maven build plus JRE runtime |
+| `docker/frontend/Dockerfile` | `npm ci`, `ng build`, and Nginx static runtime |
+| `docker/frontend/nginx-spa.conf` | SPA fallback routing |
+| `docker/nginx/gateway.conf` | Reverse proxy and baseline security headers |
+| `compose/docker-compose.yml` | Base stack with health checks and `unless-stopped` |
+| `compose/docker-compose.staging.yml` | Staging overlay |
+| `compose/docker-compose.prod.yml` | Production overlay |
+| Repo-root `docker-compose*.yml` | Thin wrappers so root usage matches the ERP project workflow |
+| `env/*.env.example` | Required variables; copy to real env files and never commit secrets |
 
-## Quick start (local Docker)
+## Quick start
+
+From `deploy/compose`:
 
 ```bash
 cd deploy/env
 cp .env.example .env
-# Edit .env — set strong POSTGRES_PASSWORD, AC_JWT_SECRET (≥32 bytes), CAMUNDA_BPM_ADMIN_PASSWORD
 
 cd ../compose
 docker compose --env-file ../env/.env up -d --build
 ```
 
-Open `http://localhost:${HTTP_PORT:-8080}` (gateway). API: `http://localhost:8080/api/v1/...`.
+Equivalent root-level usage:
 
-Health (internal to Docker network, or port-forward backend): `GET http://backend:8080/actuator/health`.
+```bash
+docker compose --env-file deploy/env/.env -f docker-compose.yml up -d --build
+```
 
-## Staging / production overlays
+Gateway URL: `http://localhost:${HTTP_PORT:-8080}`.
+
+## Staging and production
+
+From `deploy/compose`:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.staging.yml --env-file ../env/staging.env up -d --build
 docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file ../env/prod.env up -d --build
 ```
 
-**Production CORS:** `AC_CORS_ALLOWED_ORIGIN_PATTERNS` must list real HTTPS origins only. The `prod` Spring profile **fails fast** if patterns are empty or contain `localhost` / `127.0.0.1` (see `CorsConfig`).
+Using root wrappers:
 
-**TLS:** Terminate TLS at Nginx or cloud load balancer. For HTTPS Nginx, add `listen 443 ssl`, certificates, and `add_header Strict-Transport-Security ...` on the edge. When TLS terminates before Spring Boot, keep `AC_SECURITY_HSTS_ENABLED=false` on the JVM (see `application-prod.yml`).
+```bash
+docker compose --env-file deploy/env/staging.env -f docker-compose.staging.yml up -d --build
+docker compose --env-file deploy/env/prod.env -f docker-compose.prod.yml up -d --build
+```
 
-## Spring profiles
+## Profiles
 
 | Profile | Config file | Notes |
-|---------|----------------|-------|
-| (default) | `application.yml` | Local dev; permissive CORS default. |
-| `staging` | `application-staging.yml` | Swagger on; HSTS off by default in overlay. |
-| `prod` | `application-prod.yml` | Swagger/OpenAPI **off**; CORS from env **required**; actuator **health** only. |
+|---------|-------------|-------|
+| default | `application.yml` | Local-friendly defaults |
+| `staging` | `application-staging.yml` | Swagger on, HSTS off by default |
+| `prod` | `application-prod.yml` | Swagger/OpenAPI off, strict CORS from env |
 
-## Secrets (never commit)
+## Secrets
 
-- `AC_JWT_SECRET` — HS256 signing key; **≥ 32 UTF-8 bytes**. Rotation: issue new secret, redeploy (all sessions invalidate); document overlap window if using blue/green dual-key (not implemented in code — single secret today).
-- `POSTGRES_PASSWORD`, `CAMUNDA_BPM_ADMIN_PASSWORD` — store in vault / CI secrets.
+- `AC_JWT_SECRET`: HS256 signing key, at least 32 UTF-8 bytes
+- `POSTGRES_PASSWORD`: PostgreSQL password
+- `CAMUNDA_BPM_ADMIN_PASSWORD`: Camunda admin password
 
 ## Flyway
 
-Migrations run on backend startup. Use a **persistent** `pgdata` volume (already defined). Empty DB → Flyway applies `V1`–`V15` + seed.
+Migrations run on backend startup. Use a persistent `pgdata` volume. Empty DB means Flyway applies `V1` through `V18` and seeds the registry data.
 
-## k6 load tests
+Application data lives in PostgreSQL schema `srs_system` (catalogue `postgres`, same layout as other apps that share one DB with multiple schemas).
 
-See `tests/load/k6/README.md`. Point `BASE_URL` at a reachable API base (e.g. `http://localhost:8080/api/v1` for local JVM, or gateway `/api/v1`).
+## Load tests
+
+See `tests/load/k6/README.md`. Point `BASE_URL` at a reachable API base such as `http://localhost:8080/api/v1`.

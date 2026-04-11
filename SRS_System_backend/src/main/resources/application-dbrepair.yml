@@ -1,0 +1,9 @@
+# =============================================================================
+# Optional profile: disable Hibernate schema validation while Flyway is fixed.
+# Usage (one-off): mvnw spring-boot:run -Dspring-boot.run.profiles=local,dbrepair
+# After Flyway applies V1 and app_user exists, run again with profile local only (ddl-auto: validate).
+# =============================================================================
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none

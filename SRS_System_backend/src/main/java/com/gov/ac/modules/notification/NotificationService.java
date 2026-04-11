@@ -42,7 +42,7 @@ public class NotificationService {
   @Transactional(readOnly = true)
   public Page<NotificationItemDto> listInbox(UUID recipientId, Pageable pageable) {
     return inAppNotificationRepository
-        .findByRecipient_IdAndDeletedAtIsNullOrderByCreatedAtDesc(recipientId, pageable)
+        .findByRecipient_IdAndDeletedAtIsNull(recipientId, pageable)
         .map(this::toDto);
   }
 

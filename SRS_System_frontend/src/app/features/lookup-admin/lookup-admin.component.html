@@ -1,0 +1,148 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h2>{{ 'lookupAdmin.pageTitle' | t }}</h2>
+    <p class="muted">{{ 'lookupAdmin.subtitle' | t }}</p>
+  </div>
+
+  <div class="layout" *ngIf="!loadingCatalog">
+    <aside class="side">
+      <h3>{{ 'lookupAdmin.groups' | t }}</h3>
+      <button
+        type="button"
+        class="side-item"
+        *ngFor="let c of catalog"
+        [class.active]="selectedCode === c.lookupCode"
+        (click)="selectLookup(c.lookupCode)">
+        {{ catalogLabel(c) }}
+        <span class="code">{{ c.lookupCode }}</span>
+      </button>
+    </aside>
+
+    <section class="main">
+      <div class="toolbar">
+        <h3>{{ selectedCode }}</h3>
+        <button type="button" class="btn primary" (click)="startCreate()">
+          {{ 'lookupAdmin.newRow' | t }}
+        </button>
+      </div>
+
+      <div class="form-card card" *ngIf="selectedCode">
+        <h4>{{ editing ? ('lookupAdmin.editRow' | t) : ('lookupAdmin.createRow' | t) }}</h4>
+        <app-erp-auto-reference-field [value]="editing ? editing.id : null" />
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="grid-2">
+            <label>
+              <span>{{ 'lookupAdmin.fieldCode' | t }}</span>
+              <input formControlName="code" />
+            </label>
+            <label>
+              <span>{{ 'lookupAdmin.fieldSort' | t }}</span>
+              <input type="number" formControlName="sortOrder" />
+            </label>
+          </div>
+          <div class="grid-2">
+            <label>
+              <span>{{ 'lookupAdmin.fieldNameAr' | t }}</span>
+              <input formControlName="nameAr" />
+            </label>
+            <label>
+              <span>{{ 'lookupAdmin.fieldNameEn' | t }}</span>
+              <input formControlName="nameEn" />
+            </label>
+          </div>
+          <label>
+            <span>{{ 'lookupAdmin.fieldDescription' | t }}</span>
+            <textarea rows="2" formControlName="description"></textarea>
+          </label>
+          <label class="check">
+            <input type="checkbox" formControlName="active" />
+            <span>{{ 'lookupAdmin.fieldActive' | t }}</span>
+          </label>
+
+          <label *ngIf="showParentColumn()">
+            <span>{{ 'lookupAdmin.fieldParent' | t }}</span>
+            <select formControlName="parentId">
+              <option [ngValue]="null">{{ 'lookupAdmin.parentNone' | t }}</option>
+              <option *ngFor="let p of filteredParents()" [ngValue]="p.id">{{ parentLabel(p) }}</option>
+            </select>
+          </label>
+
+          <label class="check" *ngIf="showTerminal()">
+            <input type="checkbox" formControlName="terminal" />
+            <span>{{ 'lookupAdmin.fieldTerminal' | t }}</span>
+          </label>
+
+          <label *ngIf="showStatusUiVariant()">
+            <span>{{ 'lookupAdmin.fieldStatusUiVariant' | t }}</span>
+            <select formControlName="uiVariant">
+              <option *ngFor="let opt of statusUiVariantOptions()" [ngValue]="opt">{{ opt }}</option>
+            </select>
+          </label>
+
+          <label *ngIf="showSla()">
+            <span>{{ 'lookupAdmin.fieldSlaDays' | t }}</span>
+            <input type="number" formControlName="slaDays" />
+          </label>
+
+          <ng-container *ngIf="showConfFlags()">
+            <label class="check">
+              <input type="checkbox" formControlName="restrictsExport" />
+              <span>{{ 'lookupAdmin.restrictsExport' | t }}</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" formControlName="requiresClearance" />
+              <span>{{ 'lookupAdmin.requiresClearance' | t }}</span>
+            </label>
+          </ng-container>
+
+          <div class="form-actions">
+            <button type="submit" class="btn primary" [disabled]="form.invalid">
+              {{ editing ? ('lookupAdmin.save' | t) : ('lookupAdmin.create' | t) }}
+            </button>
+            <button type="button" class="btn ghost" *ngIf="editing" (click)="cancelEdit()">
+              {{ 'lookupAdmin.cancelEdit' | t }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card table-card" *ngIf="!loadingRows">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ 'lookupAdmin.colCode' | t }}</th>
+              <th>{{ 'lookupAdmin.colNameAr' | t }}</th>
+              <th>{{ 'lookupAdmin.colNameEn' | t }}</th>
+              <th *ngIf="showParentColumn()">{{ 'lookupAdmin.colParentId' | t }}</th>
+              <th>{{ 'lookupAdmin.colSort' | t }}</th>
+              <th>{{ 'lookupAdmin.colActive' | t }}</th>
+              <th *ngIf="showStatusUiVariant()">{{ 'lookupAdmin.colStatusUiVariant' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rows">
+              <td>{{ r.code }}</td>
+              <td>{{ r.nameAr }}</td>
+              <td>{{ r.nameEn }}</td>
+              <td *ngIf="showParentColumn()">{{ r.parentId ?? '—' }}</td>
+              <td>{{ r.sortOrder }}</td>
+              <td>{{ r.active ? ('lookupAdmin.yes' | t) : ('lookupAdmin.no' | t) }}</td>
+              <td *ngIf="showStatusUiVariant()">{{ r.uiVariant ?? '—' }}</td>
+              <td class="actions">
+                <button type="button" class="btn sm" (click)="startEdit(r)">{{ 'lookupAdmin.edit' | t }}</button>
+                <button type="button" class="btn sm danger" (click)="confirmDelete(r)">
+                  {{ 'lookupAdmin.delete' | t }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty" *ngIf="!rows.length">{{ 'common.empty' | t }}</p>
+      </div>
+      <p *ngIf="loadingRows" class="loading">{{ 'common.loading' | t }}</p>
+    </section>
+  </div>
+
+  <p *ngIf="loadingCatalog" class="loading">{{ 'common.loading' | t }}</p>
+</div>

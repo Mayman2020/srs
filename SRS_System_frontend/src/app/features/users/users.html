@@ -1,11 +1,19 @@
 <p class="banner-error" *ngIf="errorMsg">{{ errorMsg }}</p>
 <p class="banner-ok" *ngIf="successMsg">{{ successMsg }}</p>
 
-<app-erp-page-toolbar titleKey="users.pageTitle" containerClass="page-header-container">
-  <button erpToolbarActions type="button" class="btn primary" (click)="openAddModal()">
+<div class="page-header-container">
+  <div class="page-header">
+    <div>
+      <h2>{{ 'users.pageTitle' | t }}</h2>
+      <p class="page-subtitle">{{ 'users.searchPlaceholder' | t }}</p>
+    </div>
+  </div>
+
+  <button type="button" class="btn primary" (click)="openAddModal()">
+    <i class="fa-solid fa-user-plus"></i>
     {{ 'users.addUser' | t }}
   </button>
-</app-erp-page-toolbar>
+</div>
 
 <div class="filters-modern">
   <input
@@ -22,90 +30,23 @@
   </select>
 </div>
 
-<srs-data-table
-  [loading]="loading"
-  [skeletonRows]="8"
-  [skeletonColumns]="8"
-  [skeletonAriaLabel]="'common.loading' | t"
-  [page]="page"
-  [pageSize]="pageSize"
-  [total]="filteredUsers.length"
-  [legacyCountOnPage]="0"
-  (paginationPage)="onUserPage($event)"
-  (paginationPageSize)="onUserPageSize($event)"
->
+<div class="table-container">
   <table>
     <thead>
       <tr>
-        <th>
-          <srs-sort-header
-            columnId="name"
-            labelKey="users.thName"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="username"
-            labelKey="users.thUsername"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="role"
-            labelKey="users.thRole"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="dept"
-            labelKey="users.thDept"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="email"
-            labelKey="users.thEmail"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="phone"
-            labelKey="users.thPhone"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="status"
-            labelKey="users.thStatus"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onUserSort($event)"
-          />
-        </th>
-        <th class="srs-dt-th-plain">{{ 'users.thActions' | t }}</th>
+        <th>{{ 'users.thName' | t }}</th>
+        <th>{{ 'users.thUsername' | t }}</th>
+        <th>{{ 'users.thRole' | t }}</th>
+        <th>{{ 'users.thDept' | t }}</th>
+        <th>{{ 'users.thEmail' | t }}</th>
+        <th>{{ 'users.thPhone' | t }}</th>
+        <th>{{ 'users.thStatus' | t }}</th>
+        <th>{{ 'users.thActions' | t }}</th>
       </tr>
     </thead>
 
     <tbody>
-      <tr *ngFor="let user of pageUsers; trackBy: trackByUserId" [@srsTableRowEnter]>
+      <tr *ngFor="let user of filteredUsers">
         <td>
           <div class="user-info">
             <div class="user-avatar">
@@ -118,12 +59,7 @@
         <td>{{ user.username }}</td>
 
         <td>
-          <ng-container *ngIf="user.roleIds?.length; else noRoles">
-            <span class="type-badge in">{{ formatRoleLabels(user.roleIds) }}</span>
-          </ng-container>
-          <ng-template #noRoles>
-            <span class="type-badge in">{{ 'common.roleNA' | t }}</span>
-          </ng-template>
+          <span class="type-badge in">{{ 'common.roleNA' | t }}</span>
         </td>
 
         <td>{{ user.departmentCode || ('common.dash' | t) }}</td>
@@ -180,18 +116,31 @@
       </tr>
 
       <tr *ngIf="!loading && filteredUsers.length === 0">
-        <td colspan="8" class="srs-dt-empty">
+        <td colspan="8" class="empty-cell">
           {{ 'common.empty' | t }}
+        </td>
+      </tr>
+
+      <tr *ngIf="loading">
+        <td colspan="8" class="empty-cell">
+          {{ 'common.loading' | t }}
         </td>
       </tr>
     </tbody>
   </table>
-</srs-data-table>
+</div>
+
+<div class="pager-modern">
+  <div class="pager-info">
+    {{ 'users.pagerLabel' | t: { n: filteredUsers.length } }}
+  </div>
+</div>
 
 <!-- User modals (same API flow as admin hub) -->
 <div class="modal-overlay" *ngIf="userModal === 'add' || userModal === 'edit'" (click)="closeUserModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <h3>{{ userModal === 'add' ? ('admin.userAdd' | t) : ('admin.userEdit' | t) }}</h3>
+    <app-erp-auto-reference-field *ngIf="userModal === 'add'" />
     <label *ngIf="userModal === 'add'">{{ 'admin.colUsername' | t }}
       <input [(ngModel)]="userForm.username" name="u" />
     </label>
@@ -211,8 +160,14 @@
       <input type="checkbox" [(ngModel)]="userForm.active" /> {{ 'admin.colActive' | t }}
     </label>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="closeUserModal()">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="saveUser()">{{ 'common.apply' | t }}</button>
+      <button type="button" class="btn ghost" (click)="closeUserModal()">
+        <i class="fa-solid fa-xmark"></i>
+        {{ 'common.close' | t }}
+      </button>
+      <button type="button" class="btn primary" (click)="saveUser()">
+        <i class="fa-solid fa-floppy-disk"></i>
+        {{ 'common.apply' | t }}
+      </button>
     </div>
   </div>
 </div>
@@ -224,14 +179,11 @@
     <p><strong>{{ 'admin.colNameAr' | t }}:</strong> {{ userForm.fullNameAr }}</p>
     <p><strong>{{ 'admin.colNameEn' | t }}:</strong> {{ userForm.fullNameEn }}</p>
     <p><strong>{{ 'admin.colEmail' | t }}:</strong> {{ userForm.email }}</p>
-    <p><strong>{{ 'users.thRole' | t }}:</strong>
-      <ng-container *ngIf="userForm.roleIds?.length; else noUserRoles">
-        {{ formatRoleLabels(userForm.roleIds) }}
-      </ng-container>
-      <ng-template #noUserRoles>{{ 'common.roleNA' | t }}</ng-template>
-    </p>
     <p><strong>{{ 'admin.colActive' | t }}:</strong> {{ userForm.active ? ('users.statusActive' | t) : ('users.statusSuspended' | t) }}</p>
-    <button type="button" class="btn primary" (click)="closeUserModal()">{{ 'common.close' | t }}</button>
+    <button type="button" class="btn primary" (click)="closeUserModal()">
+      <i class="fa-solid fa-check"></i>
+      {{ 'common.close' | t }}
+    </button>
   </div>
 </div>
 
@@ -242,8 +194,14 @@
       <option *ngFor="let r of rolesLookup" [ngValue]="r.id">{{ labelRoleCard(r) }}</option>
     </select>
     <div class="modal-actions">
-      <button type="button" class="btn ghost" (click)="closeUserModal()">{{ 'common.close' | t }}</button>
-      <button type="button" class="btn primary" (click)="saveAssignRole()">{{ 'common.apply' | t }}</button>
+      <button type="button" class="btn ghost" (click)="closeUserModal()">
+        <i class="fa-solid fa-xmark"></i>
+        {{ 'common.close' | t }}
+      </button>
+      <button type="button" class="btn primary" (click)="saveAssignRole()">
+        <i class="fa-solid fa-user-tag"></i>
+        {{ 'common.apply' | t }}
+      </button>
     </div>
   </div>
 </div>

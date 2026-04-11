@@ -1,9 +1,3 @@
-  <div class="page-header">
-    <div>
-      <h2>{{ 'createTx.pageTitle' | t }}</h2>
-    </div>
-  </div>
-
 <div class="transaction-wrapper">
 
   <!-- STEPPER -->
@@ -39,6 +33,13 @@
     </div>
 
   </div>
+
+  <app-erp-auto-reference-field
+    *ngIf="currentStep < 5"
+    [labelKey]="'createTx.referenceNumberLabel'"
+    [placeholderKey]="'createTx.referenceAutoPlaceholder'"
+    [value]="transactionNumber"
+  />
 
   <!-- CONTENT -->
   <div class="step-content">
@@ -206,6 +207,39 @@
                 [attr.placeholder]="'createTx.workflow.firstCandidateGroupPh' | t"
               />
             </div>
+
+            <div class="form-group">
+              <label class="field-label">{{ 'createTx.workflow.routeMode' | t }}</label>
+              <select class="custom-input" formControlName="workflowRouteMode">
+                <option value="AUTO">{{ 'createTx.workflow.routeAuto' | t }}</option>
+                <option value="MANUAL">{{ 'createTx.workflow.routeManual' | t }}</option>
+              </select>
+            </div>
+
+            <div class="form-group" *ngIf="secondaryForm.value.workflowRouteMode === 'MANUAL'">
+              <label class="field-label">{{ 'createTx.workflow.pickRoute' | t }}</label>
+              <select class="custom-input" formControlName="serviceWorkflowRouteId">
+                <option [ngValue]="null">{{ 'genericSelect.placeholder' | t }}</option>
+                <option *ngFor="let w of workflowRoutes" [ngValue]="w.id">
+                  {{ w.nameAr }} — {{ w.processDefinitionKey }}
+                </option>
+              </select>
+            </div>
+
+            <ng-container *ngIf="supplyMode">
+              <div class="form-group">
+                <label class="field-label">{{ 'supplyTx.beneficiaryName' | t }}</label>
+                <input class="custom-input" type="text" formControlName="beneficiaryName" />
+              </div>
+              <div class="form-group">
+                <label class="field-label">{{ 'supplyTx.beneficiaryOrg' | t }}</label>
+                <input class="custom-input" type="text" formControlName="beneficiaryOrganization" />
+              </div>
+              <div class="form-group">
+                <label class="field-label">{{ 'supplyTx.beneficiaryId' | t }}</label>
+                <input class="custom-input" type="text" formControlName="beneficiaryIdentifier" />
+              </div>
+            </ng-container>
 
           </div>
 

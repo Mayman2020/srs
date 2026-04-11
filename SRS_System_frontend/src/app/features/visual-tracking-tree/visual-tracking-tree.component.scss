@@ -42,6 +42,23 @@
 .vt-card.done   { border-top-color: #22c55e; }
 .vt-card.active { border-top-color: #f59e0b; box-shadow: 0 14px 34px rgba(245, 158, 11, 0.18); }
 .vt-card.pending{ border-top-color: #94a3b8; }
+/* Same accent as default card — explicit class when lookup code is `info` */
+.vt-card.info   { border-top-color: #0ea5e9; }
+
+.vt-card__title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.vt-card__status {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.2;
+}
 
 .vt-card__head {
   display: flex;

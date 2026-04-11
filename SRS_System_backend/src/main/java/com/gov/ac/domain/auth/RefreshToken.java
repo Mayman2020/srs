@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "refresh_token")
+@Table(name = "refresh_token", schema = "srs_system")
 @Getter
 @Setter
 @NoArgsConstructor

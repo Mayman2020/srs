@@ -1,166 +1,182 @@
-/* ================================
-   PREMIUM SIDEBAR FIXED VERSION
-================================ */
+/* Compact enterprise sidebar — no visible scrollbar, dense nav, smooth collapse */
 
 .sidebar {
-  width: 230px;
+  width: 196px;
   height: 100vh;
-  background: linear-gradient(180deg,#0B6E4F,#064635);
-  color: white;
-  padding: 30px 14px;
+  max-height: 100vh;
+  background: linear-gradient(180deg, #0b6e4f, #064635);
+  color: #fff;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
-  transition: width .3s ease;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   direction: rtl;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+  border-top-left-radius: var(--erp-radius-md, 12px);
+  border-bottom-left-radius: var(--erp-radius-md, 12px);
   position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Collapsed */
 .sidebar.collapsed {
-  width: 78px;
+  width: 68px;
+  padding-inline: 8px;
 }
 
-/* ================= Toggle Button ================= */
-
+/* Toggle */
 .collapse-btn {
   position: absolute;
-  top: 18px;
-  right: 14px;   /* 👈 على الجنب */
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  top: 10px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--erp-radius-sm, 8px);
   border: none;
-  background: rgba(255,255,255,.15);
-  color: #D4AF37;
+  background: rgba(255, 255, 255, 0.12);
+  color: #d4af37;
   cursor: pointer;
   backdrop-filter: blur(6px);
-  transition: all .25s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
-/* لما يبقى collapsed */
+
 .sidebar.collapsed .collapse-btn {
-  right: auto;          /* نلغي اليمين */
-  left: 50%;            /* نحطه في النص */
+  right: auto;
+  left: 50%;
   transform: translateX(-50%);
 }
 
 .collapse-btn:hover {
-  background: rgba(255,255,255,.3);
-  transform: rotate(90deg);
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* ================= BRAND ================= */
+.collapse-btn:active {
+  transform: scale(0.96);
+}
 
+.sidebar.collapsed .collapse-btn:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+/* Brand */
 .brand {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.collapse-btn {
-  margin-bottom: 8px;
+  flex-shrink: 0;
+  padding-top: 36px;
+  padding-bottom: 4px;
 }
 
 .logo {
-  width: 75px;
+  width: 56px;
   height: auto;
+  max-height: 48px;
   object-fit: contain;
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));
-  transition: all .3s ease;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+  transition: transform 0.25s ease;
 }
 
 .sidebar.collapsed .logo {
-  width: 55px;
-  transform: scale(.9);
-  margin-top: 15px;
+  width: 40px;
+  max-height: 40px;
+  margin-top: 4px;
 }
-
-.logo:hover {
-  transform: scale(1.05);
-}
-
-/* ================= Divider ================= */
 
 .divider {
   height: 1px;
-  background: rgba(255,255,255,.25);
-  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 8px 0;
+  flex-shrink: 0;
 }
 
-/* ================= NAV ================= */
-
+/* Nav: fill remaining space; scroll only if needed — scrollbar hidden */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex: 1;
+  gap: 4px;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
 }
 
-/* ITEM */
+.nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
 
 .nav .item {
   display: flex;
   align-items: center;
-  gap: 6px; /* 👈 حل مشكلة المسافة */
-  padding: 12px 14px;
-  border-radius: 16px;
-  font-family: 'Cairo', sans-serif;
-  font-size: 14px;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--erp-radius-md, 12px);
+  font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,.9);
-  transition: all .25s ease;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.92);
+  transition: background 0.2s ease, transform 0.2s ease;
   position: relative;
   justify-content: flex-start;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: start;
 }
-
-/* Hover */
 
 .nav .item:hover {
-  background: rgba(255,255,255,.12);
+  background: rgba(255, 255, 255, 0.1);
 }
-
-/* ICON */
 
 .nav .icon {
-  font-size: 20px;
-  color: #D4AF37;
+  font-size: 17px;
+  color: #d4af37;
   width: 22px;
+  min-width: 22px;
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-/* ================= SELECTED PREMIUM ================= */
+.nav .icon.mat-ico-wrap .nav-mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  color: inherit;
+}
+
+.nav .icon ::ng-deep svg.ico {
+  width: 18px;
+  height: 18px;
+}
 
 .nav .item.active {
-  background: linear-gradient(135deg,rgba(117, 83, 4, 0.07),rgba(234, 163, 21, 0.201));
-  backdrop-filter: blur(6px);
-  border: 0.5px solid rgba(237, 180, 11, 0.074);
-  /* box-shadow:
-    0 8px 10px rgba(245, 165, 16, 0.144),
-    inset 0 0 0 1px rgba(234, 159, 11, 0.2); */
-  transform: translateX(-3px);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(212, 175, 55, 0.25);
 }
-
-/* Glow Accent Line */
 
 .nav .item.active::before {
-  content: "";
+  content: '';
   position: absolute;
-  right: 8px;
-  top: 20%;
-  height: 60%; 
+  right: 6px;
+  top: 22%;
+  height: 56%;
+  width: 3px;
   border-radius: 2px;
-  background: #D4AF37;
-  box-shadow: 0 0 8px #D4AF37;
+  background: #d4af37;
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.6);
 }
-
-/* ================= COLLAPSED ================= */
 
 .sidebar.collapsed .label {
   display: none;
@@ -168,23 +184,23 @@
 
 .sidebar.collapsed .item {
   justify-content: center;
-  padding: 14px 0;
+  padding: 10px 0;
 }
 
 .sidebar.collapsed .item.active::before {
-  display: none; /* 👈 حل مشكلة الخط اللي بيظهر فوق */
+  display: none;
 }
 
-/* ================= USER (shared profile store, same as topbar) ================= */
-
+/* User block */
 .sidebar-user {
   margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 48px;
+  gap: 8px;
+  min-height: 44px;
 }
 
 .sidebar-user.collapsed-only {
@@ -196,13 +212,13 @@
 .sidebar-user__meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
   flex: 1;
 }
 
 .sidebar-user__name {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
@@ -211,12 +227,12 @@
 }
 
 .sidebar-user__role-label {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .sidebar-user__role {
-  font-size: 11px;
+  font-size: 10px;
   color: #d4af37;
   font-weight: 600;
   white-space: nowrap;

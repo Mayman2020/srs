@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "workflow_instance_status")
+@Table(name = "workflow_instance_status", schema = "srs_system")
 @Getter
 @Setter
 public class WorkflowInstanceStatus extends SoftDeletableEntity {

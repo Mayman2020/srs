@@ -1,17 +1,27 @@
-import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, take, takeUntil } from 'rxjs/operators';
+import { catchError, map, take, takeUntil } from 'rxjs/operators';
 
-import { CorrespondenceCommentDetailDto, CorrespondenceDetailResponse, WorkflowHistoryEntryDto } from '../../core/api/api-types';
+import {
+  AttachmentIndexEntryDto,
+  CorrespondenceCommentDetailDto,
+  CorrespondenceDetailResponse,
+  CorrespondenceNonarchivedItemDto,
+  WorkflowActionAvailableDto,
+  WorkflowHistoryEntryDto
+} from '../../core/api/api-types';
+import { CorrespondenceApiService } from '../../core/api/correspondence-api.service';
 import { TransactionService } from '../../services/transaction.service';
 import { PlatformWorkflowApiService } from '../../core/api/platform-workflow-api.service';
 import { AttachmentApiService } from '../../core/api/attachment-api.service';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
+import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { MatTabsModule } from '@angular/material/tabs';
@@ -63,12 +73,13 @@ export interface TransactionNote {
 export interface RelatedTransaction {
   id: string;
   subject: string;
-  created: Date | string;
+  referenceNumber?: string;
+  created: Date | string | null;
+  /** Link kind or label (displayed with {@link StatusBadgeComponent} `plain`). */
   status: string;
-  statusClass: 'active' | 'done' | 'pending' | 'rejected';
 }
 
-/** Maps file name / MIME to `attachment_content_type.code` (see V2__lookup_tables). */
+/** Maps file name / MIME to `attachment_content_type.code` (seeded in Flyway consolidated baseline). */
 function guessAttachmentContentTypeCode(fileName: string, mimeType: string | undefined): string {
   const lower = fileName.toLowerCase();
   if (lower.endsWith('.pdf')) return 'PDF';
@@ -99,7 +110,8 @@ export interface Transaction {
   to: string;
   referredFrom?: string;
   status: string;
-  statusClass: 'active' | 'done' | 'pending' | 'rejected';
+  /** Raw DB `correspondence_status.ui_variant` for `app-status-badge`. */
+  statusUiVariant: string | null;
   maxDays: number;
   remainingDays: number;
   priority?: string;
@@ -109,6 +121,10 @@ export interface Transaction {
   timeline: TimelineStep[];
   attachments: Attachment[];
   notes: TransactionNote[];
+  /** Camunda task decisions (labels from API). */
+  workflowActions?: WorkflowActionAvailableDto[];
+  /** Server-driven: show cancel action in toolbar. */
+  cancelAllowed?: boolean;
 }
 
 // ══════════════════════════════════════════════
@@ -130,16 +146,23 @@ export interface Transaction {
     MatButtonModule,
     MatSnackBarModule,
     TranslatePipe,
+    StatusBadgeComponent,
   ],
   standalone: true,
 })
 export class TransactionDetailsComponent implements OnInit, OnDestroy {
+
+  /** Permission checks for toolbar actions (codes from {@code GET /api/v1/me/capabilities}). */
+  readonly cap = inject(CapabilitiesService);
 
   @ViewChild('attachmentInput') attachmentInput?: ElementRef<HTMLInputElement>;
 
   // ── Data ────────────────────────────────────
   transaction!: Transaction;
   relatedTransactions: RelatedTransaction[] = [];
+  nonarchivedItems: CorrespondenceNonarchivedItemDto[] = [];
+  /** Backend attachment id → index rows */
+  indexEntriesByAttachmentId: Record<number, AttachmentIndexEntryDto[]> = {};
   correspondenceUuid = '';
 
   // ── UI State ────────────────────────────────
@@ -179,6 +202,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private transactionService: TransactionService,
     private platformWorkflow: PlatformWorkflowApiService,
     private attachmentApi: AttachmentApiService,
+    private correspondenceApi: CorrespondenceApiService,
     private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private i18n: I18nService,
@@ -193,7 +217,6 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.buildForm();
     this.loadTransaction();
-    this.loadRelated();
   }
 
   ngOnDestroy(): void {
@@ -249,6 +272,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.canAddNote = true;
           const draft = (d.replyDraftHtml ?? '').trim();
           this.form.patchValue({ letterContent: draft });
+          this.loadGuideData();
         },
         error: (err: HttpErrorResponse & { userMessage?: string }) => {
           console.error('[TransactionDetails] load correspondence failed', err);
@@ -265,7 +289,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
             from: '—',
             to: '—',
             status: '—',
-            statusClass: 'pending',
+            statusUiVariant: null,
             maxDays: 0,
             remainingDays: 0,
             priority: '—',
@@ -275,6 +299,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
             timeline: [],
             attachments: [],
             notes: [],
+            cancelAllowed: false,
           };
         },
       });
@@ -313,7 +338,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       from: d.senderOrganization?.nameAr ?? d.senderOrganization?.nameEn ?? '—',
       to: d.recipientOrganization?.nameAr ?? d.recipientOrganization?.nameEn ?? '—',
       status: statusCode,
-      statusClass: this.mapStatusClass(statusCode),
+      statusUiVariant: d.correspondenceStatus?.uiVariant ?? null,
       maxDays,
       remainingDays: Math.max(0, Math.ceil((dueDate.getTime() - Date.now()) / 86_400_000)),
       priority: priorityCode,
@@ -333,6 +358,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         url: this.attachmentApi.downloadUrl(a.id),
       })),
       notes: this.notesFromComments(d.comments ?? []),
+      workflowActions: d.availableWorkflowActions ?? [],
+      cancelAllowed: d.cancelAllowed !== false,
     };
   }
 
@@ -359,19 +386,51 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private loadRelated(): void {
-    this.relatedTransactions = [];
+  private loadGuideData(): void {
+    const id = this.correspondenceUuid;
+    if (!id) {
+      return;
+    }
+    forkJoin({
+      links: this.correspondenceApi.listLinks(id).pipe(catchError(() => of([]))),
+      na: this.correspondenceApi.listNonarchived(id).pipe(catchError(() => of([])))
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ links, na }) => {
+          this.relatedTransactions = (links ?? []).map((l) => ({
+            id: l.linkedCorrespondenceId,
+            subject: l.linkedSubject,
+            referenceNumber: l.linkedReferenceNumber,
+            created: null,
+            status: l.linkKind
+          }));
+          this.nonarchivedItems = na ?? [];
+          this.loadAttachmentIndexes();
+        }
+      });
   }
 
-  private mapStatusClass(
-    code: string
-  ): 'active' | 'done' | 'pending' | 'rejected' {
-    const u = code.toUpperCase();
-    if (u.includes('COMPLET') || u.includes('DONE') || u.includes('CLOS'))
-      return 'done';
-    if (u.includes('REJECT')) return 'rejected';
-    if (u.includes('NEW') || u.includes('DRAFT')) return 'pending';
-    return 'active';
+  private loadAttachmentIndexes(): void {
+    this.indexEntriesByAttachmentId = {};
+    const atts = this.transaction?.attachments ?? [];
+    if (!atts.length) {
+      return;
+    }
+    forkJoin(
+      atts.map((att) =>
+        this.correspondenceApi.listAttachmentIndexEntries(att.id).pipe(
+          catchError(() => of([] as AttachmentIndexEntryDto[])),
+          map((rows) => ({ id: att.id, rows }))
+        )
+      )
+    )
+      .pipe(takeUntil(this.destroy$), take(1))
+      .subscribe((results) => {
+        for (const r of results) {
+          this.indexEntriesByAttachmentId[r.id] = r.rows;
+        }
+      });
   }
 
   private checkOverdue(): void {
@@ -402,10 +461,72 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     this.snackBar.open(msg, this.i18n.instant('common.close'), { duration });
   }
 
-  private runWorkflowAction(
-    action: 'APPROVE' | 'REJECT' | 'RETURN' | 'REFER',
-    comment?: string | null
-  ): void {
+  /** Display label from DB for current language. */
+  workflowActionLabel(a: WorkflowActionAvailableDto): string {
+    return this.i18n.currentLang() === 'en' ? a.nameEn : a.nameAr;
+  }
+
+  /** Emphasized action in footer: first row as returned by API (ordered by `sortOrder`). */
+  primaryWorkflowAction(): WorkflowActionAvailableDto | undefined {
+    const w = this.transaction?.workflowActions;
+    if (!w?.length) {
+      return undefined;
+    }
+    return w[0];
+  }
+
+  /**
+   * Maps DB `ui_variant` to existing action-bar CSS classes (no per-action-code branching).
+   */
+  workflowActionUiClass(uiVariant: string | null | undefined): string {
+    const v = (uiVariant ?? 'secondary').toLowerCase();
+    switch (v) {
+      case 'primary':
+        return 'blue';
+      case 'danger':
+        return 'red-outline';
+      case 'warning':
+        return 'orange';
+      case 'success':
+        return 'green';
+      case 'secondary':
+      default:
+        return 'gray';
+    }
+  }
+
+  onWorkflowAction(a: WorkflowActionAvailableDto): void {
+    if (a.requiresComment) {
+      const ref = this.dialog.open(TextInputDialogComponent, {
+        width: 'min(480px, 94vw)',
+        autoFocus: 'dialog',
+        data: {
+          dialogTitle: this.workflowActionLabel(a),
+          labelKey: 'transactionDetails.workflowCommentPrompt',
+          confirmKey: 'common.apply',
+          required: true,
+          multiline: true,
+        } satisfies TextInputDialogData,
+      });
+      ref
+        .afterClosed()
+        .pipe(take(1))
+        .subscribe((comment) => {
+          if (comment === undefined) {
+            return;
+          }
+          if (!String(comment).trim()) {
+            this.toast(this.i18n.instant('transactionDetails.workflowCommentRequired'));
+            return;
+          }
+          this.runWorkflowAction(a.code, String(comment).trim());
+        });
+      return;
+    }
+    this.runWorkflowAction(a.code);
+  }
+
+  private runWorkflowAction(action: string, comment?: string | null): void {
     if (!this.correspondenceUuid) {
       return;
     }
@@ -417,58 +538,6 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
         },
       });
-  }
-
-  private promptCommentThenAction(
-    action: 'RETURN' | 'REJECT' | 'REFER',
-    titleKey: string
-  ): void {
-    const ref = this.dialog.open(TextInputDialogComponent, {
-      width: 'min(480px, 94vw)',
-      autoFocus: 'dialog',
-      data: {
-        titleKey,
-        labelKey: 'transactionDetails.workflowCommentPrompt',
-        confirmKey: 'common.apply',
-        required: true,
-        multiline: true,
-      } satisfies TextInputDialogData,
-    });
-    ref
-      .afterClosed()
-      .pipe(take(1))
-      .subscribe((comment) => {
-        if (comment === undefined) {
-          return;
-        }
-        if (!comment.trim()) {
-          this.toast(this.i18n.instant('transactionDetails.workflowCommentRequired'));
-          return;
-        }
-        this.runWorkflowAction(action, comment);
-      });
-  }
-
-  approveTransaction(): void {
-    this.runWorkflowAction('APPROVE');
-  }
-
-  /** Quick complete (same as approve) — e.g. toolbar "تحويل". */
-  transferTransaction(): void {
-    this.runWorkflowAction('APPROVE');
-  }
-
-  returnTransaction(): void {
-    this.promptCommentThenAction('RETURN', 'transactionDetails.dialogReturnTitle');
-  }
-
-  /** Referral / إحالة — distinct Camunda decision REFER (status → in progress). */
-  referTransaction(): void {
-    this.promptCommentThenAction('REFER', 'transactionDetails.dialogReferralTitle');
-  }
-
-  rejectTransaction(): void {
-    this.promptCommentThenAction('REJECT', 'transactionDetails.dialogRejectTitle');
   }
 
   /** Delegates the current user’s Camunda task to another user (UUID). */

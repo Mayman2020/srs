@@ -8,6 +8,7 @@ import com.gov.ac.persistence.ConfidentialityRepository;
 import com.gov.ac.persistence.CorrespondenceStatusRepository;
 import com.gov.ac.persistence.CorrespondenceTypeRepository;
 import com.gov.ac.persistence.PriorityRepository;
+import com.gov.ac.persistence.OrgVisualNodeStatusRepository;
 import com.gov.ac.persistence.WorkflowActionTypeRepository;
 import com.gov.ac.persistence.WorkflowHistoryEventTypeRepository;
 import java.util.List;
@@ -26,6 +27,7 @@ public class LookupService {
   private final ClassificationRepository classificationRepository;
   private final WorkflowActionTypeRepository workflowActionTypeRepository;
   private final WorkflowHistoryEventTypeRepository workflowHistoryEventTypeRepository;
+  private final OrgVisualNodeStatusRepository orgVisualNodeStatusRepository;
 
   @Transactional(readOnly = true)
   public LookupBundleDto bundle() {
@@ -43,7 +45,9 @@ public class LookupService {
         LookupDtoMapper.mapWfActions(
             workflowActionTypeRepository.findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc()),
         LookupDtoMapper.mapWfHistoryEvents(
-            workflowHistoryEventTypeRepository.findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc()));
+            workflowHistoryEventTypeRepository.findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc()),
+        LookupDtoMapper.mapOrgVisualNodeStatuses(
+            orgVisualNodeStatusRepository.findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc()));
   }
 
   @Transactional(readOnly = true)

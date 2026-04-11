@@ -1,103 +1,73 @@
-<div class="page-header">
-  <div>
-    <h2>{{ 'roles.pageTitle' | t }}</h2>
-  </div>
-</div>
 
-<div class="roles-intro">
-  <p class="muted">{{ 'roles.listTableSubtitle' | t }}</p>
-</div>
+     <div class="page-header">
+        <div>
+          <h2>{{ 'roles.pageTitle' | t }}</h2>
+          <p>{{ 'roles.listTableSubtitle' | t }}</p>
+        </div>
+    </div>
 
-<srs-data-table
-  [loading]="loading"
-  [skeletonRows]="5"
-  [skeletonColumns]="4"
-  [skeletonAriaLabel]="'common.loading' | t"
-  [page]="page"
-  [pageSize]="pageSize"
-  [total]="rolesTotal"
-  [legacyCountOnPage]="0"
-  (paginationPage)="onRolePage($event)"
-  (paginationPageSize)="onRolePageSize($event)"
->
-  <div srsDtToolbar class="roles-toolbar">
-    <h3 class="roles-table-title">{{ 'roles.listTableTitle' | t }}</h3>
+  <div class="roles-loading-card" *ngIf="loading">
+    <i class="fa-solid fa-shield-halved"></i>
+    <span>{{ 'common.loading' | t }}</span>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>
-          <srs-sort-header
-            columnId="name"
-            labelKey="roles.colRoleName"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onRoleSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="code"
-            labelKey="roles.colCode"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onRoleSort($event)"
-          />
-        </th>
-        <th>
-          <srs-sort-header
-            columnId="users"
-            labelKey="roles.colUsersHeader"
-            [activeColumn]="sortColumn"
-            [direction]="sortDir"
-            (sortChange)="onRoleSort($event)"
-          />
-        </th>
-        <th class="srs-dt-th-plain">{{ 'dataTable.actions' | t }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let role of pageRoles; trackBy: trackByRoleId" [@srsTableRowEnter]>
-        <td>
-          <div class="roles-name-cell">
-            <span class="roles-name">{{ roleName(role) }}</span>
-            <small class="muted">{{ roleDescription(role) }}</small>
-          </div>
-        </td>
-        <td><code class="roles-code">{{ role.code }}</code></td>
-        <td>
-          <span class="roles-user-pill">{{ role.usersCount }} {{ 'roles.usersCount' | t }}</span>
-        </td>
-        <td>
-          <button type="button" class="btn btn-primary btn-sm" (click)="viewPermissions(role)">
-            {{ 'roles.viewPerms' | t }}
-          </button>
-        </td>
-      </tr>
-      <tr *ngIf="!loading && rolesTotal === 0">
-        <td colspan="4" class="roles-empty-wrap">
-          <srs-empty-state [titleKey]="'common.empty'" [showIcon]="true" />
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</srs-data-table>
+  <div class="roles-grid">
+    <div *ngFor="let role of roles" class="role-card">
+      <div class="role-header">
+        <div class="role-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h3>{{ role.name }}</h3>
+      </div>
 
-<div class="roles-admin-link">
-  <a
-    class="btn btn-secondary btn-block"
-    [routerLink]="['/admin-communications-main']"
-    [queryParams]="{ tab: 'roles' }">
-    {{ 'roles.openMatrix' | t }}
-  </a>
-</div>
+      <p class="role-description">{{ role.description }}</p>
+
+      <div class="role-stats">
+        <div class="stat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+          </svg>
+          <span><strong>{{ role.usersCount }}</strong> {{ 'roles.usersCount' | t }}</span>
+        </div>
+
+        <div class="stat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-block" (click)="viewPermissions(role)">
+        <i class="fa-solid fa-key"></i>
+        {{ 'roles.viewPerms' | t }}
+      </button>
+    </div>
+  </div>
+
+  <div class="roles-loading-card empty" *ngIf="!loading && roles.length === 0">
+    <i class="fa-regular fa-folder-open"></i>
+    <span>{{ 'common.empty' | t }}</span>
+  </div>
+
+  <div class="roles-admin-link">
+    <a
+      class="btn btn-secondary btn-block"
+      [routerLink]="['/admin-communications-main']"
+      [queryParams]="{ tab: 'roles' }">
+      <i class="fa-solid fa-table-cells-large"></i>
+      {{ 'roles.openMatrix' | t }}
+    </a>
+  </div>
 
 <div class="modal-overlay" *ngIf="showPermissionsModal && selectedRole" (click)="closeModal()">
   <div class="modal modal-large" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{ 'roles.modalTitle' | t }}: {{ selectedRole ? roleName(selectedRole) : '' }}</h2>
-      <button type="button" class="btn-close" [attr.aria-label]="'common.close' | t" (click)="closeModal()">
+      <h2>{{ 'roles.modalTitle' | t }}: {{ selectedRole.name }}</h2>
+      <button type="button" class="btn-close" (click)="closeModal()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -105,9 +75,9 @@
       </button>
     </div>
     <div class="modal-body">
-      <p class="role-description">{{ selectedRole ? roleDescription(selectedRole) : '' }}</p>
-
-      <h4 class="roles-perms-section-title">{{ 'roles.permsHeading' | t }}</h4>
+      <p class="role-description">{{ selectedRole.description }}</p>
+      
+      <h4 style="margin: 1.5rem 0 1rem 0; color: var(--primary-dark);">{{ 'roles.permsHeading' | t }}</h4>
 
       <p *ngIf="permsLoadError" class="role-description roles-perms-err">
         {{ 'roles.permsLoadError' | t }}
@@ -116,32 +86,9 @@
       <p *ngIf="!permsLoadError && !selectedRole.permissions.length" class="role-description">
         {{ 'roles.permsEmpty' | t }}
       </p>
-
-      <cdk-virtual-scroll-viewport
-        *ngIf="!permsLoadError && selectedRole.permissions.length && useVirtualScrollForPerms()"
-        itemSize="52"
-        class="roles-perms-viewport"
-      >
-        <div
-          *cdkVirtualFor="let permission of selectedRole.permissions; trackBy: trackByPermName"
-          class="permission-item"
-        >
-          <span class="permission-name">{{ permission.name }}</span>
-          <span class="permission-status" [class.enabled]="permission.enabled" [class.disabled]="!permission.enabled">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="permission.enabled">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!permission.enabled">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-            {{ (permission.enabled ? 'roles.enabled' : 'roles.disabled') | t }}
-          </span>
-        </div>
-      </cdk-virtual-scroll-viewport>
-
-      <div class="permissions-list" *ngIf="!permsLoadError && selectedRole.permissions.length && !useVirtualScrollForPerms()">
-        <div *ngFor="let permission of selectedRole.permissions; trackBy: trackByPermName" class="permission-item">
+      
+      <div class="permissions-list">
+        <div *ngFor="let permission of selectedRole.permissions" class="permission-item">
           <span class="permission-name">{{ permission.name }}</span>
           <span class="permission-status" [class.enabled]="permission.enabled" [class.disabled]="!permission.enabled">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="permission.enabled">
@@ -157,7 +104,10 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" (click)="closeModal()">{{ 'roles.close' | t }}</button>
+      <button type="button" class="btn btn-secondary" (click)="closeModal()">
+        <i class="fa-solid fa-xmark"></i>
+        {{ 'roles.close' | t }}
+      </button>
     </div>
   </div>
 </div>

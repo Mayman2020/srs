@@ -2,6 +2,8 @@
 # LOCAL development profile — safe defaults for run-backend.* / IDE / mvn spring-boot:run
 # Do not use in production. Production remains strict via application-prod.yml + env vars.
 #
+# All SRS tables (Flyway + JPA + Camunda) are in schema srs_system only — use the same JDBC URL (with ?currentSchema=srs_system) in DBeaver.
+#
 # DB password: same env chain as hesabaty-backend (DB_PASSWORD default admin). SRS-specific override: AC_LOCAL_DB_PASSWORD.
 #   Set AC_LOCAL_DB_PASSWORD in run-backend.secrets.ps1, or DB_PASSWORD to share one value across projects.
 # Note: SPRING_DATASOURCE_PASSWORD in the OS often overrides YAML and breaks local dev — run-backend.ps1 clears it for profile local.
@@ -9,7 +11,17 @@
 
 spring:
   datasource:
-    password: ${AC_LOCAL_DB_PASSWORD:${DB_PASSWORD:admin}}
+    # ERP-style DB_PASS first; then SRS/hesabaty AC_LOCAL_DB_PASSWORD / DB_PASSWORD (default admin).
+    password: ${DB_PASS:${AC_LOCAL_DB_PASSWORD:${DB_PASSWORD:admin}}}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  # Flyway: do not use ignore-missing-migrations — it hides history/classpath drift; run docs/db/srs_system_full_clean_reset.sql instead.
+  jpa:
+    hibernate:
+      # Single source of truth = Flyway. Never update/update-drop here.
+      ddl-auto: validate
 
 camunda.bpm:
   admin-user:

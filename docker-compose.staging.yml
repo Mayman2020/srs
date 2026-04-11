@@ -1,0 +1,5 @@
+# Thin wrapper - staging stack in deploy/compose
+
+include:
+  - path: deploy/compose/docker-compose.yml
+  - path: deploy/compose/docker-compose.staging.yml

@@ -1,0 +1,12 @@
+<app-dialog-shell
+  [titleKey]="data.titleKey"
+  icon="info"
+  (closeRequested)="close()">
+  <p>{{ data.messageKey | t: data.params }}</p>
+
+  <div dialogActions>
+    <button mat-flat-button type="button" color="primary" (click)="close()">
+      {{ (data.closeButton?.labelKey ?? 'common.close') | t }}
+    </button>
+  </div>
+</app-dialog-shell>

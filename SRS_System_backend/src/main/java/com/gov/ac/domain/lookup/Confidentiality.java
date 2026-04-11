@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "confidentiality")
+@Table(name = "confidentiality", schema = "srs_system")
 @Getter
 @Setter
 public class Confidentiality extends SoftDeletableEntity {

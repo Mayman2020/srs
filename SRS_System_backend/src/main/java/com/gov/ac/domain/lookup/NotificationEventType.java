@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "notification_event_type")
+@Table(name = "notification_event_type", schema = "srs_system")
 @Getter
 @Setter
 public class NotificationEventType extends SoftDeletableEntity {

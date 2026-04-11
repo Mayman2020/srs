@@ -1,0 +1,84 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h2>{{ 'delegations.pageTitle' | t }}</h2>
+    <p class="muted">{{ 'delegations.subtitle' | t }}</p>
+  </div>
+
+  <div class="card form-card">
+    <h3>{{ 'delegations.formTitle' | t }}</h3>
+    <app-erp-auto-reference-field [value]="lastCreatedDelegationId" />
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>{{ 'delegations.delegateUser' | t }}</span>
+        <select formControlName="delegateUserId">
+          <option value="">{{ 'delegations.selectUser' | t }}</option>
+          <option *ngFor="let u of users" [value]="u.id">{{ userLabel(u) }}</option>
+        </select>
+      </label>
+      <div class="row-2">
+        <label>
+          <span>{{ 'delegations.validFrom' | t }}</span>
+          <input type="date" formControlName="validFrom" />
+        </label>
+        <label>
+          <span>{{ 'delegations.validTo' | t }}</span>
+          <input type="date" formControlName="validTo" />
+        </label>
+      </div>
+      <label class="check">
+        <input type="checkbox" formControlName="canSignOnBehalf" />
+        <span>{{ 'delegations.canSignOnBehalf' | t }}</span>
+      </label>
+      <label>
+        <span>{{ 'delegations.typeCodesHint' | t }}</span>
+        <input type="text" formControlName="allowedCorrespondenceTypeCodes" />
+      </label>
+      <label>
+        <span>{{ 'delegations.confidentialityCodesHint' | t }}</span>
+        <input type="text" formControlName="allowedConfidentialityCodes" />
+      </label>
+      <label>
+        <span>{{ 'delegations.notes' | t }}</span>
+        <textarea rows="2" formControlName="notes"></textarea>
+      </label>
+      <button type="submit" class="btn primary" [disabled]="form.invalid">
+        {{ 'delegations.submit' | t }}
+      </button>
+    </form>
+  </div>
+
+  <div class="card" *ngIf="!loading">
+    <h3>{{ 'delegations.listTitle' | t }}</h3>
+    <div class="table-scroll" *ngIf="rows.length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'delegations.colDelegator' | t }}</th>
+            <th>{{ 'delegations.colDelegate' | t }}</th>
+            <th>{{ 'delegations.colFrom' | t }}</th>
+            <th>{{ 'delegations.colTo' | t }}</th>
+            <th>{{ 'delegations.colSign' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of rows">
+            <td>{{ delegatorName(d) }}</td>
+            <td>{{ delegateName(d) }}</td>
+            <td>{{ d.validFrom }}</td>
+            <td>{{ d.validTo }}</td>
+            <td>{{ d.canSignOnBehalf ? ('common.open' | t) : ('common.dash' | t) }}</td>
+            <td>
+              <button type="button" class="btn danger" (click)="confirmRevoke(d)">
+                {{ 'delegations.revoke' | t }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty" *ngIf="!rows.length">{{ 'common.empty' | t }}</p>
+  </div>
+
+  <p *ngIf="loading" class="loading">{{ 'common.loading' | t }}</p>
+</div>

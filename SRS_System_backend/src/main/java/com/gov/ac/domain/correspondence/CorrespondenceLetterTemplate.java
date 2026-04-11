@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "correspondence_letter_template")
+@Table(name = "correspondence_letter_template", schema = "srs_system")
 @Getter
 @Setter
 public class CorrespondenceLetterTemplate extends SoftDeletableEntity {
@@ -31,6 +31,10 @@ public class CorrespondenceLetterTemplate extends SoftDeletableEntity {
 
   @Column(name = "body_html", nullable = false, columnDefinition = "text")
   private String bodyHtml = "";
+
+  /** Optional path under {@code ac.storage.root} to load HTML instead of {@link #bodyHtml}. */
+  @Column(name = "template_file_path", length = 500)
+  private String templateFilePath;
 
   @Column(name = "sort_order", nullable = false)
   private Integer sortOrder = 0;

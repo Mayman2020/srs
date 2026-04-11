@@ -246,8 +246,8 @@ if (-not (Test-Path $MvnwPath)) {
 }
 Set-Location $ProjectRoot
 
-# Pre-flight: PostgreSQL - ensure DB exists
-$DbName = "ac_communications"
+# Pre-flight: PostgreSQL - catalogue postgres; all app + Camunda tables live in schema srs_system only (same DB URL pattern in DBeaver).
+$DbName = "postgres"
 $DbUser = 'postgres'
 if ($env:SPRING_DATASOURCE_USERNAME) { $DbUser = $env:SPRING_DATASOURCE_USERNAME }
 $pgPort = 5432
@@ -260,21 +260,12 @@ try {
 
 $psqlCmd = Get-Command psql -ErrorAction SilentlyContinue
 if ($psqlCmd) {
-    $dbCheck = & psql -U $DbUser -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$DbName'" 2>$null
-    if ($dbCheck -and $dbCheck.Trim() -eq '1') {
-        Write-Info "Database '$DbName' already exists."
-    } else {
-        Write-Step "Creating database '$DbName'..." "Cyan"
-        & psql -U $DbUser -d postgres -c "CREATE DATABASE $DbName" 2>$null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "Database '$DbName' created."
-        } else {
-            Write-Info "psql CREATE DATABASE returned non-zero; Spring Boot will auto-create on startup."
-        }
-    }
-} else {
-    Write-Info "psql not on PATH - Spring Boot will auto-create database if missing."
+    Write-Info "Expecting JDBC database 'postgres', schema 'srs_system' (override with SPRING_DATASOURCE_URL if needed)."
 }
+else {
+    Write-Info "psql not on PATH - ensure PostgreSQL is running; default URL uses database postgres + schema srs_system."
+}
+Write-Info 'DBeaver: same host/port/DB as this run; JDBC URL should include currentSchema=srs_system (or set search_path). Otherwise table lists may look incomplete.'
 
 if ($Profile -eq 'local') {
     # OS-wide SPRING_DATASOURCE_PASSWORD overrides YAML and often breaks local (wrong/empty).

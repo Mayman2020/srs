@@ -1,0 +1,101 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h2>{{ 'correspondenceSearch.pageTitle' | t }}</h2>
+    <p class="muted">{{ 'correspondenceSearch.subtitle' | t }}</p>
+  </div>
+
+  <div class="filters card">
+    <div class="row">
+      <label>
+        <span>{{ 'transactions.status' | t }}</span>
+        <select [(ngModel)]="status">
+          <option value="">{{ 'common.all' | t }}</option>
+          <option *ngFor="let s of correspondenceStatuses" [value]="s.code">{{ s.code | lk:'correspondenceStatus' }}</option>
+        </select>
+      </label>
+      <label>
+        <span>{{ 'transactions.type' | t }}</span>
+        <select [(ngModel)]="type">
+          <option value="">{{ 'common.all' | t }}</option>
+          <option *ngFor="let typ of correspondenceTypes" [value]="typ.code">{{ typ.code | lk:'correspondenceType' }}</option>
+        </select>
+      </label>
+      <label>
+        <span>{{ 'transactions.table.priority' | t }}</span>
+        <select [(ngModel)]="priority">
+          <option value="">{{ 'common.all' | t }}</option>
+          <option *ngFor="let pr of priorities" [value]="pr.code">{{ pr.code | lk:'priority' }}</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <label>
+        <span>{{ 'correspondenceSearch.createdFrom' | t }}</span>
+        <input type="date" [(ngModel)]="createdFrom" />
+      </label>
+      <label>
+        <span>{{ 'correspondenceSearch.createdTo' | t }}</span>
+        <input type="date" [(ngModel)]="createdTo" />
+      </label>
+      <div class="actions">
+        <button type="button" class="btn primary" (click)="runSearch(0)">{{ 'common.apply' | t }}</button>
+        <button type="button" class="btn ghost" (click)="clearFilters()">{{ 'common.clear' | t }}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card" *ngIf="!loading">
+    <div class="table-head">
+      <span>{{ 'correspondenceSearch.results' | t }}: {{ totalElements }}</span>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'transactions.refNo' | t }}</th>
+            <th>{{ 'transactions.subject' | t }}</th>
+            <th>{{ 'transactions.type' | t }}</th>
+            <th>{{ 'transactions.status' | t }}</th>
+            <th>{{ 'transactions.table.priority' | t }}</th>
+            <th>{{ 'correspondenceSearch.colCreatedBy' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of rows" (click)="openRow(r)" class="click-row">
+            <td>{{ r.referenceNumber }}</td>
+            <td>{{ r.subject }}</td>
+            <td>{{ label(r.correspondenceType) }}</td>
+            <td>
+              <ng-container *ngIf="r.correspondenceStatus?.code; else noStatusBadge">
+                <app-status-badge
+                  [code]="r.correspondenceStatus!.code"
+                  [uiVariant]="r.correspondenceStatus!.uiVariant"
+                  size="sm"
+                />
+              </ng-container>
+              <ng-template #noStatusBadge>—</ng-template>
+            </td>
+            <td>{{ label(r.priority) }}</td>
+            <td>{{ auditUserLabel(r.createdByUser) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pager" *ngIf="totalElements > pageSize">
+      <button type="button" class="btn ghost" (click)="prevPage()" [disabled]="page <= 0">
+        {{ 'common.previous' | t }}
+      </button>
+      <span>{{ page + 1 }} / {{ totalPages() }}</span>
+      <button
+        type="button"
+        class="btn ghost"
+        (click)="nextPage()"
+        [disabled]="page + 1 >= totalPages()">
+        {{ 'common.next' | t }}
+      </button>
+    </div>
+    <p class="empty" *ngIf="!rows.length">{{ 'common.empty' | t }}</p>
+  </div>
+
+  <p *ngIf="loading" class="loading">{{ 'common.loading' | t }}</p>
+</div>

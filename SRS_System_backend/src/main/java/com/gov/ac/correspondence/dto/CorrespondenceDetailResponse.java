@@ -32,7 +32,19 @@ public class CorrespondenceDetailResponse {
   Instant createdAt;
   Instant updatedAt;
 
+  String workflowRouteMode;
+  Long serviceWorkflowRouteId;
+  String workflowProcessDefinitionKey;
+  boolean supplyTransaction;
+  String beneficiaryName;
+  String beneficiaryOrganization;
+  String beneficiaryIdentifier;
+
   List<CorrespondenceAttachmentDetailDto> attachments;
   List<CorrespondenceTimelineEntryDto> timeline;
   List<CorrespondenceCommentDetailDto> comments;
+  /** Task decisions the viewer may submit (from {@code workflow_action_type}, filtered by status/role/task). */
+  List<WorkflowActionAvailableDto> availableWorkflowActions;
+  /** Whether the viewer may call POST cancel (from {@code correspondence_status} metadata). */
+  boolean cancelAllowed;
 }

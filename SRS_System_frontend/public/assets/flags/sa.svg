@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 36 24" role="img" aria-label="Saudi Arabia flag">
+  <!-- Kingdom of Saudi Arabia: green field (#165B33) with white shahada + sword (stylized for small size) -->
+  <rect width="36" height="24" fill="#165B33"/>
+  <g fill="#ffffff" opacity="0.96">
+    <ellipse cx="18" cy="8.5" rx="11" ry="2"/>
+    <ellipse cx="18" cy="11.5" rx="9.5" ry="1.7"/>
+    <ellipse cx="18" cy="14.2" rx="10" ry="1.5"/>
+    <path d="M12 16.5c2 1.2 4 1.8 6 1.8s4-.6 6-1.8l-.6-.8c-1.6 1-3.2 1.4-5.4 1.4s-3.8-.4-5.4-1.4l-.6.8z"/>
+    <path d="M17 17.2h2l1.2 3.5-2.2-1.5-2.2 1.5 1.2-3.5z"/>
+  </g>
+</svg>

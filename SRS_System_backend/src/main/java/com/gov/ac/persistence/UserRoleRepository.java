@@ -12,7 +12,7 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
 
   @Query(
       value =
-          "select ur.role_id from user_role ur "
+          "select ur.role_id from srs_system.user_role ur "
               + "where ur.app_user_id = :userId "
               + "and ur.valid_from <= current_timestamp "
               + "and (ur.valid_to is null or ur.valid_to > current_timestamp)",

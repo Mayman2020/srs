@@ -1,5 +1,5 @@
 -- Optional: second user in department 1 so "correspondence created" notifications are delivered
--- (recipients = active users in owner department EXCLUDING the actor). Run against your ac_communications DB.
+-- (recipients = active users in owner department EXCLUDING the actor). Run against DB postgres, schema srs_system.
 -- Password is {noop}clerk (Spring Security noop encoder).
 
 INSERT INTO app_user (

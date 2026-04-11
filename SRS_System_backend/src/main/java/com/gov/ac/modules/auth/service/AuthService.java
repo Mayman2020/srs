@@ -121,7 +121,14 @@ public class AuthService {
           jwtIssuer.issueAccessToken(
               user.getId(), user.getUsername(), sorted, normalized, ACCESS_TTL_SECONDS);
       return new LoginResponse(
-          token, null, ACCESS_TTL_SECONDS, userId, user.getUsername(), sorted, normalized);
+          token,
+          null,
+          ACCESS_TTL_SECONDS,
+          userId,
+          user.getUsername(),
+          sorted,
+          normalized,
+          profileImageUrl(user));
     } catch (JOSEException e) {
       throw new IllegalStateException("Could not issue token", e);
     }
@@ -132,7 +139,7 @@ public class AuthService {
   public void requestMfaChallenge(String username, String channel) {
     AppUser user =
         appUserRepository
-            .findByUsernameIgnoreCaseAndDeletedAtIsNull(username.trim())
+            .findByUsernameAndDeletedAtIsNull(username.trim())
             .orElseThrow(() -> new BadCredentialsException("Unknown user"));
     if (!Boolean.TRUE.equals(user.getMfaEnabled())) {
       throw new BadCredentialsException("MFA not enabled for user");
@@ -177,7 +184,7 @@ public class AuthService {
   private AppUser loadUserForPasswordCheck(String username, String password) {
     AppUser user =
         appUserRepository
-            .findByUsernameIgnoreCaseAndDeletedAtIsNull(username.trim())
+            .findByUsernameAndDeletedAtIsNull(username.trim())
             .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
     if (!Boolean.TRUE.equals(user.getActive())) {
       throw new BadCredentialsException("Invalid credentials");
@@ -215,7 +222,14 @@ public class AuthService {
         refreshStr = rt.getJti().toString();
       }
       return new LoginResponse(
-          access, refreshStr, ACCESS_TTL_SECONDS, user.getId(), user.getUsername(), sorted, current);
+          access,
+          refreshStr,
+          ACCESS_TTL_SECONDS,
+          user.getId(),
+          user.getUsername(),
+          sorted,
+          current,
+          profileImageUrl(user));
     } catch (JOSEException e) {
       throw new IllegalStateException("Could not issue token", e);
     }
@@ -228,5 +242,13 @@ public class AuthService {
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private String profileImageUrl(AppUser user) {
+    if (user.getProfileImagePath() == null || user.getProfileImagePath().isBlank()) {
+      return null;
+    }
+    long version = user.getUpdatedAt() != null ? user.getUpdatedAt().toEpochMilli() : System.currentTimeMillis();
+    return "/api/v1/profile/me/avatar?v=" + version;
   }
 }

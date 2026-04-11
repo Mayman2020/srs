@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "workflow_history_comment")
+@Table(name = "workflow_history_comment", schema = "srs_system")
 @Getter
 @Setter
 public class WorkflowHistoryComment extends AuditableEntity {

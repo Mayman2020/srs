@@ -1,5 +1,6 @@
 package com.gov.ac.feature.dashboard.service;
 
+import com.gov.ac.feature.dashboard.KpiSegmentCodes;
 import com.gov.ac.feature.dashboard.dto.DashboardBucketDto;
 import com.gov.ac.feature.dashboard.dto.DashboardResponseDto;
 import com.gov.ac.feature.dashboard.mapper.DashboardMapper;
@@ -25,6 +26,10 @@ public class DashboardService {
     List<DashboardBucketDto> byPriority =
         DashboardMapper.mapBuckets(correspondenceRepository.aggregateActiveByPriority());
     long overdue = correspondenceRepository.countOverdueOpen(now);
-    return new DashboardResponseDto(total, byStatus, byPriority, overdue);
+    long kpiDone = correspondenceRepository.countActiveByKpiSegment(KpiSegmentCodes.SLA_DONE);
+    long kpiPipe = correspondenceRepository.countActiveByKpiSegment(KpiSegmentCodes.PIPELINE);
+    long kpiInbox = correspondenceRepository.countActiveByKpiSegment(KpiSegmentCodes.INBOX);
+    long kpiOb = correspondenceRepository.countActiveOutboundHighlighted();
+    return new DashboardResponseDto(total, byStatus, byPriority, overdue, kpiDone, kpiPipe, kpiInbox, kpiOb);
   }
 }

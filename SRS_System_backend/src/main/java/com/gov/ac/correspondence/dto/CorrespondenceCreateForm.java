@@ -72,4 +72,23 @@ public class CorrespondenceCreateForm {
    */
   @Size(max = 64)
   private String workflowFirstCandidateGroup;
+
+  /** {@code AUTO} uses default route for the type; {@code MANUAL} requires {@link #serviceWorkflowRouteId}. */
+  @Size(max = 16)
+  private String workflowRouteMode = "AUTO";
+
+  /** When {@link #workflowRouteMode} is {@code MANUAL}, id from {@code GET /api/v1/workflow-routes}. */
+  private Long serviceWorkflowRouteId;
+
+  /** When true, marks correspondence created from the «supply / توريد» flow. */
+  private Boolean supplyTransaction = false;
+
+  @Size(max = 500)
+  private String beneficiaryName;
+
+  @Size(max = 500)
+  private String beneficiaryOrganization;
+
+  @Size(max = 128)
+  private String beneficiaryIdentifier;
 }

@@ -23,6 +23,8 @@ export interface Transaction {
   typeCode: string;
   status: string;
   statusCode: string;
+  /** Raw `correspondence_status.ui_variant` from API (use with `app-status-badge`). */
+  statusUiVariant?: string | null;
   priorityCode?: string;
   subject: string;
   description: string;

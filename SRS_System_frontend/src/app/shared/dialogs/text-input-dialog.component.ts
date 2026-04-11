@@ -6,9 +6,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ErpDialogComponent } from '../erp/erp-dialog.component';
 
 export interface TextInputDialogData {
-  titleKey: string;
+  /** Use either {@link titleKey} or {@link dialogTitle}. */
+  titleKey?: string;
+  /** Raw title (e.g. workflow action name from API). */
+  dialogTitle?: string;
   labelKey: string;
   hintKey?: string;
   confirmKey: string;
@@ -28,10 +32,14 @@ export interface TextInputDialogData {
     MatInputModule,
     MatButtonModule,
     TranslatePipe,
+    ErpDialogComponent,
   ],
   template: `
-    <h2 mat-dialog-title>{{ data.titleKey | t }}</h2>
-    <mat-dialog-content>
+    <app-erp-dialog
+      [titleKey]="data.titleKey ?? 'transactionDetails.workflowTitle'"
+      [titleText]="data.dialogTitle"
+      icon="edit_note"
+    >
       <p class="hint" *ngIf="data.hintKey">{{ data.hintKey | t }}</p>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ data.labelKey | t }}</mat-label>
@@ -42,13 +50,13 @@ export interface TextInputDialogData {
           [(ngModel)]="value"></textarea>
         <input *ngIf="!data.multiline" matInput [(ngModel)]="value" />
       </mat-form-field>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="cancel()">{{ 'common.close' | t }}</button>
-      <button mat-flat-button color="primary" type="button" (click)="ok()">
-        {{ data.confirmKey | t }}
-      </button>
-    </mat-dialog-actions>
+      <div erpDialogActions>
+        <button mat-button type="button" (click)="cancel()">{{ 'common.close' | t }}</button>
+        <button mat-flat-button color="primary" type="button" (click)="ok()">
+          {{ data.confirmKey | t }}
+        </button>
+      </div>
+    </app-erp-dialog>
   `,
   styles: [
     `
@@ -57,7 +65,7 @@ export interface TextInputDialogData {
       }
       .hint {
         font-size: 14px;
-        color: #64748b;
+        color: var(--muted, #64748b);
         margin: 0 0 8px;
       }
     `,

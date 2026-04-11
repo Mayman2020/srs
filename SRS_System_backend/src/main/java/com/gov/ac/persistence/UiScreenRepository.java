@@ -9,6 +9,8 @@ public interface UiScreenRepository extends JpaRepository<UiScreen, Long> {
 
   List<UiScreen> findByDeletedAtIsNullOrderBySortOrderAsc();
 
+  List<UiScreen> findByDeletedAtIsNullAndShowInShellNavTrueOrderBySortOrderAsc();
+
   Optional<UiScreen> findByIdAndDeletedAtIsNull(Long id);
 
   boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);

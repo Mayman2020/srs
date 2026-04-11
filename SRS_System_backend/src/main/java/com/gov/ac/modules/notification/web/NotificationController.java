@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,7 +35,8 @@ public class NotificationController {
   private final OutboundSmsService outboundSmsService;
 
   @GetMapping
-  public Page<NotificationItemDto> list(@PageableDefault(size = 50) Pageable pageable) {
+  public Page<NotificationItemDto> list(
+      @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
     return notificationService.listInbox(SecurityUtils.requireCurrentUserId(), pageable);
   }
 

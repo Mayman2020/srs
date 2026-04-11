@@ -1,12 +1,5 @@
 <div id="particles-js"></div>
 
-<!-- PAGE HEADER -->
-<div class="page-header">
-  <div>
-    <h2>{{ 'dashboard.pageTitle' | t }}</h2>
-  </div>
-</div>
-
 <section class="grid c2 dashboard-top-section">
 
   <!-- ================= SLA CARD ================= -->
@@ -302,12 +295,11 @@
           <td>{{ tx.subject }}</td>
           <td>{{ tx.created }}</td>
           <td>
-            <span class="pill" [ngClass]="{
-                ok: tx.statusCode === 'COMPLETED',
-                warn: tx.statusCode === 'IN_PROGRESS'
-              }">
-              {{ tx.statusCode | lk:'correspondenceStatus' }}
-            </span>
+            <app-status-badge
+              [code]="tx.statusCode"
+              [uiVariant]="tx.statusUiVariant"
+              size="sm"
+            />
           </td>
           <td>
             <button type="button" class="btn" (click)="openTransaction(tx.id)">{{ 'common.open' | t }}</button>

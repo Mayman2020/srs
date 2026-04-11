@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,13 +30,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@PreAuthorize("@rbacExpressions.canManageUsers(authentication)")
+@PreAuthorize("@effectivePermission.has(authentication, 'user.manage')")
 public class UserController {
 
   private final UserAdminService userAdminService;
 
   @GetMapping
-  public Page<UserListDto> page(@PageableDefault(size = 50) Pageable pageable) {
+  public Page<UserListDto> page(
+      @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
     return userAdminService.listUsers(pageable);
   }
 

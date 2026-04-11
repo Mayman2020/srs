@@ -22,7 +22,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "notification")
+@Table(name = "notification", schema = "srs_system")
 @Getter
 @Setter
 public class InAppNotification extends SoftDeletableEntity {

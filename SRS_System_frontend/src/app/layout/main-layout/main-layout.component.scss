@@ -1,0 +1,29 @@
+.main-layout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  min-height: 100dvh;
+  background: var(--bg-color);
+}
+
+.main-layout__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-layout__content {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 1.5rem;
+  background: var(--bg-color);
+}
+
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .main-layout__content {
+    padding: 1rem;
+  }
+}

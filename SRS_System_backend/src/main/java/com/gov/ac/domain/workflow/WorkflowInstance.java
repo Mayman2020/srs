@@ -17,7 +17,7 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 @Entity
-@Table(name = "workflow_instance")
+@Table(name = "workflow_instance", schema = "srs_system")
 @Getter
 @Setter
 public class WorkflowInstance extends SoftDeletableEntity {

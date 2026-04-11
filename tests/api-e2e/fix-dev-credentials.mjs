@@ -1,6 +1,6 @@
 /**
  * One-off: align admin password with V10 seed and ensure clerk exists for notification E2E.
- * Uses same defaults as application-local.yml (user postgres, password admin on ac_communications).
+ * Uses same defaults as application.yml (user postgres, password admin; DB postgres, schema srs_system).
  */
 import pg from 'pg';
 
@@ -9,7 +9,7 @@ const c = new pg.Client({
   port: Number(process.env.PGPORT || 5432),
   user: process.env.PGUSER || 'postgres',
   password: process.env.PGPASSWORD || 'admin',
-  database: process.env.PGDATABASE || 'ac_communications',
+  database: process.env.PGDATABASE || 'postgres',
 });
 
 await c.connect();

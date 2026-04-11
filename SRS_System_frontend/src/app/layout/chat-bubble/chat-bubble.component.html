@@ -58,10 +58,10 @@
 
     <button
       class="ai-action"
-      *ngFor="let s of suggestions"
-      (click)="sendSuggestion(s)">
+      *ngFor="let sk of suggestionKeys"
+      (click)="sendSuggestionKey(sk)">
 
-      {{s}}
+      {{ sk | t }}
 
     </button>
 

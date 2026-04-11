@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "ui_screen")
+@Table(name = "ui_screen", schema = "srs_system")
 @Getter
 @Setter
 public class UiScreen extends SoftDeletableEntity {
@@ -40,4 +40,13 @@ public class UiScreen extends SoftDeletableEntity {
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;
+
+  @Column(name = "required_permission_id")
+  private Long requiredPermissionId;
+
+  @Column(name = "icon_key", nullable = false, length = 64)
+  private String iconKey = "apps";
+
+  @Column(name = "show_in_shell_nav", nullable = false)
+  private Boolean showInShellNav = false;
 }

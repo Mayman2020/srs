@@ -1,0 +1,62 @@
+<div class="leave-page">
+  <h1>{{ 'leave.pageTitle' | t }}</h1>
+
+  <section class="card">
+    <h2>{{ 'leave.submit' | t }}</h2>
+    <app-erp-auto-reference-field [value]="lastCreatedLeaveId" />
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <label>{{ 'leave.start' | t }} <input type="date" formControlName="startDate" /></label>
+      <label>{{ 'leave.end' | t }} <input type="date" formControlName="endDate" /></label>
+      <label class="full">{{ 'leave.reason' | t }} <textarea rows="3" formControlName="reason"></textarea></label>
+      <button type="submit" class="btn" [disabled]="form.invalid">{{ 'leave.submit' | t }}</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>{{ 'leave.listMine' | t }}</h2>
+    <table class="data-table" *ngIf="mine.length">
+      <thead>
+        <tr>
+          <th>{{ 'leave.start' | t }}</th>
+          <th>{{ 'leave.end' | t }}</th>
+          <th>{{ 'leave.status' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of mine">
+          <td>{{ r.startDate }}</td>
+          <td>{{ r.endDate }}</td>
+          <td>{{ r.statusCode }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="!mine.length" class="muted">{{ 'orgStructure.empty' | t }}</p>
+  </section>
+
+  <section class="card" *ngIf="adminLoaded && adminRows.length">
+    <h2>Admin — pending</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>{{ 'leave.start' | t }}</th>
+          <th>{{ 'leave.end' | t }}</th>
+          <th>{{ 'leave.status' | t }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of adminRows">
+          <td>{{ r.fullNameAr || r.username }}</td>
+          <td>{{ r.startDate }}</td>
+          <td>{{ r.endDate }}</td>
+          <td>{{ r.statusCode }}</td>
+          <td>
+            <button type="button" *ngIf="r.statusCode === 'PENDING'" (click)="decide(r, 'APPROVED')">OK</button>
+            <button type="button" *ngIf="r.statusCode === 'PENDING'" (click)="decide(r, 'REJECTED')">X</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

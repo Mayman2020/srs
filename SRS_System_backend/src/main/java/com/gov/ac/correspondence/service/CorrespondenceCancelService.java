@@ -13,10 +13,13 @@ import com.gov.ac.domain.workflow.WorkflowHistory;
 import com.gov.ac.domain.workflow.WorkflowInstance;
 import com.gov.ac.lookup.LookupResolutionService;
 import com.gov.ac.persistence.AppUserRepository;
+import com.gov.ac.persistence.CorrespondenceStatusRepository;
 import com.gov.ac.persistence.CorrespondenceRepository;
 import com.gov.ac.persistence.WorkflowHistoryRepository;
 import com.gov.ac.persistence.WorkflowInstanceRepository;
+import com.gov.ac.modules.workflow.service.WorkflowService;
 import com.gov.ac.persistence.WorkflowInstanceStatusRepository;
+import com.gov.ac.security.permission.EffectiveUserPermissionService;
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.ForbiddenException;
 import com.gov.ac.common.api.NotFoundException;
@@ -24,12 +27,9 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -39,18 +39,17 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class CorrespondenceCancelService {
 
-  private static final Set<String> BLOCK_CANCEL =
-      Set.of("CANCELLED", "COMPLETED", "ARCHIVED", "REJECTED");
-
   private final CorrespondenceRepository correspondenceRepository;
+  private final CorrespondenceStatusRepository correspondenceStatusRepository;
   private final AppUserRepository appUserRepository;
   private final CorrespondenceViewAuthorization correspondenceViewAuthorization;
   private final WorkflowInstanceRepository workflowInstanceRepository;
   private final WorkflowInstanceStatusRepository workflowInstanceStatusRepository;
   private final WorkflowHistoryRepository workflowHistoryRepository;
   private final LookupResolutionService lookups;
-  private final RuntimeService runtimeService;
+  private final WorkflowService workflowService;
   private final CorrespondenceActionAudit correspondenceActionAudit;
+  private final EffectiveUserPermissionService effectiveUserPermissionService;
 
   @Transactional
   public void cancel(UUID correspondenceId, UUID actorUserId, CorrespondenceCancelRequest body) {
@@ -61,6 +60,9 @@ public class CorrespondenceCancelService {
     if (!Boolean.TRUE.equals(actor.getActive())) {
       throw new ForbiddenException("You cannot cancel this correspondence");
     }
+    if (!effectiveUserPermissionService.hasActivePermission(actorUserId, "CANCEL_TRANSACTION")) {
+      throw new ForbiddenException("Missing CANCEL_TRANSACTION permission");
+    }
 
     Correspondence correspondence =
         correspondenceRepository
@@ -69,13 +71,20 @@ public class CorrespondenceCancelService {
 
     correspondenceViewAuthorization.assertCanView(actor, correspondence);
 
-    String currentCode = correspondence.getCorrespondenceStatus().getCode();
-    if (BLOCK_CANCEL.contains(currentCode.toUpperCase())) {
+    CorrespondenceStatus previous = correspondence.getCorrespondenceStatus();
+    if (!isUserCancelAllowed(correspondence)) {
+      String currentCode =
+          previous != null && previous.getCode() != null ? previous.getCode().trim() : "?";
       throw new BadRequestException("Correspondence cannot be cancelled in status: " + currentCode);
     }
 
-    CorrespondenceStatus previous = correspondence.getCorrespondenceStatus();
-    CorrespondenceStatus cancelled = lookups.requireActiveCorrespondenceStatus("CANCELLED");
+    CorrespondenceStatus cancelled =
+        correspondenceStatusRepository
+            .findByCancelOutcomeTrueAndActiveTrueAndDeletedAtIsNull()
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "No correspondence_status is marked as cancel outcome (cancel_outcome)."));
     correspondence.setCorrespondenceStatus(cancelled);
     correspondence.setUpdatedBy(actorUserId);
     correspondenceRepository.save(correspondence);
@@ -86,14 +95,9 @@ public class CorrespondenceCancelService {
     WorkflowInstance primary = instances.isEmpty() ? null : instances.get(0);
 
     if (primary != null && StringUtils.hasText(primary.getProcessInstanceId())) {
-      ProcessInstance pi =
-          runtimeService
-              .createProcessInstanceQuery()
-              .processInstanceId(primary.getProcessInstanceId())
-              .singleResult();
-      if (pi != null) {
+      if (workflowService.hasActiveProcessInstance(primary.getProcessInstanceId())) {
         try {
-          runtimeService.deleteProcessInstance(
+          workflowService.deleteProcessInstance(
               primary.getProcessInstanceId(), "CORRESPONDENCE_CANCELLED");
         } catch (Exception e) {
           log.warn(
@@ -148,5 +152,25 @@ public class CorrespondenceCancelService {
         actorUserId, CorrespondenceActionAudit.ACTION_CANCEL, correspondenceId, auditDetail);
 
     log.info("Correspondence cancelled id={} by user={}", correspondenceId, actorUserId);
+  }
+
+  /**
+   * User cancel is allowed when the row is non-terminal, {@link CorrespondenceStatus#getAllowsCancel()}
+   * is not false, and a cancel-outcome status exists in the database.
+   */
+  public boolean isUserCancelAllowed(Correspondence correspondence) {
+    CorrespondenceStatus s = correspondence.getCorrespondenceStatus();
+    if (s == null) {
+      return false;
+    }
+    if (Boolean.TRUE.equals(s.getTerminal())) {
+      return false;
+    }
+    if (Boolean.FALSE.equals(s.getAllowsCancel())) {
+      return false;
+    }
+    return correspondenceStatusRepository
+        .findByCancelOutcomeTrueAndActiveTrueAndDeletedAtIsNull()
+        .isPresent();
   }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ErpDialogComponent } from '../erp/erp-dialog.component';
 
 export interface ConfirmDialogData {
   titleKey: string;
@@ -16,24 +17,23 @@ export interface ConfirmDialogData {
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, TranslatePipe],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, TranslatePipe, ErpDialogComponent],
   template: `
-    <h2 mat-dialog-title>{{ data.titleKey | t }}</h2>
-    <mat-dialog-content>
+    <app-erp-dialog [titleKey]="data.titleKey" icon="help_outline">
       <p class="msg">{{ data.messageKey | t }}</p>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="ref.close(false)">
-        {{ data.cancelKey | t }}
-      </button>
-      <button
-        mat-flat-button
-        type="button"
-        [color]="data.warn ? 'warn' : 'primary'"
-        (click)="ref.close(true)">
-        {{ data.confirmKey | t }}
-      </button>
-    </mat-dialog-actions>
+      <div erpDialogActions>
+        <button mat-button type="button" (click)="ref.close(false)">
+          {{ data.cancelKey | t }}
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          [color]="data.warn ? 'warn' : 'primary'"
+          (click)="ref.close(true)">
+          {{ data.confirmKey | t }}
+        </button>
+      </div>
+    </app-erp-dialog>
   `,
   styles: [
     `

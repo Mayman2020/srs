@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "correspondence_status")
+@Table(name = "correspondence_status", schema = "srs_system")
 @Getter
 @Setter
 public class CorrespondenceStatus extends SoftDeletableEntity {
@@ -44,6 +44,28 @@ public class CorrespondenceStatus extends SoftDeletableEntity {
 
   @Column(name = "is_terminal", nullable = false)
   private Boolean terminal = false;
+
+  /** When false, user-initiated cancel is blocked (non-terminal states only; see Flyway V28). */
+  @Column(name = "allows_cancel", nullable = false)
+  private Boolean allowsCancel = true;
+
+  /**
+   * Exactly one active row: status applied when a correspondence is cancelled (resolved in Java instead
+   * of hardcoding {@code CANCELLED}).
+   */
+  @Column(name = "cancel_outcome", nullable = false)
+  private Boolean cancelOutcome = false;
+
+  /** Home dashboard KPI bucket; see Flyway V26 and {@code KpiSegmentCodes}. */
+  @Column(name = "kpi_segment", length = 32)
+  private String kpiSegment;
+
+  /**
+   * Badge style for UI (success, danger, warning, info, secondary, neutral); see Flyway V29 — not derived
+   * from {@link #code}.
+   */
+  @Column(name = "ui_variant", nullable = false, length = 32)
+  private String uiVariant = "neutral";
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;

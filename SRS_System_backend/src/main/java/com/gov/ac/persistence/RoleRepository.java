@@ -18,8 +18,8 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 
   @Query(
       value =
-          "select r.code from role r "
-              + "inner join user_role ur on ur.role_id = r.id "
+          "select r.code from srs_system.role r "
+              + "inner join srs_system.user_role ur on ur.role_id = r.id "
               + "where ur.app_user_id = :userId "
               + "and r.deleted_at is null "
               + "and r.is_active = true "

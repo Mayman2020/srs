@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "circular")
+@Table(name = "circular", schema = "srs_system")
 @Getter
 @Setter
 @NoArgsConstructor

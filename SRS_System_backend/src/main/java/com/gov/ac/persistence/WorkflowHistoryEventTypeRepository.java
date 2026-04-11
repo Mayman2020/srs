@@ -9,5 +9,13 @@ public interface WorkflowHistoryEventTypeRepository extends JpaRepository<Workfl
 
   List<WorkflowHistoryEventType> findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc();
 
+  List<WorkflowHistoryEventType> findByDeletedAtIsNullOrderBySortOrderAsc();
+
   Optional<WorkflowHistoryEventType> findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(String code);
+
+  Optional<WorkflowHistoryEventType> findByIdAndDeletedAtIsNull(Long id);
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
+
+  boolean existsByCodeIgnoreCaseAndIdNotAndDeletedAtIsNull(String code, Long id);
 }

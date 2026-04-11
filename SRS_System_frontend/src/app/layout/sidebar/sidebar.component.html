@@ -19,14 +19,20 @@
   <nav class="nav">
 
     <button
+      type="button"
       class="item"
-      *ngFor="let item of NAV_ITEMS; trackBy: trackByNavKey"
+      *ngFor="let item of navItems(); trackBy: trackByNavCode"
       [class.active]="isActive(item)"
-      (click)="router.navigate([item.route])">
+      (click)="router.navigateByUrl(item.routePath)"
+      [matTooltip]="collapsed() ? navLabel(item) : ''"
+      [matTooltipDisabled]="!collapsed()"
+      matTooltipPosition="after">
 
-      <span class="icon" [innerHTML]="item.icon"></span>
+      <span class="icon mat-ico-wrap">
+        <mat-icon class="nav-mat-icon" aria-hidden="true">{{ item.iconKey }}</mat-icon>
+      </span>
       <span class="label" *ngIf="!collapsed()">
-        {{ item.labelKey | t }}
+        {{ navLabel(item) }}
       </span>
 
     </button>
@@ -43,9 +49,6 @@
     <div class="sidebar-user__meta" *ngIf="!collapsed()">
       <span class="sidebar-user__name">{{ profile().displayName }}</span>
       <span class="sidebar-user__role-label">{{ 'profile.sidebarSignedIn' | t }}</span>
-      <span class="sidebar-user__role" *ngIf="profile().currentRole">
-        {{ roleLabel(profile().currentRole!) }}
-      </span>
     </div>
   </div>
 

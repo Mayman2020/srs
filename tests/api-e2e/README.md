@@ -4,7 +4,7 @@ Validated against Spring Boot controllers under **`/api/v1`** (JWT, corresponden
 
 ## Prerequisites
 
-1. PostgreSQL running; backend started with Flyway migrations applied (seed user **`admin` / `admin`** from `V10__admin_login_user.sql`). If login returns **401** despite Flyway, run **`node fix-dev-credentials.mjs`** once (resets `{noop}admin`, MFA off, ensures `clerk`).
+1. PostgreSQL running; backend started with Flyway migrations applied (seed user **`admin` / `admin`** from the admin-login section in `V1__srs_system_full_baseline.sql`). If login returns **401** despite Flyway, run **`node fix-dev-credentials.mjs`** once (resets `{noop}admin`, MFA off, ensures `clerk`).
 2. Default API base: **`http://localhost:8080/api/v1`** (matches `run-backend.ps1` default port; use **8081** only if you passed `-Port 8081`).
 
 ## Notification delete test (second user)

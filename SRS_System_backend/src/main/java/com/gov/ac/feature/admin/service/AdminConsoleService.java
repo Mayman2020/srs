@@ -22,6 +22,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +54,7 @@ public class AdminConsoleService {
     p.setDescription(trimToNull(req.description()));
     p.setSortOrder(req.sortOrder());
     p.setActive(req.active());
+    p.setUiScreenId(resolveUiScreenIdOrNull(req.uiScreenId()));
     p.setCreatedBy(actor);
     p.setUpdatedBy(actor);
     return toPermissionDto(permissionRepository.save(p));
@@ -75,6 +77,7 @@ public class AdminConsoleService {
     p.setDescription(trimToNull(req.description()));
     p.setSortOrder(req.sortOrder());
     p.setActive(req.active());
+    p.setUiScreenId(resolveUiScreenIdOrNull(req.uiScreenId()));
     p.setUpdatedBy(actor);
     return toPermissionDto(permissionRepository.save(p));
   }
@@ -140,6 +143,9 @@ public class AdminConsoleService {
     s.setDescription(trimToNull(req.description()));
     s.setSortOrder(req.sortOrder());
     s.setActive(req.active());
+    s.setIconKey(normalizeIconKey(req.iconKey()));
+    s.setShowInShellNav(Boolean.TRUE.equals(req.showInShellNav()));
+    s.setRequiredPermissionId(req.requiredPermissionId());
     s.setCreatedBy(actor);
     s.setUpdatedBy(actor);
     return toUiScreenDto(uiScreenRepository.save(s));
@@ -163,6 +169,9 @@ public class AdminConsoleService {
     s.setDescription(trimToNull(req.description()));
     s.setSortOrder(req.sortOrder());
     s.setActive(req.active());
+    s.setIconKey(normalizeIconKey(req.iconKey()));
+    s.setShowInShellNav(Boolean.TRUE.equals(req.showInShellNav()));
+    s.setRequiredPermissionId(req.requiredPermissionId());
     s.setUpdatedBy(actor);
     return toUiScreenDto(uiScreenRepository.save(s));
   }
@@ -186,6 +195,16 @@ public class AdminConsoleService {
         .orElseThrow(() -> new NotFoundException("Role not found"));
   }
 
+  private Long resolveUiScreenIdOrNull(Long id) {
+    if (id == null) {
+      return null;
+    }
+    return uiScreenRepository
+        .findByIdAndDeletedAtIsNull(id)
+        .map(UiScreen::getId)
+        .orElseThrow(() -> new NotFoundException("UI screen not found"));
+  }
+
   private static PermissionDto toPermissionDto(Permission p) {
     return new PermissionDto(
         p.getId(),
@@ -194,7 +213,8 @@ public class AdminConsoleService {
         p.getNameEn(),
         p.getDescription(),
         p.getSortOrder(),
-        p.getActive());
+        p.getActive(),
+        p.getUiScreenId());
   }
 
   private static UiScreenDto toUiScreenDto(UiScreen s) {
@@ -206,7 +226,17 @@ public class AdminConsoleService {
         s.getNameEn(),
         s.getDescription(),
         s.getSortOrder(),
-        s.getActive());
+        s.getActive(),
+        s.getRequiredPermissionId(),
+        s.getIconKey(),
+        s.getShowInShellNav());
+  }
+
+  private static String normalizeIconKey(String raw) {
+    if (!StringUtils.hasText(raw)) {
+      return "apps";
+    }
+    return raw.trim();
   }
 
   private static String trimToNull(String s) {

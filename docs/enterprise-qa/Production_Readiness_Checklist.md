@@ -29,7 +29,7 @@
 | 2.1–2.3, 2.5–2.7, 2.9 | TLS, secrets, OWASP, IDOR, headers | **NEEDS RUNTIME / PROCESS** — not observed in this pass. | — |
 | 2.4 | RBAC matrix vs `SecurityConfig` + DB | **PARTIAL — CODE + LOCAL API** — `SecurityConfig` uses **two chains**: `/api/v1/auth/**` without JWT resource-server filter; other `/api/**` JWT + `@PreAuthorize` where present (`UserController`, `AdminConsoleController`, `RoleController`). Correspondence uses service-layer checks. Full matrix vs SRS **NEEDS RUNTIME** beyond scripted API smoke. | Code + run |
 | 2.8 | CORS restricted (prod) | **RISK / NEEDS VALIDATION** — `CorsConfig` registers `allowedOriginPatterns` for **`http://localhost:*`** and **`http://127.0.0.1:*`** only. Production origin policy is **not** evidenced here; must be confirmed for real deployment. | Code |
-| 3.1 | Flyway on empty / prod-like DB | **NEEDS RUNTIME** — migrations **VERIFIED PRESENT** (`V1`–`V15` under `SRS_System_backend/.../db/migration/`); apply/rollback **not** executed in this pass. | Code |
+| 3.1 | Flyway on empty / prod-like DB | **NEEDS RUNTIME** — consolidated migration **VERIFIED PRESENT** (`V1__srs_system_full_baseline.sql` under `SRS_System_backend/.../db/migration/`); apply/rollback **not** executed in this pass. | Code |
 | 4.1–4.4 | Performance & scale | **NEEDS RUNTIME** — no load test artifacts reviewed. | — |
 | 5.x | Observability | **NEEDS VALIDATION** — not audited in this pass. | — |
 | 6.x | Configuration & env | **NEEDS VALIDATION** — prod config not reviewed end-to-end. | — |

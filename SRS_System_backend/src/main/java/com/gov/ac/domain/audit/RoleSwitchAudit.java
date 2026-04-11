@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "role_switch_audit")
+@Table(name = "role_switch_audit", schema = "srs_system")
 @Getter
 @Setter
 @NoArgsConstructor

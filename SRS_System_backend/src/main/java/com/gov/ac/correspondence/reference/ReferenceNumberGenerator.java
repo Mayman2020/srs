@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ReferenceNumberGenerator {
 
-  private static final String SEQ_SQL = "SELECT nextval('correspondence_reference_seq')";
+  private static final String SEQ_SQL = "SELECT nextval('srs_system.correspondence_reference_seq')";
 
   @PersistenceContext private EntityManager entityManager;
 

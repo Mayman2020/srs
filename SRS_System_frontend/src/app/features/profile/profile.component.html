@@ -1,0 +1,196 @@
+<div class="profile-page">
+  @if (loading) {
+    <p class="profile-page__loading">{{ 'common.loading' | t }}</p>
+  } @else if (loadError) {
+    <p class="profile-page__error">{{ loadError }}</p>
+  } @else {
+    <header class="profile-hero card-erp">
+      <app-erp-user-avatar
+        class="profile-hero__avatar"
+        [primarySrc]="profileImageSrc"
+        [initials]="profile().initials"
+        size="lg"
+        hostClass="profile-hero__avatar-host"
+      />
+      <div class="profile-hero__text">
+        <h1 class="profile-hero__name">{{ displayName(detail) }}</h1>
+        @if (detail?.username) {
+          <p class="profile-hero__sub">{{ detail?.username }}</p>
+        }
+      </div>
+    </header>
+
+    <mat-tab-group
+      class="profile-tabs"
+      animationDuration="200ms"
+      [selectedIndex]="selectedTabIndex"
+      (selectedIndexChange)="selectedTabIndex = $event">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-ico">person</mat-icon>
+          {{ 'profile.tabs.info' | t }}
+        </ng-template>
+
+        <div class="tab-panel card-erp">
+          <section class="avatar-editor">
+            <div class="avatar-editor__media">
+              <app-erp-user-avatar
+                [primarySrc]="profileImageSrc"
+                [initials]="profile().initials"
+                size="lg"
+                hostClass="avatar-editor__avatar"
+              />
+            </div>
+
+            <div class="avatar-editor__copy">
+              <h3 class="panel-title">{{ 'profile.avatarSectionTitle' | t }}</h3>
+              <p class="panel-copy">{{ 'profile.avatarSectionHint' | t }}</p>
+
+              <label class="upload-label">
+                <input type="file" accept="image/*" (change)="onAvatarFileSelected($event)" />
+                <span>{{ selectedAvatarFile?.name || ('profile.actions.selectAvatar' | t) }}</span>
+              </label>
+            </div>
+          </section>
+
+          <div class="profile-summary-grid">
+            <div class="summary-tile">
+              <span class="summary-tile__label">{{ 'profile.fields.username' | t }}</span>
+              <strong>{{ detail?.username || ('common.dash' | t) }}</strong>
+            </div>
+            <div class="summary-tile">
+              <span class="summary-tile__label">{{ 'profile.fields.department' | t }}</span>
+              <strong>{{ departmentLabel(detail) }}</strong>
+            </div>
+            <div class="summary-tile">
+              <span class="summary-tile__label">{{ 'profile.fields.status' | t }}</span>
+              <strong>{{ statusLabel(!!detail?.active) }}</strong>
+            </div>
+          </div>
+
+          <form class="profile-form" [formGroup]="infoForm" (ngSubmit)="saveProfile()">
+            <div class="profile-form-grid">
+              <label class="field-card">
+                <span class="field-card__label">{{ 'profile.fields.fullNameAr' | t }}</span>
+                <input type="text" formControlName="fullNameAr" />
+              </label>
+
+              <label class="field-card">
+                <span class="field-card__label">{{ 'profile.fields.fullNameEn' | t }}</span>
+                <input type="text" formControlName="fullNameEn" />
+              </label>
+
+              <label class="field-card">
+                <span class="field-card__label">{{ 'profile.fields.email' | t }}</span>
+                <input type="email" formControlName="email" />
+              </label>
+
+              <label class="field-card">
+                <span class="field-card__label">{{ 'profile.fields.phone' | t }}</span>
+                <input type="text" formControlName="phone" />
+              </label>
+
+              <label class="field-card field-card--wide">
+                <span class="field-card__label">{{ 'profile.fields.nationalId' | t }}</span>
+                <input type="text" formControlName="nationalId" />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-erp btn-erp--primary" type="submit" [disabled]="savingProfile">
+                {{ savingProfile ? ('common.loading' | t) : ('profile.actions.saveProfile' | t) }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-ico">badge</mat-icon>
+          {{ 'profile.tabs.roles' | t }}
+        </ng-template>
+        <div class="tab-panel card-erp">
+          <h3 class="panel-title">{{ 'profile.rolesFromServer' | t }}</h3>
+          <div class="badge-row">
+            @for (rid of detail?.roleIds ?? []; track rid) {
+              <span class="role-chip">{{ roleLabelById(rid) }}</span>
+            } @empty {
+              <span class="muted">{{ 'profile.rolesEmpty' | t }}</span>
+            }
+          </div>
+          <h3 class="panel-title panel-title--second">{{ 'profile.rolesSession' | t }}</h3>
+          <div class="badge-row">
+            @for (code of profile().roles; track code) {
+              <span class="role-chip role-chip--session">{{ sessionRoleLabel(code) }}</span>
+            } @empty {
+              <span class="muted">{{ 'common.roleNA' | t }}</span>
+            }
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-ico">history</mat-icon>
+          {{ 'profile.tabs.activity' | t }}
+        </ng-template>
+        <div class="tab-panel card-erp">
+          <dl class="info-grid">
+            <dt>{{ 'profile.fields.lastLogin' | t }}</dt>
+            <dd>{{ detail?.lastLoginAt ? (detail?.lastLoginAt | date : 'medium') : ('common.dash' | t) }}</dd>
+
+            <dt>{{ 'profile.fields.passwordChangedAt' | t }}</dt>
+            <dd>{{ detail?.passwordChangedAt ? (detail?.passwordChangedAt | date : 'medium') : ('common.dash' | t) }}</dd>
+
+            <dt>{{ 'profile.fields.mfa' | t }}</dt>
+            <dd>{{ mfaLabel(detail?.mfaEnabled) }}</dd>
+
+            <dt>{{ 'profile.fields.department' | t }}</dt>
+            <dd>{{ departmentLabel(detail) }}</dd>
+
+            <dt>{{ 'profile.fields.nationalId' | t }}</dt>
+            <dd>{{ detail?.nationalId || ('common.dash' | t) }}</dd>
+          </dl>
+        </div>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-ico">settings</mat-icon>
+          {{ 'profile.tabs.settings' | t }}
+        </ng-template>
+
+        <div class="tab-panel card-erp">
+          <h3 class="panel-title">{{ 'profile.passwordSectionTitle' | t }}</h3>
+          <p class="panel-copy">{{ 'profile.passwordSectionHint' | t }}</p>
+
+          <form class="profile-form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <div class="profile-form-grid">
+              <label class="field-card field-card--wide">
+                <span class="field-card__label">{{ 'profile.fields.currentPassword' | t }}</span>
+                <input type="password" formControlName="currentPassword" />
+              </label>
+
+              <label class="field-card">
+                <span class="field-card__label">{{ 'profile.fields.newPassword' | t }}</span>
+                <input type="password" formControlName="newPassword" />
+              </label>
+
+              <label class="field-card">
+                <span class="field-card__label">{{ 'profile.fields.confirmPassword' | t }}</span>
+                <input type="password" formControlName="confirmPassword" />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-erp btn-erp--primary" type="submit" [disabled]="savingPassword">
+                {{ savingPassword ? ('common.loading' | t) : ('profile.actions.changePassword' | t) }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

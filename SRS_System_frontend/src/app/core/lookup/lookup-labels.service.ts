@@ -40,6 +40,7 @@ export class LookupLabelsService {
     this.setTable('classification', b.classifications ?? []);
     this.setTable('workflowActionType', b.workflowActionTypes);
     this.setTable('workflowHistoryEventType', b.workflowHistoryEventTypes ?? []);
+    this.setTable('orgVisualNodeStatus', b.orgVisualNodeStatuses ?? []);
   }
 
   orderedRows(table: string): LookupItemDto[] {

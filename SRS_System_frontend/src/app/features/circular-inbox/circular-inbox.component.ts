@@ -2,6 +2,9 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
 import {
   PlatformCircularApiService,
@@ -14,7 +17,14 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 @Component({
   selector: 'app-circular-inbox',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, MatSnackBarModule],
+  imports: [
+    CommonModule,
+    TranslatePipe,
+    MatSnackBarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule
+  ],
   templateUrl: './circular-inbox.component.html',
   styleUrl: './circular-inbox.component.scss',
 })

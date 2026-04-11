@@ -27,7 +27,7 @@
   --focus: 0 0 0 4px rgba(11,110,79,.18);
   --ease: cubic-bezier(.2,.8,.2,1);
 
-  --sidebar-w: 230px;
+  --sidebar-w: 196px;
 }
 
 /* Dark mode tokens */
@@ -83,7 +83,7 @@ a:hover{ text-decoration: underline; }
 }
 
 .app.sidebar-collapsed{
-  grid-template-columns: 78px 1fr;
+  grid-template-columns: 68px 1fr;
 }
 
 /* .sidebar{

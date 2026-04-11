@@ -11,42 +11,55 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { I18nService, AppLang } from '../../core/i18n/i18n.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { I18nService, LanguageOption } from '../../core/i18n/i18n.service';
 import { NotificationApiService } from '../../core/api/notification-api.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
+import { CurrentUserProfileApiService } from '../../core/api/current-user-profile-api.service';
+import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { NotificationItemDto } from '../../core/api/api-types';
 import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
-import { ErpUserAvatarComponent } from '../../shared/erp/erp-user-avatar.component';
+import { ThemeService } from '../../core/theme/theme.service';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, MatSnackBarModule, ErpUserAvatarComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    TranslatePipe,
+    MatSnackBarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule
+  ],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.css'
 })
 export class TopbarComponent implements OnInit {
-  @Input() pageTitle!: string;
-  @Input() pageSubtitle!: string;
-  @Input() actionLabel!: string;
+  @Input() pageTitle = '';
+  @Input() pageSubtitle = '';
+  @Input() actionLabel = '';
   @Output() action = new EventEmitter<void>();
 
   @ContentChild('topbarAction') projectedContent?: ElementRef;
 
   @ViewChild('roleSwitchHost') roleSwitchHost?: ElementRef<HTMLElement>;
-
   private readonly profileStore = inject(ErpUserProfileStore);
-
-  /** Single source of truth for display name, avatar URL resolution, and roles (see {@link ErpUserProfileStore}). */
   readonly profile = toSignal(this.profileStore.profile$, {
     initialValue: this.profileStore.snapshot()
   });
+  readonly theme = inject(ThemeService);
 
   toast = { show: false, title: '', message: '' };
 
@@ -65,9 +78,11 @@ export class TopbarComponent implements OnInit {
 
   constructor(
     public router: Router,
-    public i18n: I18nService,
+    private i18n: I18nService,
     private notificationApi: NotificationApiService,
     private authApi: AuthApiService,
+    private profileApi: CurrentUserProfileApiService,
+    private authToken: AuthTokenService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -75,14 +90,94 @@ export class TopbarComponent implements OnInit {
     this.loadNotificationPreview();
   }
 
-  get showRoleSwitcher(): boolean {
-    return this.profile().roles.length > 1;
+  get languages(): LanguageOption[] {
+    return this.i18n.languages;
+  }
+
+  get activeLanguage(): LanguageOption {
+    return (
+      this.i18n.languages.find((l) => l.code === this.i18n.currentLang()) ?? this.i18n.languages[0]
+    );
+  }
+
+  get submenuXPosition(): 'before' | 'after' {
+    return this.i18n.currentDirection === 'rtl' ? 'before' : 'after';
+  }
+
+  get themeTooltip(): 'topbar.themeSwitchLight' | 'topbar.themeSwitchDark' {
+    return this.theme.isDark ? 'topbar.themeSwitchLight' : 'topbar.themeSwitchDark';
+  }
+
+  get profileInitials(): string {
+    const name = this.profile().displayName?.trim() || '';
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return parts
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? '')
+      .join('');
+  }
+
+  languageLabel(language: LanguageOption): string {
+    return this.i18n.instant(language.labelKey);
+  }
+
+  languageNativeLabel(language: LanguageOption): string {
+    return this.i18n.instant(language.nativeLabelKey);
+  }
+
+  isActiveLanguage(language: LanguageOption): boolean {
+    return this.activeLanguage.code === language.code;
+  }
+
+  toggleTheme(): void {
+    this.theme.toggle();
+    this.persistUiPreferences();
+  }
+
+  switchLanguage(language: LanguageOption): void {
+    if (language.code === this.i18n.currentLang()) {
+      return;
+    }
+    this.i18n.loadLang(language.code).subscribe({
+      next: () => this.persistUiPreferences(),
+      error: (err: unknown) => {
+        console.error('[Topbar] language load failed', err);
+        this.snackBar.open(
+          this.i18n.instant('errors.generic'),
+          this.i18n.instant('common.close'),
+          { duration: 5000 }
+        );
+      }
+    });
+  }
+
+  private persistUiPreferences(): void {
+    if (!this.authToken.getToken()?.trim()) {
+      return;
+    }
+    this.profileApi
+      .updateMyUiPreferences({
+        uiTheme: this.theme.mode,
+        uiLocale: this.i18n.currentLang()
+      })
+      .subscribe({
+        error: (err: HttpErrorResponse & { userMessage?: string }) => {
+          console.error('[Topbar] UI preferences save failed', err);
+        }
+      });
   }
 
   roleLabel(code: string): string {
     const key = `roles.codes.${code}`;
     const t = this.i18n.instant(key);
     return t === key ? code : t;
+  }
+
+  get showRoleSwitcher(): boolean {
+    return this.profile().roles.length > 1;
   }
 
   toggleRoleMenu(event: Event): void {
@@ -95,8 +190,7 @@ export class TopbarComponent implements OnInit {
 
   selectRole(code: string, event: Event): void {
     event.stopPropagation();
-    const current = this.profile().currentRole;
-    if (this.switchingRole || !code || code === current) {
+    if (this.switchingRole || !code || code === this.profile().currentRole) {
       this.showRoleMenu = false;
       return;
     }
@@ -192,18 +286,6 @@ export class TopbarComponent implements OnInit {
     this.isMobile = window.innerWidth <= 1024;
   }
 
-  switchLanguage(lang: AppLang): void {
-    if (this.i18n.currentLang() === lang) {
-      return;
-    }
-    this.i18n.loadLang(lang).subscribe({
-      next: () => {},
-      error: () => {
-        this.snackBar.open(this.i18n.instant('errors.generic'), this.i18n.instant('common.close'), { duration: 5000 });
-      }
-    });
-  }
-
   logout(): void {
     this.authApi.logout();
     this.router.navigate(['/login']);
@@ -227,9 +309,7 @@ export class TopbarComponent implements OnInit {
     }
     this.notificationApi.markRead(n.id).subscribe({
       next: () => {
-        this.notifications = this.notifications.map((item, i) =>
-          i === index ? { ...item, read: true } : item
-        );
+        n.read = true;
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[Topbar] markRead failed', err);
@@ -249,7 +329,7 @@ export class TopbarComponent implements OnInit {
     }
     this.notificationApi.delete(n.id).subscribe({
       next: () => {
-        this.notifications = this.notifications.filter((_, i) => i !== index);
+        this.notifications.splice(index, 1);
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[Topbar] delete notification failed', err);
@@ -280,6 +360,10 @@ export class TopbarComponent implements OnInit {
     }
   }
 
+  /**
+   * No bulk `mark-all-read` API on backend yet — one PATCH per notification.
+   * Batched via {@link forkJoin} for a single error/success surface.
+   */
   markAllRead() {
     const unread = this.notifications.filter((n) => !n.read);
     if (!unread.length) {
@@ -287,10 +371,9 @@ export class TopbarComponent implements OnInit {
     }
     forkJoin(unread.map((n) => this.notificationApi.markRead(n.id))).subscribe({
       next: () => {
-        const unreadIds = new Set(unread.map((u) => u.id));
-        this.notifications = this.notifications.map((n) =>
-          unreadIds.has(n.id) ? { ...n, read: true } : n
-        );
+        for (const n of unread) {
+          n.read = true;
+        }
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[Topbar] markAllRead failed', err);

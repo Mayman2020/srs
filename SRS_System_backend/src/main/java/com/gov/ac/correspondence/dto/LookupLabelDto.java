@@ -9,4 +9,6 @@ public class LookupLabelDto {
   String code;
   String nameAr;
   String nameEn;
+  /** Correspondence status only: badge key from {@code correspondence_status.ui_variant}. */
+  String uiVariant;
 }

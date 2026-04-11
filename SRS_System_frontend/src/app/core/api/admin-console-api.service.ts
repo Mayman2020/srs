@@ -2,7 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
-import { PermissionAdminDto, SystemIssueDto, UiScreenDto } from './api-types';
+import {
+  PermissionAdminDto,
+  ServiceWorkflowRouteDto,
+  SystemIssueDto,
+  UiScreenDto
+} from './api-types';
 
 @Injectable({ providedIn: 'root' })
 export class AdminConsoleApiService {
@@ -26,6 +31,7 @@ export class AdminConsoleApiService {
     description?: string | null;
     sortOrder: number;
     active: boolean;
+    uiScreenId?: number | null;
   }): Observable<PermissionAdminDto> {
     return this.http.post<PermissionAdminDto>(`${this.admin}/permissions`, body);
   }
@@ -39,6 +45,7 @@ export class AdminConsoleApiService {
       description?: string | null;
       sortOrder: number;
       active: boolean;
+      uiScreenId?: number | null;
     }
   ): Observable<PermissionAdminDto> {
     return this.http.put<PermissionAdminDto>(`${this.admin}/permissions/${id}`, body);
@@ -68,6 +75,9 @@ export class AdminConsoleApiService {
     description?: string | null;
     sortOrder: number;
     active: boolean;
+    iconKey?: string | null;
+    showInShellNav?: boolean | null;
+    requiredPermissionId?: number | null;
   }): Observable<UiScreenDto> {
     return this.http.post<UiScreenDto>(`${this.admin}/ui-screens`, body);
   }
@@ -82,6 +92,9 @@ export class AdminConsoleApiService {
       description?: string | null;
       sortOrder: number;
       active: boolean;
+      iconKey?: string | null;
+      showInShellNav?: boolean | null;
+      requiredPermissionId?: number | null;
     }
   ): Observable<UiScreenDto> {
     return this.http.put<UiScreenDto>(`${this.admin}/ui-screens/${id}`, body);
@@ -99,5 +112,40 @@ export class AdminConsoleApiService {
     return this.http.patch<SystemIssueDto>(`${this.admin}/system-issues/${id}/resolve`, {
       resolutionNote: resolutionNote ?? null
     });
+  }
+
+  listWorkflowRoutes(): Observable<ServiceWorkflowRouteDto[]> {
+    return this.http.get<ServiceWorkflowRouteDto[]>(`${this.admin}/workflow-routes`);
+  }
+
+  createWorkflowRoute(body: {
+    correspondenceTypeId: number;
+    processDefinitionKey: string;
+    nameAr: string;
+    nameEn: string;
+    defaultRoute: boolean;
+    sortOrder: number;
+    active: boolean;
+  }): Observable<ServiceWorkflowRouteDto> {
+    return this.http.post<ServiceWorkflowRouteDto>(`${this.admin}/workflow-routes`, body);
+  }
+
+  updateWorkflowRoute(
+    id: number,
+    body: {
+      correspondenceTypeId: number;
+      processDefinitionKey: string;
+      nameAr: string;
+      nameEn: string;
+      defaultRoute: boolean;
+      sortOrder: number;
+      active: boolean;
+    }
+  ): Observable<ServiceWorkflowRouteDto> {
+    return this.http.put<ServiceWorkflowRouteDto>(`${this.admin}/workflow-routes/${id}`, body);
+  }
+
+  deleteWorkflowRoute(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.admin}/workflow-routes/${id}`);
   }
 }

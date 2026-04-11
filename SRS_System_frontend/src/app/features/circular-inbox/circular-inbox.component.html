@@ -11,10 +11,7 @@
 
   <p class="alert" *ngIf="errorText">{{ errorText }}</p>
 
-  <div class="loader-screen" *ngIf="loading">
-    <div class="loading"></div>
-    <span>{{ 'common.loading' | t }}</span>
-  </div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | t }}</div>
 
   <ul class="list" *ngIf="!loading && !errorText && rows.length">
     <li *ngFor="let r of rows" [class.unread]="!r.read">

@@ -8,6 +8,7 @@ import com.gov.ac.domain.lookup.Priority;
 import com.gov.ac.domain.org.Classification;
 import com.gov.ac.domain.org.Department;
 import com.gov.ac.domain.org.Organization;
+import com.gov.ac.domain.workflow.ServiceWorkflowRoute;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -26,7 +27,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "correspondence")
+@Table(name = "correspondence", schema = "srs_system")
 @NamedEntityGraph(
     name = "Correspondence.list",
     attributeNodes = {
@@ -104,4 +105,23 @@ public class Correspondence extends SoftDeletableEntity {
 
   @Column(name = "total_attachment_bytes", nullable = false)
   private Long totalAttachmentBytes = 0L;
+
+  @Column(name = "workflow_route_mode", nullable = false, length = 16)
+  private String workflowRouteMode = "AUTO";
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "service_workflow_route_id")
+  private ServiceWorkflowRoute serviceWorkflowRoute;
+
+  @Column(name = "supply_transaction", nullable = false)
+  private Boolean supplyTransaction = false;
+
+  @Column(name = "beneficiary_name", length = 500)
+  private String beneficiaryName;
+
+  @Column(name = "beneficiary_organization", length = 500)
+  private String beneficiaryOrganization;
+
+  @Column(name = "beneficiary_identifier", length = 128)
+  private String beneficiaryIdentifier;
 }

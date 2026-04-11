@@ -8,4 +8,7 @@ public record UiScreenDto(
     String nameEn,
     String description,
     Integer sortOrder,
-    Boolean active) {}
+    Boolean active,
+    Long requiredPermissionId,
+    String iconKey,
+    Boolean showInShellNav) {}

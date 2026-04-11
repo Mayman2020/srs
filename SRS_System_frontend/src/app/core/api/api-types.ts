@@ -1,9 +1,56 @@
+/** Values of `correspondence_status.kpi_segment` (see Flyway V26, backend `KpiSegmentCodes`). */
+export const CorrespondenceKpiSegment = {
+  SLA_DONE: 'SLA_DONE',
+  PIPELINE: 'PIPELINE',
+  INBOX: 'INBOX',
+} as const;
+
 export interface LookupItemDto {
   id: number;
   code: string;
   nameAr: string;
   nameEn: string;
   sortOrder: number;
+  /** Parent lookup id when row is scoped (e.g. status→type, classification tree). */
+  parentId?: number | null;
+  /** Correspondence status: lifecycle terminal flag from DB. */
+  terminal?: boolean | null;
+  /** Correspondence status: home-dashboard KPI segment (SLA_DONE / PIPELINE / INBOX). */
+  kpiSegment?: string | null;
+  /** Correspondence type: highlight as inbound traffic in list KPIs. */
+  dashboardInboundHighlight?: boolean | null;
+  /** Correspondence type: highlight as outbound traffic in list KPIs. */
+  dashboardOutboundHighlight?: boolean | null;
+  /** Correspondence status: badge style from DB (`ui_variant`). */
+  uiVariant?: string | null;
+}
+
+/** GET /api/v1/admin/lookup-tables/catalog */
+export interface LookupCatalogDto {
+  lookupCode: string;
+  nameAr: string;
+  nameEn: string;
+  parentLookupCode: string | null;
+  sortOrder: number;
+}
+
+/** Admin row (all optional extension fields per table). */
+export interface LookupRowAdminDto {
+  id: number;
+  lookupCode: string;
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  description: string | null;
+  sortOrder: number;
+  active: boolean;
+  parentId: number | null;
+  terminal: boolean | null;
+  slaDays: number | null;
+  restrictsExport: boolean | null;
+  requiresClearance: boolean | null;
+  /** `correspondence_status` only. */
+  uiVariant?: string | null;
 }
 
 export interface LookupBundleDto {
@@ -14,6 +61,8 @@ export interface LookupBundleDto {
   classifications: LookupItemDto[];
   workflowActionTypes: LookupItemDto[];
   workflowHistoryEventTypes: LookupItemDto[];
+  /** Org-chart visual workflow node border states (`code` matches CSS modifier class). */
+  orgVisualNodeStatuses: LookupItemDto[];
 }
 
 export interface SpringPage<T> {
@@ -28,6 +77,8 @@ export interface LookupLabelDto {
   code: string;
   nameAr: string;
   nameEn: string;
+  /** Correspondence status: `correspondence_status.ui_variant`. */
+  uiVariant?: string | null;
 }
 
 export interface DepartmentSummaryDto {
@@ -35,6 +86,13 @@ export interface DepartmentSummaryDto {
   code: string;
   nameAr: string;
   nameEn: string;
+}
+
+/** Resolved app_user for audit columns (`created_by` / `updated_by`). */
+export interface UserAuditRefDto {
+  id: string;
+  fullNameAr: string;
+  fullNameEn: string;
 }
 
 /** Flat row for building internal department tree (`GET /api/v1/departments`). */
@@ -58,6 +116,8 @@ export interface CorrespondenceListItemDto {
   correspondenceStatus: LookupLabelDto | null;
   priority: LookupLabelDto | null;
   ownerDepartment: DepartmentSummaryDto | null;
+  createdByUser?: UserAuditRefDto | null;
+  updatedByUser?: UserAuditRefDto | null;
 }
 
 export interface OrganizationSummaryDto {
@@ -135,9 +195,32 @@ export interface CorrespondenceDetailResponse {
   totalAttachmentBytes: number;
   createdAt: string;
   updatedAt: string;
+  workflowRouteMode?: string | null;
+  serviceWorkflowRouteId?: number | null;
+  workflowProcessDefinitionKey?: string | null;
+  supplyTransaction?: boolean;
+  beneficiaryName?: string | null;
+  beneficiaryOrganization?: string | null;
+  beneficiaryIdentifier?: string | null;
   attachments: CorrespondenceAttachmentDetailDto[];
   timeline: CorrespondenceTimelineEntryDto[];
   comments: CorrespondenceCommentDetailDto[];
+  /** Camunda task decisions allowed for the current user (from `workflow_action_type`). */
+  availableWorkflowActions?: WorkflowActionAvailableDto[];
+  /** From `correspondence_status.allows_cancel` + cancel outcome row; hides cancel when false. */
+  cancelAllowed?: boolean;
+}
+
+/** Row from GET correspondence detail — dynamic workflow buttons. */
+export interface WorkflowActionAvailableDto {
+  id: number;
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  requiresComment: boolean;
+  sortOrder: number;
+  /** Semantic style: primary | secondary | danger | warning | success */
+  uiVariant?: string;
 }
 
 export interface CorrespondenceAttachmentFormDto {
@@ -170,6 +253,13 @@ export interface CorrespondenceCreateRequest {
   workflowFirstAssigneeUserId?: string | null;
   /** First Camunda task as candidate pool for this role code (e.g. STAFF). Mutually exclusive with workflowFirstAssigneeUserId. */
   workflowFirstCandidateGroup?: string | null;
+  /** AUTO = default Camunda route for type; MANUAL = use serviceWorkflowRouteId. */
+  workflowRouteMode?: 'AUTO' | 'MANUAL' | string | null;
+  serviceWorkflowRouteId?: number | null;
+  supplyTransaction?: boolean;
+  beneficiaryName?: string | null;
+  beneficiaryOrganization?: string | null;
+  beneficiaryIdentifier?: string | null;
 }
 
 export interface CorrespondenceCreatedResponse {
@@ -215,6 +305,47 @@ export interface LetterTemplateDto {
   nameEn: string;
   bodyHtml: string;
   sortOrder: number;
+  /** When set server-side, HTML may be loaded from disk under storage root. */
+  templateFilePath?: string | null;
+}
+
+/** GET /api/v1/workflow-routes?correspondenceTypeCode= */
+export interface ServiceWorkflowRouteDto {
+  id: number;
+  correspondenceTypeId: number;
+  correspondenceTypeCode: string;
+  processDefinitionKey: string;
+  nameAr: string;
+  nameEn: string;
+  defaultRoute: boolean;
+  sortOrder: number;
+  active: boolean;
+}
+
+/** GET /api/v1/organizations */
+export interface OrganizationFlatDto {
+  id: number;
+  parentId: number | null;
+  code: string | null;
+  nameAr: string;
+  nameEn: string;
+  external: boolean;
+}
+
+export interface LeaveRequestDto {
+  id: string;
+  userId: string;
+  username: string | null;
+  fullNameAr: string | null;
+  fullNameEn: string | null;
+  startDate: string;
+  endDate: string;
+  reason: string | null;
+  statusCode: string;
+  decidedBy: string | null;
+  decidedAt: string | null;
+  decisionNote: string | null;
+  createdAt: string;
 }
 
 export interface DashboardResponseDto {
@@ -222,6 +353,11 @@ export interface DashboardResponseDto {
   byStatus: DashboardBucketDto[];
   byPriority: DashboardBucketDto[];
   overdueCount: number;
+  /** Headline KPI counts (see Flyway `kpi_segment` / `dashboard_outbound_highlight`). */
+  kpiSlaDoneCount: number;
+  kpiPipelineCount: number;
+  kpiInboxCount: number;
+  kpiOutboundCount: number;
 }
 
 export interface UserListDto {
@@ -232,7 +368,6 @@ export interface UserListDto {
   email: string;
   departmentCode: string;
   active: boolean;
-  roleIds?: number[];
 }
 
 export interface WorkflowHistoryEntryDto {
@@ -274,7 +409,6 @@ export interface LoginResponseDto {
   username: string;
   roles: string[];
   currentRole: string;
-  /** Optional absolute or API-relative profile image URL from auth endpoints. */
   profileImageUrl?: string | null;
 }
 
@@ -290,6 +424,29 @@ export interface UserDetailDto {
   roleIds: number[];
 }
 
+export interface CurrentUserProfileDto {
+  id: string;
+  username: string;
+  fullNameAr: string;
+  fullNameEn: string;
+  email: string;
+  profileImageUrl?: string | null;
+  phone: string | null;
+  nationalId: string | null;
+  departmentId: number | null;
+  departmentCode: string | null;
+  departmentNameAr: string | null;
+  departmentNameEn: string | null;
+  active: boolean;
+  mfaEnabled: boolean;
+  lastLoginAt: string | null;
+  passwordChangedAt: string | null;
+  roleIds: number[];
+  roleCodes: string[];
+  uiTheme: 'light' | 'dark';
+  uiLocale: 'ar' | 'en';
+}
+
 export interface PermissionAdminDto {
   id: number;
   code: string;
@@ -298,6 +455,15 @@ export interface PermissionAdminDto {
   description: string | null;
   sortOrder: number;
   active: boolean;
+  /** Optional FK to {@link UiScreenDto#id} (inventory / capabilities). */
+  uiScreenId: number | null;
+}
+
+/** {@code GET /api/v1/me/capabilities} */
+export interface UserCapabilitiesDto {
+  roles: string[];
+  permissions: string[];
+  screens: { code: string; route: string }[];
 }
 
 export interface UiScreenDto {
@@ -309,6 +475,19 @@ export interface UiScreenDto {
   description: string | null;
   sortOrder: number;
   active: boolean;
+  requiredPermissionId: number | null;
+  iconKey: string;
+  showInShellNav: boolean;
+}
+
+/** {@code GET /profile/me/navigation} */
+export interface ShellNavItemDto {
+  code: string;
+  routePath: string;
+  nameAr: string;
+  nameEn: string;
+  sortOrder: number;
+  iconKey: string;
 }
 
 export interface SystemIssueDto {
@@ -330,4 +509,43 @@ export interface AttachmentUploadResponseDto {
   storageKey: string;
   byteSize: number;
   mimeType: string;
+}
+
+/** Guide §9 — administrative delegation */
+export interface AuthorityDelegationDto {
+  id: string;
+  delegator: UserSummaryDto;
+  delegate: UserSummaryDto;
+  validFrom: string;
+  validTo: string;
+  allowedCorrespondenceTypeCodes: string | null;
+  allowedConfidentialityCodes: string | null;
+  canSignOnBehalf: boolean;
+  notes: string | null;
+}
+
+/** Guide — linked correspondences tab */
+export interface CorrespondenceLinkListItemDto {
+  id: number;
+  linkedCorrespondenceId: string;
+  linkedReferenceNumber: string;
+  linkedSubject: string;
+  linkKind: string;
+  notes: string | null;
+}
+
+export interface CorrespondenceNonarchivedItemDto {
+  id: number;
+  itemType: string;
+  descriptionText: string | null;
+  quantity: number;
+  sortOrder: number;
+}
+
+export interface AttachmentIndexEntryDto {
+  id: number;
+  pageFrom: number | null;
+  pageTo: number | null;
+  subjectText: string | null;
+  sortOrder: number;
 }

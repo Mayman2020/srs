@@ -7,4 +7,5 @@ public record PermissionDto(
     String nameEn,
     String description,
     Integer sortOrder,
-    Boolean active) {}
+    Boolean active,
+    Long uiScreenId) {}

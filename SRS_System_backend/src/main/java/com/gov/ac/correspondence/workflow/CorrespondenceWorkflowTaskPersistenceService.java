@@ -24,7 +24,7 @@ import org.springframework.util.StringUtils;
 /**
  * Persists {@code workflow_history} and updates {@link Correspondence#getCorrespondenceStatus()}
  * when a Camunda user task completes. Expects process variables {@code correspondenceId}, optional
- * {@code wfDecision} ({@code APPROVE}|{@code REJECT}|{@code RETURN}), and optional {@code
+ * {@code wfDecision} (must match {@code workflow_action_type.code}), and optional {@code
  * actionComment}.
  */
 @Service
@@ -69,21 +69,37 @@ public class CorrespondenceWorkflowTaskPersistenceService {
     }
 
     String decisionRaw = (String) task.getVariable(VAR_WF_DECISION);
-    String decision =
-        StringUtils.hasText(decisionRaw) ? decisionRaw.trim().toUpperCase() : "APPROVE";
-    if (!decision.equals("APPROVE")
-        && !decision.equals("REJECT")
-        && !decision.equals("RETURN")
-        && !decision.equals("REFER")) {
-      log.warn("Workflow persistence: unknown wfDecision={}, defaulting to APPROVE", decisionRaw);
-      decision = "APPROVE";
+    if (!StringUtils.hasText(decisionRaw)) {
+      log.warn(
+          "Workflow persistence skipped: missing {} on task {}",
+          VAR_WF_DECISION,
+          task.getId());
+      return;
     }
+    String decision = decisionRaw.trim().toUpperCase();
 
     String comment = (String) task.getVariable(VAR_ACTION_COMMENT);
     String commentTrimmed = StringUtils.hasText(comment) ? comment.trim() : null;
 
     CorrespondenceStatus previous = correspondence.getCorrespondenceStatus();
-    CorrespondenceStatus newStatus = resolveTargetStatus(decision);
+    if (previous == null) {
+      log.warn("Workflow persistence skipped: correspondence has no status id={}", correspondenceId);
+      return;
+    }
+
+    WorkflowActionType rule;
+    try {
+      rule = lookups.requireWorkflowActionForTransition(decision, previous.getId());
+    } catch (Exception ex) {
+      log.warn(
+          "Workflow persistence: no DB rule for wfDecision={} fromStatusId={}: {}",
+          decision,
+          previous.getId(),
+          ex.getMessage());
+      return;
+    }
+
+    CorrespondenceStatus newStatus = rule.getNextCorrespondenceStatus();
     if (newStatus != null && !newStatus.getId().equals(previous.getId())) {
       correspondence.setCorrespondenceStatus(newStatus);
     }
@@ -107,7 +123,6 @@ public class CorrespondenceWorkflowTaskPersistenceService {
             : null;
 
     WorkflowHistoryEventType eventType = lookups.requireActiveHistoryEventType(EVENT_TASK_COMPLETED);
-    WorkflowActionType actionType = lookups.requireActiveWorkflowActionType(decision);
 
     int nextSeq = workflowHistoryRepository.maxSequenceNo(correspondence.getId()) + 1;
     Instant now = Instant.now();
@@ -115,7 +130,7 @@ public class CorrespondenceWorkflowTaskPersistenceService {
     WorkflowHistory history = new WorkflowHistory();
     history.setCorrespondence(correspondence);
     history.setEventType(eventType);
-    history.setWorkflowActionType(actionType);
+    history.setWorkflowActionType(rule);
     history.setActor(actor);
     history.setOccurredAt(now);
     history.setSequenceNo(nextSeq);
@@ -142,16 +157,5 @@ public class CorrespondenceWorkflowTaskPersistenceService {
         task.getId(),
         decision,
         nextSeq);
-  }
-
-  private CorrespondenceStatus resolveTargetStatus(String decision) {
-    String code =
-        switch (decision) {
-          case "REJECT" -> "REJECTED";
-          case "RETURN" -> "RETURNED";
-          case "REFER" -> "IN_PROGRESS";
-          default -> "COMPLETED";
-        };
-    return lookups.requireActiveCorrespondenceStatus(code);
   }
 }

@@ -14,6 +14,8 @@ import com.gov.ac.domain.correspondence.Attachment;
 import com.gov.ac.domain.correspondence.AttachmentVersion;
 import com.gov.ac.domain.correspondence.Correspondence;
 import com.gov.ac.domain.correspondence.CorrespondenceComment;
+import com.gov.ac.domain.lookup.CorrespondenceType;
+import com.gov.ac.domain.workflow.ServiceWorkflowRoute;
 import com.gov.ac.domain.lookup.AttachmentContentType;
 import com.gov.ac.domain.lookup.WorkflowInstanceStatus;
 import com.gov.ac.domain.org.Department;
@@ -32,9 +34,12 @@ import com.gov.ac.persistence.DepartmentRepository;
 import com.gov.ac.persistence.OrganizationRepository;
 import com.gov.ac.persistence.WorkflowHistoryRepository;
 import com.gov.ac.persistence.RoleRepository;
+import com.gov.ac.persistence.ServiceWorkflowRouteRepository;
 import com.gov.ac.persistence.WorkflowInstanceRepository;
 import com.gov.ac.persistence.WorkflowInstanceStatusRepository;
+import com.gov.ac.security.permission.EffectiveUserPermissionService;
 import com.gov.ac.common.api.BadRequestException;
+import com.gov.ac.common.api.ForbiddenException;
 import com.gov.ac.common.api.SystemConfigurationException;
 import java.time.Instant;
 import java.util.HashMap;
@@ -69,6 +74,8 @@ public class CorrespondenceCreateService {
   private final WorkflowHistoryRepository workflowHistoryRepository;
   private final NotificationService notificationService;
   private final RoleRepository roleRepository;
+  private final ServiceWorkflowRouteRepository serviceWorkflowRouteRepository;
+  private final EffectiveUserPermissionService effectiveUserPermissionService;
 
   /**
    * Creates correspondence, attachments, Camunda process, {@code workflow_instance}, and first
@@ -86,6 +93,9 @@ public class CorrespondenceCreateService {
             .orElseThrow(() -> new BadRequestException("Unknown or deleted user"));
     if (!Boolean.TRUE.equals(actor.getActive())) {
       throw new BadRequestException("Inactive user cannot create correspondence");
+    }
+    if (!effectiveUserPermissionService.hasActivePermission(actorUserId, "CREATE_TRANSACTION")) {
+      throw new ForbiddenException("Missing CREATE_TRANSACTION permission");
     }
 
     var type = lookups.requireActiveCorrespondenceType(form.getCorrespondenceTypeCode());
@@ -121,7 +131,8 @@ public class CorrespondenceCreateService {
     validateWorkflowFirstAssignment(form);
 
     String referenceNumber = referenceNumberGenerator.nextReferenceNumber();
-    String processKey = CorrespondenceProcessDefinitionKeys.forCorrespondenceTypeCode(type.getCode());
+    ResolvedWorkflow resolved = resolveWorkflow(form, type);
+    String processKey = resolved.processKey();
 
     Correspondence correspondence = new Correspondence();
     correspondence.setReferenceNumber(referenceNumber);
@@ -141,6 +152,12 @@ public class CorrespondenceCreateService {
     correspondence.setDueDate(form.getDueDate());
     correspondence.setBarcodeValue(trimToNull(form.getBarcodeValue()));
     correspondence.setTotalAttachmentBytes(attachmentTotal);
+    correspondence.setWorkflowRouteMode(resolved.modeStored());
+    correspondence.setServiceWorkflowRoute(resolved.routeEntity());
+    correspondence.setSupplyTransaction(Boolean.TRUE.equals(form.getSupplyTransaction()));
+    correspondence.setBeneficiaryName(trimToNull(form.getBeneficiaryName()));
+    correspondence.setBeneficiaryOrganization(trimToNull(form.getBeneficiaryOrganization()));
+    correspondence.setBeneficiaryIdentifier(trimToNull(form.getBeneficiaryIdentifier()));
     correspondence.setCreatedBy(actorUserId);
     correspondence.setUpdatedBy(actorUserId);
 
@@ -220,7 +237,7 @@ public class CorrespondenceCreateService {
         "Created correspondence id={} reference={} processKey={} camundaInstance={} user={}",
         correspondence.getId(),
         referenceNumber,
-        processKey,
+        resolved.processKey(),
         started.processInstanceId(),
         actorUserId);
 
@@ -347,6 +364,41 @@ public class CorrespondenceCreateService {
                       "workflowFirstCandidateGroup: unknown or inactive role code: " + code));
     }
   }
+
+  private ResolvedWorkflow resolveWorkflow(CorrespondenceCreateForm form, CorrespondenceType type) {
+    String mode = form.getWorkflowRouteMode() != null ? form.getWorkflowRouteMode().trim() : "AUTO";
+    boolean manual = "MANUAL".equalsIgnoreCase(mode);
+    if (manual) {
+      if (form.getServiceWorkflowRouteId() == null) {
+        throw new BadRequestException(
+            "serviceWorkflowRouteId is required when workflowRouteMode is MANUAL");
+      }
+      ServiceWorkflowRoute r =
+          serviceWorkflowRouteRepository
+              .findByIdAndDeletedAtIsNull(form.getServiceWorkflowRouteId())
+              .orElseThrow(() -> new BadRequestException("Unknown workflow route"));
+      if (!Boolean.TRUE.equals(r.getActive())) {
+        throw new BadRequestException("Workflow route is inactive");
+      }
+      if (!r.getCorrespondenceType().getId().equals(type.getId())) {
+        throw new BadRequestException("Workflow route does not match correspondence type");
+      }
+      return new ResolvedWorkflow(r.getProcessDefinitionKey(), r, "MANUAL");
+    }
+    ServiceWorkflowRoute def =
+        serviceWorkflowRouteRepository
+            .findFirstByCorrespondenceTypeIdAndDefaultRouteIsTrueAndActiveIsTrueAndDeletedAtIsNull(
+                type.getId())
+            .orElse(null);
+    if (def != null) {
+      return new ResolvedWorkflow(def.getProcessDefinitionKey(), def, "AUTO");
+    }
+    String fallback = CorrespondenceProcessDefinitionKeys.forCorrespondenceTypeCode(type.getCode());
+    return new ResolvedWorkflow(fallback, null, "AUTO");
+  }
+
+  private record ResolvedWorkflow(
+      String processKey, ServiceWorkflowRoute routeEntity, String modeStored) {}
 
   private static String trimToNull(String s) {
     if (!StringUtils.hasText(s)) {

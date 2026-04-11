@@ -1,0 +1,28 @@
+<div class="erp-dialog" [class.erp-dialog--wide]="wide">
+  <div class="erp-dialog__header" mat-dialog-title>
+    @if (icon) {
+      <mat-icon class="erp-dialog__header-icon" aria-hidden="true">{{ icon }}</mat-icon>
+    }
+    <span class="erp-dialog__title">{{ titleText || (titleKey | t) }}</span>
+    <span class="erp-dialog__spacer"></span>
+    @if (showClose) {
+      <button
+        mat-icon-button
+        type="button"
+        mat-dialog-close
+        class="erp-dialog__close"
+        [matTooltip]="closeTooltipKey | t"
+        (click)="onClose()">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </div>
+
+  <div class="erp-dialog__content" mat-dialog-content>
+    <ng-content></ng-content>
+  </div>
+
+  <div class="erp-dialog__actions" mat-dialog-actions align="end">
+    <ng-content select="[erpDialogActions]"></ng-content>
+  </div>
+</div>

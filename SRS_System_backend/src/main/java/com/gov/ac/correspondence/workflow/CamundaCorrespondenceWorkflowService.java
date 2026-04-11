@@ -1,13 +1,12 @@
 package com.gov.ac.correspondence.workflow;
 
+import com.gov.ac.modules.workflow.service.WorkflowService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CamundaCorrespondenceWorkflowService {
 
-  private final RuntimeService runtimeService;
+  private final WorkflowService workflowService;
 
   @Transactional(propagation = Propagation.MANDATORY)
   public StartedProcess startCorrespondenceProcess(
@@ -48,14 +47,14 @@ public class CamundaCorrespondenceWorkflowService {
     }
 
     try {
-      ProcessInstance instance =
-          runtimeService.startProcessInstanceByKey(processDefinitionKey, businessKey, variables);
+      String processInstanceId =
+          workflowService.startProcessByKey(processDefinitionKey, businessKey, variables);
       log.info(
           "Started Camunda process definitionKey={} processInstanceId={} businessKey={}",
           processDefinitionKey,
-          instance.getId(),
+          processInstanceId,
           businessKey);
-      return new StartedProcess(processDefinitionKey, instance.getId());
+      return new StartedProcess(processDefinitionKey, processInstanceId);
     } catch (Exception ex) {
       log.error(
           "Failed to start Camunda process definitionKey={} businessKey={}",

@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "attachment")
+@Table(name = "attachment", schema = "srs_system")
 @Getter
 @Setter
 public class Attachment extends SoftDeletableEntity {

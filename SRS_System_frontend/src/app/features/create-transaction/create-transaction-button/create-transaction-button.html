@@ -1,10 +1,11 @@
 <div class="actions">
-  <div class="btn-split">
-    <button
-      class="btn primary"
-      type="button"
-      (click)="createDefault()">
-      {{ 'transactions.createButton' | t }}
-    </button>
-  </div>
+  <button
+    class="create-transaction-btn"
+    type="button"
+    (click)="createDefault()">
+    <span class="btn-icon-wrap" aria-hidden="true">
+      <i class="fa-solid fa-plus"></i>
+    </span>
+    <span>{{ 'transactions.createButton' | t }}</span>
+  </button>
 </div>

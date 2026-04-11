@@ -3,6 +3,7 @@ package com.gov.ac.feature.lookups.mapper;
 import com.gov.ac.domain.lookup.Confidentiality;
 import com.gov.ac.domain.lookup.CorrespondenceStatus;
 import com.gov.ac.domain.lookup.CorrespondenceType;
+import com.gov.ac.domain.lookup.OrgVisualNodeStatus;
 import com.gov.ac.domain.lookup.Priority;
 import com.gov.ac.domain.lookup.WorkflowActionType;
 import com.gov.ac.domain.lookup.WorkflowHistoryEventType;
@@ -19,7 +20,17 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(),
+                    r.getCode(),
+                    r.getNameAr(),
+                    r.getNameEn(),
+                    r.getSortOrder(),
+                    null,
+                    null,
+                    null,
+                    r.getDashboardInboundHighlight(),
+                    r.getDashboardOutboundHighlight(),
+                    null))
         .toList();
   }
 
@@ -28,7 +39,17 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(),
+                    r.getCode(),
+                    r.getNameAr(),
+                    r.getNameEn(),
+                    r.getSortOrder(),
+                    r.getCorrespondenceType() != null ? r.getCorrespondenceType().getId() : null,
+                    r.getTerminal(),
+                    r.getKpiSegment(),
+                    null,
+                    null,
+                    r.getUiVariant()))
         .toList();
   }
 
@@ -37,7 +58,7 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
         .toList();
   }
 
@@ -46,7 +67,7 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
         .toList();
   }
 
@@ -55,7 +76,12 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(),
+                    r.getCode(),
+                    r.getNameAr(),
+                    r.getNameEn(),
+                    r.getSortOrder(),
+                    r.getParent() != null ? r.getParent().getId() : null))
         .toList();
   }
 
@@ -64,7 +90,7 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
         .toList();
   }
 
@@ -73,7 +99,16 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder()))
+                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
+        .toList();
+  }
+
+  public static List<LookupItemDto> mapOrgVisualNodeStatuses(List<OrgVisualNodeStatus> rows) {
+    return rows.stream()
+        .map(
+            r ->
+                new LookupItemDto(
+                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
         .toList();
   }
 }

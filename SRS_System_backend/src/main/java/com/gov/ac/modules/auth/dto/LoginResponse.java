@@ -14,4 +14,5 @@ public record LoginResponse(
     UUID userId,
     String username,
     List<String> roles,
-    String currentRole) {}
+    String currentRole,
+    String profileImageUrl) {}

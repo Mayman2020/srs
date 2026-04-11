@@ -1,6 +1,22 @@
 {
   "app": {
-    "title": "نظام الاتصالات الإدارية"
+    "title": "نظام تخطيط موارد المؤسسات الحكومي"
+  },
+  "languages": {
+    "ar": {
+      "label": "العربية",
+      "native": "العربية"
+    },
+    "en": {
+      "label": "الإنجليزية",
+      "native": "English"
+    }
+  },
+  "i18n": {
+    "langAr": "العربية",
+    "langEn": "English",
+    "switchToArabic": "تبديل اللغة إلى العربية",
+    "switchToEnglish": "Switch language to English"
   },
   "common": {
     "all": "الكل",
@@ -18,14 +34,94 @@
     "roleNA": "—",
     "empty": "لا توجد بيانات",
     "toastOk": "تم",
+    "confirm": "تأكيد",
     "close": "إغلاق",
-    "loading": "جاري التحميل…"
+    "loading": "جاري التحميل…",
+    "recordReferenceLabel": "رقم السجل / المرجع",
+    "recordReferencePendingPlaceholder": "سيتم توليد الرقم تلقائياً بعد حفظ السجل"
   },
   "profile": {
     "avatarAlt": "صورة الملف الشخصي",
     "avatarFallbackAlt": "صورة افتراضية للملف الشخصي",
     "sidebarSignedIn": "مسجّل الدخول",
-    "toolbarMeta": ""
+    "toolbarMeta": "",
+    "pageTitle": "الملف الشخصي",
+    "loadError": "تعذّر تحميل بيانات الملف الشخصي.",
+    "loadNeedsSession": "يرجى تسجيل الدخول لعرض الملف الشخصي.",
+    "tabs": {
+      "info": "البيانات",
+      "roles": "الأدوار",
+      "activity": "النشاط",
+      "settings": "الإعدادات"
+    },
+    "fields": {
+      "username": "اسم المستخدم",
+      "fullName": "الاسم الكامل",
+      "fullNameAr": "الاسم الكامل بالعربية",
+      "fullNameEn": "الاسم الكامل بالإنجليزية",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "nationalId": "الرقم الوطني",
+      "status": "الحالة",
+      "lastLogin": "آخر تسجيل دخول",
+      "department": "الإدارة",
+      "passwordChangedAt": "آخر تغيير لكلمة المرور",
+      "mfa": "التحقق الثنائي",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة"
+    },
+    "rolesFromServer": "الأدوار المسجّلة",
+    "rolesSession": "أدوار الجلسة الحالية",
+    "rolesEmpty": "لا توجد أدوار مسجّلة لهذا المستخدم.",
+    "activityPlaceholder": "سجل النشاط سيُعرض هنا عند توفره من الخادم.",
+    "settingsPlaceholder": "تفضيلات الحساب والإشعارات — قيد التطوير.",
+    "mfaEnabled": "مفعّل",
+    "mfaDisabled": "غير مفعّل",
+    "passwordSectionTitle": "تغيير كلمة المرور",
+    "passwordSectionHint": "استخدم كلمة مرور قوية ومختلفة عن الحالية.",
+    "avatarSectionTitle": "صورة الملف الشخصي",
+    "avatarSectionHint": "اختر صورة مربعة، وسيتم حفظها داخل مسار التخزين المخصص لحسابك في النظام.",
+    "actions": {
+      "selectAvatar": "اختيار صورة",
+      "saveProfile": "حفظ بيانات الملف الشخصي",
+      "changePassword": "تحديث كلمة المرور"
+    },
+    "messages": {
+      "saved": "تم حفظ بيانات الملف الشخصي.",
+      "saveFailed": "تعذّر حفظ بيانات الملف الشخصي.",
+      "passwordChanged": "تم تحديث كلمة المرور.",
+      "passwordChangeFailed": "تعذّر تحديث كلمة المرور."
+    },
+    "validation": {
+      "required": "يرجى استكمال الحقول المطلوبة في الملف الشخصي.",
+      "passwordFormInvalid": "يرجى استكمال حقول كلمة المرور بشكل صحيح.",
+      "passwordMismatch": "تأكيد كلمة المرور غير مطابق.",
+      "fullNameArRequired": "الاسم العربي مطلوب.",
+      "fullNameEnRequired": "الاسم الإنجليزي مطلوب.",
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "صيغة البريد الإلكتروني غير صحيحة.",
+      "fullNameArTooLong": "الاسم العربي طويل جدًا.",
+      "fullNameEnTooLong": "الاسم الإنجليزي طويل جدًا.",
+      "emailTooLong": "البريد الإلكتروني طويل جدًا.",
+      "phoneTooLong": "رقم الهاتف طويل جدًا.",
+      "nationalIdTooLong": "الرقم الوطني طويل جدًا.",
+      "currentPasswordRequired": "كلمة المرور الحالية مطلوبة.",
+      "newPasswordRequired": "كلمة المرور الجديدة مطلوبة.",
+      "newPasswordTooShort": "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.",
+      "newPasswordTooLong": "كلمة المرور الجديدة طويلة جدًا.",
+      "avatarTooLarge": "حجم صورة الملف الشخصي يجب ألا يتجاوز 5 ميجابايت."
+    },
+    "errors": {
+      "emailInUse": "البريد الإلكتروني مستخدم بالفعل.",
+      "passwordNotConfigured": "لا توجد كلمة مرور محلية مهيأة لهذا الحساب.",
+      "currentPasswordIncorrect": "كلمة المرور الحالية غير صحيحة.",
+      "passwordReuse": "يجب أن تختلف كلمة المرور الجديدة عن الحالية.",
+      "accountInactive": "هذا الحساب غير نشط حاليًا.",
+      "avatarRequired": "اختر صورة أولاً.",
+      "avatarInvalidType": "يسمح فقط بصور JPG أو PNG أو WEBP أو GIF.",
+      "avatarMissing": "لا توجد صورة ملف شخصي لهذا الحساب."
+    }
   },
   "dataTable": {
     "pagerRange": "{{start}}–{{end}} من {{total}}",
@@ -52,6 +148,28 @@
     }
   },
   "notification": {
+    "types": {
+      "success": "نجاح",
+      "error": "خطأ",
+      "warning": "تنبيه",
+      "info": "معلومة"
+    },
+    "create": {
+      "success": "تم الإنشاء بنجاح"
+    },
+    "save": {
+      "success": "تم الحفظ بنجاح"
+    },
+    "delete": {
+      "success": "تم الحذف بنجاح"
+    },
+    "error": {
+      "general": "حدث خطأ غير متوقع",
+      "network": "تعذر الوصول إلى الخادم. تحقق من الاتصال ثم أعد المحاولة.",
+      "unauthorized": "انتهت الجلسة أو يلزم تسجيل الدخول من جديد.",
+      "forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء.",
+      "notFound": "العنصر المطلوب غير موجود."
+    },
     "correspondence": {
       "created": "معاملة جديدة: {{referenceNumber}}",
       "comment_added": "تعليق جديد على {{referenceNumber}}"
@@ -59,6 +177,27 @@
     "workflow": {
       "task_completed": "تحديث سير العمل ({{taskName}}): {{referenceNumber}}"
     }
+  },
+  "supplyTx": {
+    "pageTitle": "توريد معاملة",
+    "beneficiaryName": "اسم المستفيد",
+    "beneficiaryOrg": "جهة المستفيد",
+    "beneficiaryId": "معرّف المستفيد (هوية / رقم ملف)"
+  },
+  "orgStructure": {
+    "pageTitle": "الهيكل التنظيمي",
+    "deptTab": "الإدارات (داخلي)",
+    "orgTab": "الجهات (خارجي / شركاء)",
+    "empty": "لا بيانات."
+  },
+  "leave": {
+    "pageTitle": "الإجازات",
+    "submit": "إرسال الطلب",
+    "start": "تاريخ البداية",
+    "end": "تاريخ النهاية",
+    "reason": "السبب",
+    "status": "الحالة",
+    "listMine": "طلباتي"
   },
   "reports": {
     "pageTitle": "التقارير والإحصائيات",
@@ -106,6 +245,27 @@
       "charts": "Charts"
     }
   },
+  "shellNav": {
+    "login": "تسجيل الدخول",
+    "dashboard": "لوحة التحكم",
+    "transactions": "المعاملات",
+    "transactions_list": "قائمة المعاملات",
+    "create_transaction": "إنشاء معاملة",
+    "transaction_details": "تفاصيل المعاملة",
+    "notifications": "الإشعارات",
+    "circulars": "التعميمات",
+    "reports": "التقارير والإحصاءات",
+    "admin_main": "إدارة النظام",
+    "users": "المستخدمون",
+    "roles": "الأدوار والصلاحيات",
+    "profile": "الملف الشخصي",
+    "org_structure": "الهيكل التنظيمي",
+    "leave_requests": "الإجازات",
+    "supply_transaction": "توريد معاملة",
+    "correspondence_search": "بحث المعاملات",
+    "delegations": "التفويضات الإدارية",
+    "lookup_admin": "إدارة قوائم النظام"
+  },
   "sidebar": {
     "demoUser": "مستخدم تجريبي",
     "demoRole": "موظف"
@@ -119,6 +279,79 @@
     "loadError": "تعذّر تحميل التعميمات.",
     "noUserId": "يرجى تسجيل الدخول مرة أخرى لعرض التعميمات.",
     "broadcast": "عام"
+  },
+  "correspondenceSearch": {
+    "pageTitle": "بحث المعاملات",
+    "subtitle": "بحث وفق النوع والحالة والأولوية والفترة.",
+    "createdFrom": "من تاريخ الإنشاء",
+    "createdTo": "إلى تاريخ الإنشاء",
+    "results": "النتائج",
+    "colCreatedBy": "أنشأه"
+  },
+  "delegations": {
+    "pageTitle": "التفويضات الإدارية",
+    "subtitle": "تفويض صلاحيات على المعاملات.",
+    "formTitle": "تفويض جديد",
+    "delegateUser": "المفوَّض إليه",
+    "selectUser": "اختر مستخدمًا",
+    "validFrom": "صالح من",
+    "validTo": "صالح إلى",
+    "canSignOnBehalf": "التوقيع بالنيابة",
+    "typeCodesHint": "أنواع مسموحة (رموز مفصولة بفواصل، فارغ = الكل)",
+    "confidentialityCodesHint": "درجات السرية المسموحة (رموز مفصولة بفواصل، فارغ = الكل)",
+    "notes": "ملاحظات",
+    "submit": "حفظ التفويض",
+    "listTitle": "التفويضات",
+    "colDelegator": "المفوِّض",
+    "colDelegate": "المفوَّض له",
+    "colFrom": "من",
+    "colTo": "إلى",
+    "colSign": "توقيع",
+    "revoke": "إلغاء",
+    "revokeConfirmTitle": "إلغاء التفويض",
+    "revokeConfirmMessage": "هل تريد إلغاء هذا التفويض؟",
+    "revokeConfirm": "تأكيد الإلغاء",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "lookupAdmin": {
+    "pageTitle": "إدارة قوائم النظام",
+    "subtitle": "جميع القيم المرجعية من الجداول (عربي/إنجليزي) مع الربط بالأب عند الحاجة.",
+    "groups": "نوع القائمة",
+    "newRow": "صف جديد",
+    "createRow": "إضافة قيمة",
+    "editRow": "تعديل قيمة",
+    "fieldCode": "الرمز البرمجي (ثابت)",
+    "fieldNameAr": "الاسم بالعربية",
+    "fieldNameEn": "الاسم بالإنجليزية",
+    "fieldDescription": "الوصف",
+    "fieldSort": "ترتيب العرض",
+    "fieldActive": "نشط",
+    "fieldParent": "القيمة الأب (معرّف)",
+    "parentNone": "— بدون أب —",
+    "fieldTerminal": "حالة نهائية (لا انتقال لاحق)",
+    "fieldStatusUiVariant": "نمط شارة الحالة",
+    "colStatusUiVariant": "الشارة",
+    "fieldSlaDays": "أيام SLA (اختياري)",
+    "restrictsExport": "يقيّد الطباعة/التصدير",
+    "requiresClearance": "يتطلب تصريحًا",
+    "fieldParentId": "الأب",
+    "colCode": "الرمز",
+    "colNameAr": "الاسم عربي",
+    "colNameEn": "الاسم إنجليزي",
+    "colParentId": "معرّف الأب",
+    "colSort": "الترتيب",
+    "colActive": "نشط",
+    "save": "حفظ",
+    "create": "إنشاء",
+    "cancelEdit": "إلغاء التعديل",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "deleteTitle": "حذف القيمة",
+    "deleteMessage": "سيتم إخفاء هذه القيمة من النظام (حذف منطقي). المتابعة؟",
+    "deleteConfirm": "حذف",
+    "yes": "نعم",
+    "no": "لا"
   },
   "transactions": {
     "createButton": "إنشاء معاملة",
@@ -247,6 +480,8 @@
     "pagerLabel": "عدد المستخدمين: {{n}}"
   },
   "notifications": {
+    "pageTitle": "الإشعارات",
+    "empty": "لا توجد إشعارات حتى الآن.",
     "markAllRead": "تحديد الكل كمقروء",
     "filterAll": "الكل",
     "filterUnread": "غير مقروء",
@@ -313,6 +548,8 @@
       "step4": "المرفقات",
       "step5": "تم"
     },
+    "referenceNumberLabel": "رقم المعاملة",
+    "referenceAutoPlaceholder": "سيتم توليد الرقم تلقائياً بعد حفظ المعاملة",
     "subject": "الموضوع",
     "descriptionShort": "وصف مختصر (اختياري)",
     "recipients": "الجهات المستلمة",
@@ -326,7 +563,11 @@
       "firstAssigneeUserIdPh": "معرّف المستخدم UUID — اتركه فارغاً لاستخدام المنشئ أو مجموعة الدور",
       "firstCandidateGroup": "سير العمل: المهمة الأولى لمجموعة دور (اختياري)",
       "firstCandidateGroupPh": "رمز الدور من النظام، مثل STAFF",
-      "hintExclusive": "استخدم إما معرّف المستخدم أو رمز الدور، وليس الاثنين معاً."
+      "hintExclusive": "استخدم إما معرّف المستخدم أو رمز الدور، وليس الاثنين معاً.",
+      "routeMode": "مسار سير العمل",
+      "routeAuto": "تلقائي (المسار الافتراضي لنوع الخدمة)",
+      "routeManual": "يدوي (اختيار تعريف Camunda)",
+      "pickRoute": "مسار Camunda"
     },
     "attachmentsTitle": "المرفقات",
     "attachmentsHint": "اسحب الملفات هنا أو اضغط للاختيار",
@@ -360,7 +601,8 @@
       "step1": "يرجى إكمال البيانات الأساسية (جميع الحقول المطلوبة وموضوع لا يقل عن 5 أحرف)",
       "step2Form": "يرجى التحقق من مدة الرد والحقول الاختيارية لسير العمل",
       "recipientsRequired": "يرجى اختيار جهة مستلمة واحدة على الأقل",
-      "step3": "يرجى كتابة محتوى الخطاب أو اختيار قالب صالح"
+      "step3": "يرجى كتابة محتوى الخطاب أو اختيار قالب صالح",
+      "workflowRouteManual": "اختر مسار Camunda عند اختيار المسار اليدوي"
     },
     "submit": {
       "success": "تم إنشاء المعاملة بنجاح",
@@ -374,9 +616,9 @@
       "dateLabel": "التاريخ:",
       "refAuto": "[يُملأ تلقائياً]",
       "refFilledPlain": "يُملأ تلقائياً",
-      "headerEntity": "اسم الجهة",
-      "headerSubtitle": "الإدارة العامة للاتصالات الإدارية",
-      "footerManager": "مدير الإدارة",
+      "headerEntity": "نظام تخطيط موارد المؤسسات الحكومي",
+      "headerSubtitle": "منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي، تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030",
+      "footerManager": "المسؤول المختص",
       "footerSignature": "التوقيع",
       "toLabel": "إلى:",
       "refPlaceholderBracket": "[رقم المعاملة]",
@@ -442,6 +684,16 @@
     "tabReply": "الرد",
     "tabNotes": "الملاحظات",
     "tabRelated": "المعاملات المرتبطة",
+    "tabNonarchived": "غير المؤرشف",
+    "relatedEmpty": "لا توجد معاملات مرتبطة. يمكن ربط المعاملات من الخادم (تبويب الروابط).",
+    "nonarchivedTitle": "مراسلات/وسائط غير مؤرشفة",
+    "nonarchivedEmpty": "لا توجد بنود مسجّلة.",
+    "colQuantity": "الكمية",
+    "colDescription": "الوصف",
+    "indexTitle": "فهرسة المرفق",
+    "indexEmpty": "لا توجد فقرات فهرسة.",
+    "indexPages": "صفحات",
+    "indexSubject": "الموضوع",
     "basicDataTitle": "البيانات الأساسية",
     "labelType": "النوع",
     "labelCreated": "تاريخ الإنشاء",
@@ -523,23 +775,23 @@
   },
   "login": {
     "title": "تسجيل الدخول",
-    "subtitle": "نظام الاتصالات الإدارية",
+    "subtitle": "منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي، تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030",
     "username": "اسم المستخدم",
     "password": "كلمة المرور",
     "submit": "دخول",
     "demo": "تجربة سريعة",
     "heroTitle": "نظام تخطيط موارد المؤسسات الحكومي",
-    "heroLead": "منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي، تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030",
-    "feat1Title": "ذكاء اصطناعي متقدم",
-    "feat1Desc": "تحليلات ذكية وتوقعات مالية وإدارية تلقائية",
-    "feat2Title": "حوكمة رقمية شاملة",
-    "feat2Desc": "التزام كامل بمعايير الحوكمة والشفافية",
-    "feat3Title": "إدارة موارد متكاملة",
-    "feat3Desc": "مالية، موارد بشرية، مشتريات، ومخزون",
-    "feat4Title": "رؤية المملكة 2030",
-    "feat4Desc": "دعم التحول الرقمي وتحقيق الأهداف الاستراتيجية",
-    "visionBadge": "متوافق مع رؤية المملكة 2030",
-    "copyrightLine": "© 2024 نسخة — للاستخدام المؤسسي الحكومي",
+    "heroLead": "منصة متكاملة لإدارة الموارد المؤسسية بتقنية الذكاء الاصطناعي، تدعم الحوكمة الرقمية وتحقق أهداف رؤية المملكة 2030. تشمل إدارة المراسلات والمعاملات، المسارات، التعاميم، المرفقات، التفويض، والأرشفة، مع صلاحيات وأدوار واضحة.",
+    "feat1Title": "سجل مراسلات موحّد",
+    "feat1Desc": "تتبّع الصادر والوارد والحالات والمرفقات من لوحة واحدة",
+    "feat2Title": "مسارات سير عمل",
+    "feat2Desc": "توجيه المراسلات وفق مسارات معتمدة وتسجيل الإجراءات",
+    "feat3Title": "حوكمة وسرية",
+    "feat3Desc": "أدوار وصلاحيات، مستويات سرية، وسجل تدقيق",
+    "feat4Title": "تعاميم وتفويض وبحث",
+    "feat4Desc": "تعميمات، تفويض صلاحيات، وفلترة وبحث في السجل",
+    "visionBadge": "رؤية المملكة 2030",
+    "copyrightLine": "© 2026 — نظام تخطيط موارد المؤسسات الحكومي",
     "panelSub": "يرجى إدخال بيانات المستخدم للوصول إلى النظام",
     "usernamePlaceholder": "أدخل اسم المستخدم",
     "passwordPlaceholder": "••••••••",
@@ -550,7 +802,33 @@
   "chat": {
     "assistant": "المساعد الذكي",
     "send": "إرسال",
-    "inputPlaceholder": "اسألني عن معاملة..."
+    "inputPlaceholder": "اسألني عن معاملة...",
+    "greeting": "مرحباً 👋 كيف يمكنني مساعدتك؟",
+    "suggestion1": "اعرض المعاملات المتأخرة",
+    "suggestion2": "كم معاملة قيد الإجراء؟",
+    "suggestion3": "لخّص آخر 5 معاملات",
+    "notFound": "لم يتم العثور على المعاملة",
+    "noMatches": "لا توجد معاملات مطابقة للبحث",
+    "resultsHeader": "النتائج: {{count}}",
+    "labelSender": "المرسل",
+    "labelRecipient": "المستلم",
+    "labelStatus": "الحالة",
+    "intentTokens": {
+      "inbound": "وارد|inbound|incoming",
+      "outbound": "صادر|outbound",
+      "internal": "داخلية|internal",
+      "external": "خارجية|external",
+      "statusCompleted": "منجزة|مكتملة|completed|done",
+      "statusInProgress": "قيد|in progress|progress",
+      "statusNew": "جديدة|new",
+      "statusRejected": "مرفوضة|rejected",
+      "statusReturned": "معادة|returned",
+      "secrecySecret": "سري|secret|confidential",
+      "late": "متأخر|متأخرة|late|overdue",
+      "fromMarker": "من |from ",
+      "toMarker": "إلى |to ",
+      "today": "اليوم|today"
+    }
   },
   "workflowDialog": {
     "title": "التتبع البصري",
@@ -582,6 +860,12 @@
     "mfaSendFailed": "تعذّر إرسال رمز التحقق."
   },
   "topbar": {
+    "themeSwitchLight": "التبديل إلى الوضع الفاتح",
+    "themeSwitchDark": "التبديل إلى الوضع الداكن",
+    "languageMenu": "اختيار اللغة",
+    "profileMenuAria": "قائمة الحساب",
+    "menuProfile": "ملفي الشخصي",
+    "menuSettings": "الإعدادات",
     "markAllRead": "تعيين الكل كمقروء",
     "notificationsTitle": "الإشعارات",
     "notificationsIconTitle": "الإشعارات",
@@ -624,6 +908,16 @@
     "resolveNotePh": "ملاحظة اختيارية للتسوية",
     "issueResolved": "تم تسجيل التسوية.",
     "add": "إضافة",
+    "tooltip": {
+      "add": "إضافة مستخدم",
+      "addPerm": "إضافة صلاحية",
+      "addScreen": "إضافة شاشة",
+      "view": "عرض",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "assignRole": "تعيين دور",
+      "resolve": "تسوية المشكلة"
+    },
     "loadUserFailed": "تعذّر تحميل بيانات المستخدم من الخادم.",
     "view": "عرض",
     "edit": "تعديل",
@@ -641,6 +935,14 @@
     "colSort": "الترتيب",
     "colActive": "نشط",
     "colRoute": "المسار",
+    "colIcon": "أيقونة",
+    "colShellNav": "القائمة الجانبية",
+    "screenIconKey": "مفتاح أيقونة Material (مثل dashboard)",
+    "screenShowInShellNav": "إظهار في القائمة الجانبية للمستخدمين المصرّح لهم",
+    "screenRequiredPerm": "صلاحية مطلوبة (اختياري)",
+    "screenPermNone": "بدون — متاح لكل المستخدمين المسجلين",
+    "shellNavYes": "نعم",
+    "shellNavNo": "لا",
     "colWhen": "الوقت",
     "colSeverity": "الخطورة",
     "colMessage": "الرسالة",
@@ -667,5 +969,279 @@
     "roleAssigned": "تم تعيين الدور.",
     "confirmDelete": "تأكيد الحذف؟",
     "confirmDeleteUser": "حذف هذا المستخدم من النظام؟"
+  },
+  "legacyCharts": {
+    "donutStatusLabels": ["جديدة", "قيد الإجراء", "معادة", "منجزة"],
+    "barDeptLabels": ["المراسلات الإدارية", "العمليات", "اللوجستيات", "الشؤون القانونية", "تقنية المعلومات"],
+    "barDatasetLabel": "منجزة",
+    "lineSeriesLabel": "حركة المعاملات",
+    "lineQuarterLabels": ["س1", "س2", "س3", "س4", "س5", "س6", "س7"],
+    "reportsDonutStatusLabels": ["جديدة", "قيد الإجراء", "معادة", "منجزة"]
+  },
+  "legacyPages": {
+    "common": {
+      "done": "تم",
+      "day": " يوم"
+    },
+    "theme": {
+      "switchedToLight": "تم تفعيل الوضع النهاري.",
+      "switchedToDark": "تم تفعيل الوضع الليلي."
+    },
+    "auth": {
+      "logoutDemo": "تم تسجيل الخروج (Demo)."
+    },
+    "txStatus": {
+      "NEW": "جديدة",
+      "IN_PROGRESS": "قيد الإجراء",
+      "RETURNED": "معادة",
+      "DONE": "منجزة",
+      "REJECTED": "مرفوضة"
+    },
+    "txType": {
+      "INBOUND": "وارد",
+      "OUTBOUND": "صادر",
+      "INTERNAL": "داخلية",
+      "EXTERNAL": "خارجية"
+    },
+    "priority": {
+      "HIGH": "عالية",
+      "MEDIUM": "متوسطة",
+      "LOW": "منخفضة"
+    },
+    "notifType": {
+      "ALERT": "تنبيه",
+      "REMINDER": "تذكير",
+      "INFO": "معلومة"
+    },
+    "dashboard": {
+      "open": "فتح",
+      "emptyTx": "لا توجد معاملات.",
+      "aiChartTxCount": "عدد المعاملات",
+      "aiStatusesOrder": ["NEW", "IN_PROGRESS", "RETURNED", "DONE", "REJECTED"],
+      "aiPrioritiesOrder": ["HIGH", "MEDIUM", "LOW"]
+    },
+    "reports": {
+      "runSuccessTitle": "تم",
+      "runSuccessMsg": "تم تشغيل التقرير وتحديث الرسوم.",
+      "pdfTitle": "تصدير PDF",
+      "pdfMsg": "Demo: سيتم ربطه لاحقًا.",
+      "xlsTitle": "تصدير Excel",
+      "xlsMsg": "Demo: سيتم ربطه لاحقًا."
+    },
+    "notificationsPage": {
+      "recommended": {
+        "REMINDER": "متابعة SLA",
+        "ALERT": "فتح المعاملة وتسجيل إجراء",
+        "INFO": "مراجعة عامة",
+        "DEFAULT": "مراجعة عامة"
+      },
+      "slaShort": {
+        "HIGH": "عالي",
+        "MEDIUM": "متوسط",
+        "LOW": "منخفض"
+      },
+      "prioShort": {
+        "HIGH": "عالية",
+        "MEDIUM": "متوسطة",
+        "LOW": "منخفضة"
+      },
+      "ownerDepts": [
+        "شعبة المراسلات الإدارية",
+        "الموارد البشرية",
+        "الشؤون القانونية",
+        "المالية",
+        "المشتريات"
+      ],
+      "sourceTx": "نظام المعاملات",
+      "sourceSys": "النظام",
+      "channelSystem": "نظام",
+      "channelManual": "يدوي",
+      "readPill": "مقروء",
+      "unreadPill": "غير مقروء",
+      "impPill": "هام",
+      "normalPill": "عادي",
+      "detailsLink": "تفاصيل",
+      "openLink": "فتح",
+      "toggleUnread": "تعيين غير مقروء",
+      "toggleRead": "تعيين مقروء",
+      "unmarkImportant": "إلغاء هام",
+      "markImportant": "تمييز هام",
+      "delete": "حذف",
+      "toastFilter": "تم تطبيق الفلترة.",
+      "toastResetFilters": "تم مسح الفلاتر.",
+      "toastAllRead": "تم تعيين جميع الإشعارات كمقروءة.",
+      "toastNoTx": "لا يوجد رقم معاملة مرتبط بهذا الإشعار.",
+      "toastDeleted": "تم حذف الإشعار (Demo).",
+      "toastTitleOk": "تم",
+      "infoTitle": "معلومة"
+    },
+    "transactionsList": {
+      "open": "فتح",
+      "empty": "لا توجد نتائج مطابقة.",
+      "toastFilter": "تم تطبيق الفلاتر.",
+      "toastReset": "تمت إعادة تعيين الفلاتر.",
+      "toastTitleOk": "تم"
+    },
+    "userStatus": {
+      "ACTIVE": "نشط",
+      "SUSPENDED": "موقوف"
+    },
+    "usersPage": {
+      "toggleStatus": "تغيير الحالة",
+      "edit": "تعديل",
+      "toastValidation": "يرجى إدخال الاسم ورقم الهوية والإدارة.",
+      "toastAdded": "تمت إضافة المستخدم (Demo).",
+      "toastUpdated": "تم تحديث حالة المستخدم (Demo).",
+      "toastEditLater": "تعديل المستخدم في النسخة التجريبية سيكون ضمن تحسينات لاحقة.",
+      "alertTitle": "تنبيه",
+      "infoTitle": "معلومة",
+      "toastTitleOk": "تم"
+    },
+    "transactionDetails": {
+      "act": {
+        "APPROVE": "اعتماد",
+        "FORWARD": "تحويل",
+        "RETURN": "إرجاع",
+        "REJECT": "رفض"
+      },
+      "toastNoteTitle": "تنبيه",
+      "toastNoteMsg": "يرجى كتابة سبب/ملاحظة الإجراء.",
+      "toastOkTitle": "تم",
+      "toastOkMsg": "تم تنفيذ الإجراء وتحديث حالة المعاملة (Demo).",
+      "toastAttachTitle": "معلومة",
+      "toastAttachMsg": "عرض/تحميل في النسخة التجريبية بدون ملفات فعلية.",
+      "secrecyDefault": "عادي",
+      "demoUser": "المستخدم التجريبي",
+      "viewDownload": "عرض/تحميل",
+      "tlTotalLabel": "إجمالي الأحداث:",
+      "tlLastLabel": "آخر إجراء:",
+      "timelineDefaults": [
+        {
+          "action": "استلام",
+          "by": "المستخدم التجريبي",
+          "note": "تم فتح تفاصيل المعاملة (Demo)."
+        },
+        {
+          "action": "قيد التدقيق",
+          "by": "مكتب الاتصالات",
+          "note": "تم تسجيل المعاملة وتوثيق البيانات الأساسية (Demo)."
+        },
+        {
+          "action": "إحالة",
+          "by": "النظام",
+          "note": "تمت إحالة المعاملة للإدارة المختصة (Demo)."
+        },
+        {
+          "action": "اعتماد",
+          "by": "المدير المختص",
+          "note": "تم اعتماد المعاملة إلكترونياً (Demo)."
+        },
+        {
+          "action": "أرشفة",
+          "by": "مكتب الاتصالات",
+          "note": "تمت الأرشفة وإغلاق المعاملة (Demo)."
+        }
+      ],
+      "attachmentDemoRows": [
+        {
+          "kind": "إلكتروني",
+          "type": "PDF",
+          "name": "خطاب_إحالة.pdf",
+          "secrecy": "محدود التداول",
+          "by": "مستخدم تجريبي"
+        },
+        {
+          "kind": "إلكتروني",
+          "type": "Word",
+          "name": "مسودة_رد.docx",
+          "secrecy": "عادي",
+          "by": "مستخدم تجريبي"
+        },
+        {
+          "kind": "إلكتروني",
+          "type": "Excel",
+          "name": "نموذج_متابعة.xlsx",
+          "secrecy": "عادي",
+          "by": "مستخدم تجريبي"
+        },
+        {
+          "kind": "إلكتروني",
+          "type": "صورة",
+          "name": "مرفق_توضيحي.png",
+          "secrecy": "عادي",
+          "by": "مستخدم تجريبي"
+        },
+        {
+          "kind": "مادي",
+          "type": "مستند ورقي",
+          "name": "أصل الخطاب",
+          "secrecy": "سري",
+          "by": "مستخدم تجريبي"
+        },
+        {
+          "kind": "إلكتروني",
+          "type": "ZIP",
+          "name": "مرفقات_مجمعة.zip",
+          "secrecy": "محدود التداول",
+          "by": "مستخدم تجريبي"
+        }
+      ]
+    },
+    "demo": {
+      "r1": {
+        "subject": "طلب اعتماد محضر لجنة",
+        "from": "وزارة / جهة عليا",
+        "to": "إدارة"
+      },
+      "r2": {
+        "subject": "إفادة بخصوص خطاب سابق",
+        "from": "جهة حكومية",
+        "to": "موظف"
+      },
+      "r3": {
+        "subject": "تعميم إجراءات الأرشفة",
+        "from": "شعبة المراسلات الإدارية",
+        "to": "مجموعة إدارات"
+      },
+      "r4": {
+        "subject": "مراسلة مورد بخصوص عقد",
+        "from": "جهة حكومية",
+        "to": "إدارة"
+      },
+      "r5": {
+        "subject": "طلب تزويد بيانات",
+        "from": "جهة حكومية",
+        "to": "موظف"
+      },
+      "r6": {
+        "subject": "طلب استكمال مستندات",
+        "from": "جهة حكومية",
+        "to": "إدارة"
+      },
+      "n1": {
+        "text": "لديك معاملة واردة جديدة برقم 1445/10304"
+      },
+      "n2": {
+        "text": "اقتربت مدة الرد لمعاملة 1445/10293"
+      },
+      "n3": {
+        "text": "تم إغلاق معاملة 1445/10294 بنجاح"
+      },
+      "u1": {
+        "name": "مستخدم تجريبي",
+        "dept": "شعبة المراسلات الإدارية",
+        "statusCode": "ACTIVE"
+      },
+      "u2": {
+        "name": "سارة الشهري",
+        "dept": "الإدارة العامة",
+        "statusCode": "ACTIVE"
+      },
+      "u3": {
+        "name": "محمد الحربي",
+        "dept": "إدارة الموارد البشرية",
+        "statusCode": "SUSPENDED"
+      }
+    }
   }
 }

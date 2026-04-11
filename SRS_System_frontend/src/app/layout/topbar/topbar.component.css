@@ -132,37 +132,6 @@
 }
 
 /* USER MENU */
-.lang-switch {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.lang-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #064635;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-}
-
-.lang-btn:hover {
-  background: #eef4f2;
-}
-
-.lang-btn.active {
-  background: #064635;
-  color: #fff;
-  border-color: #064635;
-}
-
 .user-menu{
   display:flex;
   align-items:center;
@@ -193,21 +162,6 @@
   font-weight:600;
   font-size:14px;
   flex-shrink: 0;
-}
-
-/* Match legacy avatar dimensions on shared {@link ErpUserAvatarComponent} */
-app-erp-user-avatar.topbar-erp-avatar ::ng-deep .erp-avatar--md {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #064635;
-  color: #fff;
-  font-size: 14px;
-}
-
-app-erp-user-avatar.topbar-erp-avatar ::ng-deep .erp-avatar__img {
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
 }
 
 .user-avatar-img {
@@ -500,4 +454,149 @@ app-erp-user-avatar.topbar-erp-avatar ::ng-deep .erp-avatar__img {
   font-weight:600;
   cursor:pointer;
   font-size:13px;
+}
+
+/* —— hesabaty-style shell controls: theme, language flags, profile menu —— */
+.account-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.theme-toggle {
+  color: #064635;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lang-btn {
+  padding-inline: 0.65rem;
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-weight: 700;
+  color: #374151;
+}
+
+.lang-btn .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.flag {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  margin-inline-end: 0.2rem;
+}
+
+.menu-flag {
+  margin-inline-end: 0.5rem;
+  vertical-align: middle;
+}
+
+.lang-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.active-dot {
+  margin-inline-start: auto;
+  color: #0b6e4f;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.profile-btn {
+  min-height: 48px;
+  padding-inline: 0.65rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  max-width: min(100%, 280px);
+}
+
+.profile-btn .mdc-button__label {
+  width: 100%;
+}
+
+.profile-btn__content {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.avatar,
+.avatar-image {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #064635, #0b6e4f);
+}
+
+.avatar-image {
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+}
+
+.user-copy {
+  min-width: 0;
+  text-align: start;
+}
+
+.user-name {
+  display: block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.role-line-inline {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+:host-context(html.dark-theme) .lang-btn,
+:host-context(html.dark-theme) .profile-btn {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+:host-context(html.dark-theme) .user-name {
+  color: #f8fafc !important;
+}
+
+:host-context(html.dark-theme) .theme-toggle {
+  color: #e2e8f0;
+}
+
+:host-context(html.dark-theme) .icon-btn.modern {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
 }

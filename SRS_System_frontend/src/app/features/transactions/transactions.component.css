@@ -1,3 +1,23 @@
+.page-header-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.page-header h2 {
+  margin: 0;
+  color: #064635;
+  font-size: 1.7rem;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
 /* ================================
    DASHBOARD CARDS
 ================================ */
@@ -126,6 +146,24 @@ grid-template-columns:1fr;
 
 .search-card{
   margin-bottom:22px;
+  padding: 18px 18px 20px;
+}
+
+.search-card > .title {
+  margin: 0 0 14px;
+}
+
+.search-card > .title h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #064635;
+}
+
+.search-card > .title small {
+  display: block;
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 .search-row{
@@ -152,6 +190,35 @@ grid-template-columns:1fr;
   display:flex;
   gap:8px;
   align-items:flex-end;
+  flex-wrap: wrap;
+}
+
+.search-buttons .btn,
+.table-open-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.search-buttons .btn {
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-weight: 700;
+}
+
+.search-buttons .btn.primary {
+  background: linear-gradient(135deg, #0b6e4f, #11855f);
+  box-shadow: 0 10px 20px rgba(11, 110, 79, 0.14);
+}
+
+.table-open-btn {
+  min-width: 100px;
+}
+
+.btn.small.primary {
+  background: linear-gradient(135deg, #0b6e4f, #11855f);
 }
 
 /* =============================
@@ -172,12 +239,21 @@ grid-template-columns:1fr;
 
 @media(max-width:700px){
 
+  .page-header-container{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
   .dashboard-cards{
     grid-template-columns:1fr;
   }
 
   .search-row{
     grid-template-columns:1fr;
+  }
+
+  .search-buttons .btn{
+    flex:1 1 100%;
   }
 
 }

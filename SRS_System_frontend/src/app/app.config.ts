@@ -11,15 +11,17 @@ import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/api/auth.interceptor';
-import { httpErrorInterceptor } from './core/api/http-error.interceptor';
 import { systemIssueReporterInterceptor } from './core/api/system-issue-reporter.interceptor';
 import { zonePatchHttpInterceptor } from './core/api/zone-patch-http.interceptor';
 import { catchError, firstValueFrom, of } from 'rxjs';
+import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
+import { successNotificationInterceptor } from './core/interceptors/success-notification.interceptor';
 
 import { routes } from './app.routes';
 import { I18nService, AppLang } from './core/i18n/i18n.service';
 import { LookupLabelsService } from './core/lookup/lookup-labels.service';
 import { AuthTokenService } from './core/auth/auth-token.service';
+import { ThemeService } from './core/theme/theme.service';
 
 function readStoredLang(): AppLang {
   try {
@@ -40,6 +42,7 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([
         zonePatchHttpInterceptor,
         authInterceptor,
+        successNotificationInterceptor,
         httpErrorInterceptor,
         systemIssueReporterInterceptor,
       ])
@@ -52,6 +55,7 @@ export const appConfig: ApplicationConfig = {
       const lookups = inject(LookupLabelsService);
       const ngZone = inject(NgZone);
       const appRef = inject(ApplicationRef);
+      inject(ThemeService);
 
       return (async () => {
         try {
@@ -107,6 +111,5 @@ export const appConfig: ApplicationConfig = {
     })
   ]
 };
-
 
 

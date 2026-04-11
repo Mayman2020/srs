@@ -1,6 +1,7 @@
 package com.gov.ac.modules.workflow.job;
 
 import com.gov.ac.domain.audit.AuditEvent;
+import com.gov.ac.modules.workflow.service.WorkflowService;
 import com.gov.ac.persistence.AuditEventRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -8,9 +9,7 @@ import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
-import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class WorkflowEscalationScheduler {
 
   private final TaskService taskService;
-  private final RuntimeService runtimeService;
+  private final WorkflowService workflowService;
   private final AuditEventRepository auditEventRepository;
 
   @Value("${ac.workflow.escalation.unassigned-after-minutes:120}")
@@ -42,13 +41,13 @@ public class WorkflowEscalationScheduler {
         taskService.createTaskQuery().taskUnassigned().taskCreatedBefore(before).active().list();
     for (Task t : tasks) {
       String pi = t.getProcessInstanceId();
-      Boolean sent = (Boolean) runtimeService.getVariable(pi, "escalationAuditLogged");
+      Boolean sent =
+          (Boolean)
+              workflowService.getProcessVariable(pi, "escalationAuditLogged").orElse(null);
       if (Boolean.TRUE.equals(sent)) {
         continue;
       }
-      ProcessInstance pinst =
-          runtimeService.createProcessInstanceQuery().processInstanceId(pi).singleResult();
-      String businessKey = pinst != null ? pinst.getBusinessKey() : null;
+      String businessKey = workflowService.findBusinessKey(pi).orElse(null);
       AuditEvent e = new AuditEvent();
       e.setActorUserId("SYSTEM");
       e.setActionCode("WF_TASK_STALE_UNASSIGNED");
@@ -63,7 +62,7 @@ public class WorkflowEscalationScheduler {
               + escape(businessKey)
               + "\"}");
       auditEventRepository.save(e);
-      runtimeService.setVariable(pi, "escalationAuditLogged", true);
+      workflowService.setProcessVariable(pi, "escalationAuditLogged", true);
       log.warn(
           "Workflow escalation audit: taskId={} processInstanceId={} businessKey={}",
           t.getId(),

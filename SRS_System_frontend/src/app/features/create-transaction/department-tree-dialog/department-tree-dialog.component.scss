@@ -51,31 +51,17 @@ $DOT:           8px;
 }
 
 /**=====================
-    DIALOG LAYOUT
+    DIALOG BODY (header/footer: app-erp-dialog)
 ==========================**/
-.dialog-title {
-  font-weight: 700 !important;
-  font-size: 1.2rem !important;
-  color: $primary !important;
-  padding: 22px 32px 18px !important;
-  margin: 0 !important;
-  position: relative;
-}
-
-.dialog-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 32px;
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, $primary, $primary-mid);
-  border-radius: 3px;
-}
-
 .dialog-content {
-  padding: 18px 24px;
+  padding: 4px 4px 12px;
   direction: rtl;
+}
+
+.muted {
+  margin: 0 0 8px;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 /**=====================
@@ -276,41 +262,3 @@ $DOT:           8px;
 
 
 
-/**=====================
-    DIALOG ACTIONS
-==========================**/
-.dialog-actions {
-  display:        flex        !important;
-  justify-content: flex-end     !important;  
-gap:           12px         !important;
-  padding:        16px 26px  !important;
-  border-top:     1px solid $border-light;
-}
-
-/**=====================
-    BUTTONS
-==========================**/
-.btn-primary {
-  background:    linear-gradient(135deg, $primary, $primary-mid) !important;
-  color:         #fff     !important;
-  border-radius: $radius  !important;
-  padding:       9px 24px !important;
-  font-weight:   600      !important;
-  box-shadow:    0 4px 14px rgba($primary, .25) !important;
-  transition:    box-shadow .2s, transform .15s !important;
-  border: none !important;
-
-  &:hover {
-    box-shadow: 0 6px 18px rgba($primary, .35) !important;
-    transform:  translateY(-1px)               !important;
-  }
-}
-
-.btn-outline {
-  border:        1px solid #d6d6d6 !important;
-  border-radius: $radius           !important;
-  padding:       9px 20px          !important;
-  transition:    background .2s    !important;
-
-  &:hover { background: #f5f5f5 !important; }
-}

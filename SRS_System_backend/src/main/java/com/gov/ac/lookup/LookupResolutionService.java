@@ -14,7 +14,7 @@ import com.gov.ac.persistence.ConfidentialityRepository;
 import com.gov.ac.persistence.CorrespondenceStatusRepository;
 import com.gov.ac.persistence.CorrespondenceTypeRepository;
 import com.gov.ac.persistence.PriorityRepository;
-import com.gov.ac.persistence.WorkflowActionTypeRepository;
+import com.gov.ac.correspondence.workflow.WorkflowActionResolutionService;
 import com.gov.ac.persistence.WorkflowHistoryEventTypeRepository;
 import com.gov.ac.common.api.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class LookupResolutionService {
   private final ClassificationRepository classificationRepository;
   private final AttachmentContentTypeRepository attachmentContentTypeRepository;
   private final WorkflowHistoryEventTypeRepository workflowHistoryEventTypeRepository;
-  private final WorkflowActionTypeRepository workflowActionTypeRepository;
+  private final WorkflowActionResolutionService workflowActionResolution;
 
   public CorrespondenceType requireActiveCorrespondenceType(String code) {
     return correspondenceTypeRepository
@@ -79,9 +79,21 @@ public class LookupResolutionService {
         .orElseThrow(() -> new BadRequestException("Unknown workflow history event type: " + code));
   }
 
+  /** Wildcard {@code workflow_action_type} rows only ({@code allowed_from} is null). */
   public WorkflowActionType requireActiveWorkflowActionType(String code) {
-    return workflowActionTypeRepository
-        .findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(code)
+    return workflowActionResolution
+        .resolveWildcardOnly(code)
         .orElseThrow(() -> new BadRequestException("Unknown workflow action type: " + code));
+  }
+
+  /** Resolves the row for a Camunda {@code wfDecision} and current correspondence status. */
+  public WorkflowActionType requireWorkflowActionForTransition(
+      String code, Long fromCorrespondenceStatusId) {
+    return workflowActionResolution
+        .resolveTransition(code, fromCorrespondenceStatusId)
+        .orElseThrow(
+            () ->
+                new BadRequestException(
+                    "Unknown workflow action for current status: " + code));
   }
 }

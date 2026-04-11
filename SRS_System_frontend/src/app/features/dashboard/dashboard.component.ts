@@ -31,6 +31,7 @@ import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
 import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
 import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
+import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 
 export type DashboardRecentRow = {
   id: string;
@@ -39,12 +40,21 @@ export type DashboardRecentRow = {
   subject: string;
   created: string;
   statusCode: string;
+  statusUiVariant: string | null;
 };
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatIcon, TranslatePipe, LookupTranslatePipe, SrsDataTableComponent, SrsSortHeaderComponent],
+  imports: [
+    CommonModule,
+    MatIcon,
+    TranslatePipe,
+    LookupTranslatePipe,
+    SrsDataTableComponent,
+    SrsSortHeaderComponent,
+    StatusBadgeComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   animations: [srsTableRowEnter]
@@ -110,10 +120,10 @@ export class DashboardComponent implements OnInit {
         this.dash = dash;
         this.total = dash.totalCorrespondences;
         this.overdueCount = dash.overdueCount;
-        this.done = this.countByStatusCodes(dash, ['COMPLETED', 'ARCHIVED']);
-        this.inProgress = this.countByStatusCodes(dash, ['IN_PROGRESS', 'PENDING_APPROVAL', 'RETURNED']);
-        this.incoming = this.countByStatusCodes(dash, ['NEW']);
-        this.outbound = this.countByType(recent, 'OUTBOUND');
+        this.done = dash.kpiSlaDoneCount ?? 0;
+        this.inProgress = dash.kpiPipelineCount ?? 0;
+        this.incoming = dash.kpiInboxCount ?? 0;
+        this.outbound = dash.kpiOutboundCount ?? 0;
 
         const denom = Math.max(this.total, 1);
         this.slaPercent = Math.min(100, Math.round((this.done / denom) * 100));
@@ -128,7 +138,8 @@ export class DashboardComponent implements OnInit {
           typeCode: t.typeCode,
           subject: t.subject,
           created: t.created,
-          statusCode: t.statusCode
+          statusCode: t.statusCode,
+          statusUiVariant: t.statusUiVariant ?? null,
         }));
         this.rebuildRecentTable();
         afterNextRender(
@@ -151,16 +162,6 @@ export class DashboardComponent implements OnInit {
         this.slaAction = 0;
       }
     });
-  }
-
-  private countByStatusCodes(d: DashboardResponseDto, codes: string[]): number {
-    const set = new Set(codes.map((c) => c.toUpperCase()));
-    return (d.byStatus ?? []).filter((b) => set.has(b.code.toUpperCase())).reduce((s, b) => s + b.count, 0);
-  }
-
-  private countByType(rows: { typeCode: string }[], code: string): number {
-    const u = code.toUpperCase();
-    return rows.filter((r) => (r.typeCode ?? '').toUpperCase() === u).length;
   }
 
   animateSla() {

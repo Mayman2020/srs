@@ -9,6 +9,9 @@ import com.gov.ac.feature.admin.dto.UpsertPermissionRequest;
 import com.gov.ac.feature.admin.dto.UpsertUiScreenRequest;
 import com.gov.ac.feature.admin.service.AdminConsoleService;
 import com.gov.ac.feature.admin.service.SystemIssueAdminService;
+import com.gov.ac.feature.workflow.ServiceWorkflowRouteService;
+import com.gov.ac.feature.workflow.dto.ServiceWorkflowRouteDto;
+import com.gov.ac.feature.workflow.dto.UpsertServiceWorkflowRouteRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,11 +29,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
-@PreAuthorize("@rbacExpressions.canManageUsers(authentication)")
+@PreAuthorize("@effectivePermission.has(authentication, 'user.manage')")
 public class AdminConsoleController {
 
   private final AdminConsoleService adminConsoleService;
   private final SystemIssueAdminService systemIssueAdminService;
+  private final ServiceWorkflowRouteService serviceWorkflowRouteService;
 
   @GetMapping("/permissions")
   public List<PermissionDto> listPermissions() {
@@ -94,5 +98,27 @@ public class AdminConsoleController {
   public SystemIssueDto resolveSystemIssue(
       @PathVariable Long id, @RequestBody(required = false) ResolveSystemIssueRequest body) {
     return systemIssueAdminService.resolve(id, body != null ? body : new ResolveSystemIssueRequest(null));
+  }
+
+  @GetMapping("/workflow-routes")
+  public List<ServiceWorkflowRouteDto> listWorkflowRoutes() {
+    return serviceWorkflowRouteService.listAllForAdmin();
+  }
+
+  @PostMapping("/workflow-routes")
+  public ServiceWorkflowRouteDto createWorkflowRoute(
+      @Valid @RequestBody UpsertServiceWorkflowRouteRequest body) {
+    return serviceWorkflowRouteService.create(body);
+  }
+
+  @PutMapping("/workflow-routes/{id}")
+  public ServiceWorkflowRouteDto updateWorkflowRoute(
+      @PathVariable long id, @Valid @RequestBody UpsertServiceWorkflowRouteRequest body) {
+    return serviceWorkflowRouteService.update(id, body);
+  }
+
+  @DeleteMapping("/workflow-routes/{id}")
+  public void deleteWorkflowRoute(@PathVariable long id) {
+    serviceWorkflowRouteService.delete(id);
   }
 }

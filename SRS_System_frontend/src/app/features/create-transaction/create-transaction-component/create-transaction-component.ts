@@ -28,10 +28,12 @@ import { DepartmentApiService } from '../../../core/api/department-api.service';
 import {
   CorrespondenceAttachmentFormDto,
   CorrespondenceCreateRequest,
-  LetterTemplateDto
+  LetterTemplateDto,
+  ServiceWorkflowRouteDto
 } from '../../../core/api/api-types';
 import { LetterTemplateApiService } from '../../../core/api/letter-template-api.service';
-import { Router } from '@angular/router';
+import { WorkflowRouteApiService } from '../../../core/api/workflow-route-api.service';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -40,6 +42,7 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
 import { GenericSelectComponent } from '../../../component/generic-select/generic-select.component';
+import { ErpAutoReferenceFieldComponent } from '../../../shared/erp/erp-auto-reference-field.component';
 import { EditorModule } from '@tinymce/tinymce-angular';
 import { DepartmentTreeDialogComponent } from '../department-tree-dialog/department-tree-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -71,7 +74,8 @@ type LetterTemplateItem = {
     GenericSelectComponent,
     EditorModule,
     TranslatePipe,
-    LookupTranslatePipe
+    LookupTranslatePipe,
+    ErpAutoReferenceFieldComponent
   ],
   templateUrl: './create-transaction-component.html',
   styleUrls: ['./create-transaction-component.css']
@@ -98,9 +102,15 @@ export class CreateTransactionComponent implements OnInit {
   transactionNumber = '';
   lastCreatedCorrespondenceId: string | null = null;
 
+  /** From route data (`supply-transaction`). */
+  supplyMode = false;
+
+  workflowRoutes: ServiceWorkflowRouteDto[] = [];
+
   private deptLabels = new Map<number, string>();
 
   ngOnInit(): void {
+    this.supplyMode = this.route.snapshot.data['supplyMode'] === true;
     this.editorConfig = {
       ...this.editorConfig,
       placeholder: this.i18n.instant('createTx.letterEditor.contentPlaceholder')
@@ -124,6 +134,10 @@ export class CreateTransactionComponent implements OnInit {
         this.priorityLevels = bundle.priorities.map((p) => ({ key: p.code }));
         this.classificationLevels = (bundle.classifications ?? []).map((c) => ({ key: c.code }));
         this.applyLetterTemplatesFromApi(templates ?? []);
+        const tc = this.basicForm.get('type')?.value;
+        if (tc) {
+          this.reloadWorkflowRoutes(tc);
+        }
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[CreateTransaction] lookup bundle load failed', err);
@@ -135,6 +149,14 @@ export class CreateTransactionComponent implements OnInit {
         this.classificationLevels = [];
         this.applyLetterTemplatesFromApi([]);
       },
+    });
+
+    this.basicForm.get('type')?.valueChanges.subscribe((code) => {
+      if (code) {
+        this.reloadWorkflowRoutes(code);
+      } else {
+        this.workflowRoutes = [];
+      }
     });
 
     this.departmentApi.list().subscribe({
@@ -150,23 +172,32 @@ export class CreateTransactionComponent implements OnInit {
     });
   }
 
-  generateBarcode() {
-
-    setTimeout(() => {
-
-      if (this.barcode?.nativeElement && this.transactionNumber) {
-
-        JsBarcode(this.barcode.nativeElement, this.transactionNumber, {
-          format: "CODE128",
-          width: 2,
-          height: 60,
-          displayValue: false
-        });
-
+  private reloadWorkflowRoutes(correspondenceTypeCode: string): void {
+    this.workflowRouteApi.listForCorrespondenceType(correspondenceTypeCode).subscribe({
+      next: (rows) => {
+        this.workflowRoutes = rows ?? [];
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.workflowRoutes = [];
       }
-
     });
+  }
 
+  generateBarcode() {
+    // Defer until after *ngIf renders step 5 so #barcode exists (ViewChild is not ready same tick as currentStep = 5).
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (this.barcode?.nativeElement && this.transactionNumber) {
+          JsBarcode(this.barcode.nativeElement, this.transactionNumber, {
+            format: 'CODE128',
+            width: 2,
+            height: 60,
+            displayValue: false
+          });
+        }
+      }, 0);
+    });
   }
 
   goToStep(step: number) {
@@ -174,6 +205,7 @@ export class CreateTransactionComponent implements OnInit {
       this.currentStep = step;
 
       if (step === 5) {
+        this.cdr.detectChanges();
         this.generateBarcode();
       }
     }
@@ -258,6 +290,7 @@ export class CreateTransactionComponent implements OnInit {
     private transactionService: TransactionService,
     private attachmentApi: AttachmentApiService,
     private departmentApi: DepartmentApiService,
+    private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -265,6 +298,7 @@ export class CreateTransactionComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private lookupService: LookupService,
     private letterTemplateApi: LetterTemplateApiService,
+    private workflowRouteApi: WorkflowRouteApiService,
     private i18n: I18nService,
     private lookupLabels: LookupLabelsService
   ) {
@@ -286,7 +320,12 @@ export class CreateTransactionComponent implements OnInit {
       cc: this.fb.array<number>([]),
       maxDays: [5, [Validators.required, Validators.min(1), Validators.max(30)]],
       workflowFirstAssigneeUserId: [''],
-      workflowFirstCandidateGroup: ['']
+      workflowFirstCandidateGroup: [''],
+      workflowRouteMode: ['AUTO'],
+      serviceWorkflowRouteId: [null as number | null],
+      beneficiaryName: [''],
+      beneficiaryOrganization: [''],
+      beneficiaryIdentifier: ['']
     });
 
     // Step 3
@@ -678,13 +717,21 @@ export class CreateTransactionComponent implements OnInit {
 
     this.isLoading = true;
 
+    const wfMode = (this.secondaryForm.value.workflowRouteMode ?? 'AUTO').toString();
+    const routeId = this.secondaryForm.value.serviceWorkflowRouteId as number | null;
+    if (wfMode === 'MANUAL' && (routeId == null || !Number.isFinite(Number(routeId)))) {
+      this.isLoading = false;
+      this.showNotification(this.i18n.instant('createTx.validation.workflowRouteManual'), 'error');
+      return;
+    }
+
     const att = this.attachments;
     const uploads$ =
       att.length === 0
         ? of([] as CorrespondenceAttachmentFormDto[])
         : forkJoin(
             att.map((a) =>
-              this.attachmentApi.upload(a.file).pipe(
+              this.attachmentApi.upload(a.file, 'CREATE').pipe(
                 map(
                   (up): CorrespondenceAttachmentFormDto => ({
                     displayName: (a.name || a.file.name).trim(),
@@ -718,7 +765,17 @@ export class CreateTransactionComponent implements OnInit {
           dueDate: due.toISOString(),
           attachments: flat.length ? flat : undefined,
           ...(wfUser ? { workflowFirstAssigneeUserId: wfUser } : {}),
-          ...(wfRole ? { workflowFirstCandidateGroup: wfRole } : {})
+          ...(wfRole ? { workflowFirstCandidateGroup: wfRole } : {}),
+          workflowRouteMode: wfMode,
+          ...(wfMode === 'MANUAL' && routeId != null
+            ? { serviceWorkflowRouteId: routeId }
+            : {}),
+          ...(this.supplyMode ? { supplyTransaction: true } : {}),
+          beneficiaryName: (this.secondaryForm.value.beneficiaryName ?? '').trim() || null,
+          beneficiaryOrganization:
+            (this.secondaryForm.value.beneficiaryOrganization ?? '').trim() || null,
+          beneficiaryIdentifier:
+            (this.secondaryForm.value.beneficiaryIdentifier ?? '').trim() || null
         };
 
         this.transactionService.create(body).subscribe({
@@ -727,8 +784,7 @@ export class CreateTransactionComponent implements OnInit {
             this.transactionNumber = res.referenceNumber;
             this.lastCreatedCorrespondenceId = res.id;
             this.showNotification(this.i18n.instant('createTx.submit.success'), 'success');
-            setTimeout(() => this.goToStep(5), 0);
-            setTimeout(() => this.generateBarcode(), 0);
+            this.goToStep(5);
           },
           error: (error: { status?: number; error?: { message?: string }; userMessage?: string }) => {
             this.isLoading = false;
@@ -752,7 +808,12 @@ export class CreateTransactionComponent implements OnInit {
     this.secondaryForm.reset({
       maxDays: 5,
       workflowFirstAssigneeUserId: '',
-      workflowFirstCandidateGroup: ''
+      workflowFirstCandidateGroup: '',
+      workflowRouteMode: 'AUTO',
+      serviceWorkflowRouteId: null,
+      beneficiaryName: '',
+      beneficiaryOrganization: '',
+      beneficiaryIdentifier: ''
     });
     if (this.letterTemplates[0]) {
       this.onTemplateChange(this.letterTemplates[0].key);
