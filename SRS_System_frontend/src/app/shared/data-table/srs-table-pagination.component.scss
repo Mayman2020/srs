@@ -6,12 +6,12 @@
   gap: 14px;
   padding: 20px 0 8px;
   margin-top: 16px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
   font-size: 13px;
 }
 
 .srs-pager__info {
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
   min-width: 160px;
 }
@@ -31,17 +31,17 @@
 .srs-pager__nav {
   padding: 6px 14px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #374151;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  color: var(--text-color);
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .srs-pager__nav:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: var(--surface-muted);
+  border-color: color-mix(in srgb, var(--border-color) 72%, var(--primary-color));
 }
 
 .srs-pager__nav:disabled {
@@ -55,25 +55,25 @@
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: #374151;
+  color: var(--text-color);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .srs-pager__page:hover {
-  background: #eef4f2;
+  background: color-mix(in srgb, var(--surface-muted) 80%, transparent);
 }
 
 .srs-pager__page--active {
-  background: #0b6e4f;
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(11, 110, 79, 0.25);
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--primary-color) 30%, transparent);
 }
 
 .srs-pager__gap {
   padding: 0 4px;
-  color: #94a3b8;
+  color: var(--text-subtle);
   user-select: none;
 }
 
@@ -88,7 +88,7 @@
   gap: 8px;
   margin: 0;
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .srs-pager__size-text {
@@ -98,8 +98,9 @@
 .srs-pager__size select {
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  color: var(--text-color);
   font-size: 13px;
 }
 

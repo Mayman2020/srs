@@ -18,7 +18,7 @@
       <div class="meta">
         <span class="title">{{ r.title }}</span>
         <span class="chip" *ngIf="r.broadcast">{{ 'circularInbox.broadcast' | t }}</span>
-        <span class="date">{{ r.createdAt | date : 'medium' }}</span>
+        <span class="date">{{ (r.createdAt | date : 'medium') | latinDigits }}</span>
       </div>
       <div class="by">{{ r.createdBy }}</div>
       <button

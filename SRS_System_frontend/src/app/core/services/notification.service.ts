@@ -3,6 +3,7 @@ import { NotificationParams, NotificationType, ToastNotification } from '../mode
 
 const DEFAULT_DURATION_MS = 4500;
 const DEDUPE_WINDOW_MS = 500;
+const MAX_STACK = 4;
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -29,8 +30,20 @@ export class NotificationService {
     this.enqueue('info', { messageKey, params });
   }
 
+  successRaw(messageText: string): void {
+    this.enqueue('success', { messageText });
+  }
+
   errorRaw(messageText: string): void {
     this.enqueue('error', { messageText });
+  }
+
+  warningRaw(messageText: string): void {
+    this.enqueue('warning', { messageText });
+  }
+
+  infoRaw(messageText: string): void {
+    this.enqueue('info', { messageText });
   }
 
   dismiss(id: string): void {
@@ -73,7 +86,16 @@ export class NotificationService {
       createdAt: now
     };
 
-    this.itemsSignal.update((items) => [...items, item]);
+    this.itemsSignal.update((items) => {
+      const next = [...items, item];
+      while (next.length > MAX_STACK) {
+        const removed = next.shift();
+        if (removed) {
+          this.clearTimer(removed.id);
+        }
+      }
+      return next;
+    });
     this.timers.set(
       item.id,
       setTimeout(() => this.dismiss(item.id), item.durationMs)

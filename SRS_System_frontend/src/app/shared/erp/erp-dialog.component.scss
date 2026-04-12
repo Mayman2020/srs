@@ -2,6 +2,8 @@
   --erp-dialog-pad: 20px;
   display: block;
   min-width: min(100vw - 48px, 420px);
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 .erp-dialog--wide {
@@ -13,18 +15,16 @@
   align-items: center;
   gap: 10px;
   margin: 0;
-  padding: var(--erp-dialog-pad) var(--erp-dialog-pad) 0;
-  font-size: 1.125rem;
+  padding: 12px var(--erp-dialog-pad);
+  font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text, #0f172a);
-}
-
-:root[data-theme='dark'] .erp-dialog__header {
-  color: var(--text, #e5e7eb);
+  color: var(--text-on-primary);
+  background: var(--menu-bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-on-primary) 18%, transparent);
 }
 
 .erp-dialog__header-icon {
-  color: var(--g-600, #0b6e4f);
+  color: var(--gov-gold);
   flex-shrink: 0;
 }
 
@@ -38,12 +38,22 @@
   flex: 0 0 0;
 }
 
+.erp-dialog__close {
+  color: var(--text-on-primary);
+  opacity: 0.92;
+}
+
+.erp-dialog__close:hover {
+  background: color-mix(in srgb, var(--text-on-primary) 16%, transparent);
+  opacity: 1;
+}
+
 .erp-dialog__content {
-  padding: 12px var(--erp-dialog-pad) 8px !important;
+  padding: 14px var(--erp-dialog-pad) 8px !important;
   margin: 0 !important;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--muted, #6b7280);
+  color: var(--text-muted);
 }
 
 .erp-dialog__actions {
@@ -56,4 +66,30 @@
   margin: 0 !important;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+:host ::ng-deep .erp-dialog__actions .dialog-confirm-btn {
+  background: var(--action-confirm-bg) !important;
+  border: 1px solid var(--action-confirm-border) !important;
+  color: var(--action-confirm-text) !important;
+  font-weight: 700;
+}
+
+:host ::ng-deep .erp-dialog__actions .dialog-confirm-btn:hover {
+  background: var(--action-confirm-bg-hover) !important;
+}
+
+:host ::ng-deep .erp-dialog__actions .dialog-confirm-btn:disabled {
+  opacity: 0.55;
+}
+
+:host ::ng-deep .erp-dialog__actions .dialog-cancel-btn {
+  background: var(--action-cancel-bg) !important;
+  border: 1px solid var(--action-cancel-border) !important;
+  color: var(--action-cancel-text) !important;
+  font-weight: 700;
+}
+
+:host ::ng-deep .erp-dialog__actions .dialog-cancel-btn:hover {
+  background: var(--action-cancel-bg-hover) !important;
 }

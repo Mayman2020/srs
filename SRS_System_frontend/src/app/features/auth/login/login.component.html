@@ -112,18 +112,6 @@
           </a>
         </div>
       </form>
-
-      <div
-        class="toast show"
-        *ngIf="toast.show"
-        [class.toast-success]="toast.kind === 'success'"
-        [class.toast-error]="toast.kind === 'error'"
-        [class.toast-info]="toast.kind === 'info'"
-        role="status"
-        aria-live="polite">
-        <b>{{ toast.title }}</b>
-        <p>{{ toast.message }}</p>
-      </div>
     </div>
   </section>
 </div>

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { NotificationApiService } from '../../core/api/notification-api.service';
 import { NotificationItemDto } from '../../core/api/api-types';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { forkJoin } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -24,7 +25,7 @@ export interface NotificationItem {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, LatinDigitsPipe],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss',
 })

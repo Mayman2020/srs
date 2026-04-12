@@ -8,13 +8,16 @@ import { CurrentUserProfileApiService } from '../../../core/api/current-user-pro
 import { NotificationApiService } from '../../../core/api/notification-api.service';
 import { AuthTokenService } from '../../../core/auth/auth-token.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { UiFormatService } from '../../../core/i18n/ui-format.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { SidebarService } from '../../../services/sidebar.service';
 import { ErpUserProfileStore } from '../../erp/erp-user-profile.store';
 import {
   HeaderComponent,
   HeaderLanguageItem,
-  HeaderNotificationItem
+  HeaderNotificationItem,
+  HeaderRoleItem
 } from './header.component';
 
 @Component({
@@ -24,6 +27,7 @@ import {
   template: `
     <app-header
       [profileName]="profile().displayName"
+      [profileRole]="profileRole"
       [profileInitials]="profile().initials"
       [profileAvatarUrl]="profile().avatarPrimarySrc"
       [activeLanguage]="activeLanguage"
@@ -33,12 +37,17 @@ import {
       [notificationsOpen]="notificationsOpen"
       [isDark]="theme.isDark"
       [submenuXPosition]="submenuXPosition"
+      [roleOptions]="roleOptions"
+      [currentRoleCode]="profile().currentRole"
+      [roleSwitching]="switchingRole"
+      (menuToggle)="toggleSidebar()"
       (notificationsToggle)="toggleNotifications()"
       (notificationsClose)="notificationsOpen = false"
       (notificationSelected)="openNotification($event)"
       (markAllNotificationsRead)="markAllRead()"
       (themeToggle)="toggleTheme()"
       (languageSelected)="selectLanguage($event)"
+      (roleSelected)="selectRole($event)"
       (logout)="logout()"></app-header>
   `
 })
@@ -51,6 +60,8 @@ export class HeaderContainerComponent {
   private readonly profileApi = inject(CurrentUserProfileApiService);
   private readonly notificationApi = inject(NotificationApiService);
   private readonly notification = inject(NotificationService);
+  private readonly format = inject(UiFormatService);
+  private readonly sidebar = inject(SidebarService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
 
@@ -61,6 +72,7 @@ export class HeaderContainerComponent {
   readonly languages: readonly HeaderLanguageItem[] = this.i18n.languages;
   notifications: HeaderNotificationItem[] = [];
   notificationsOpen = false;
+  switchingRole = false;
 
   constructor() {
     interval(30_000)
@@ -93,12 +105,35 @@ export class HeaderContainerComponent {
     return this.notifications.filter((item) => !item.read).length;
   }
 
+  get profileRole(): string {
+    const currentRole = this.profile().currentRole?.trim();
+    if (!currentRole) {
+      return this.i18n.instant('profile.sidebarSignedIn');
+    }
+    return this.resolveRoleLabel(currentRole);
+  }
+
+  get roleOptions(): HeaderRoleItem[] {
+    const currentRole = this.profile().currentRole?.trim() ?? '';
+    const fallback = currentRole ? [currentRole] : [];
+    const codes = [...this.profile().roles, ...fallback].filter((code) => !!code?.trim());
+    const uniqueCodes = [...new Set(codes)];
+    return uniqueCodes.map((code) => ({
+      code,
+      label: this.resolveRoleLabel(code)
+    }));
+  }
+
   get submenuXPosition(): 'before' | 'after' {
     return this.i18n.currentDirection === 'rtl' ? 'before' : 'after';
   }
 
   toggleNotifications(): void {
     this.notificationsOpen = !this.notificationsOpen;
+  }
+
+  toggleSidebar(): void {
+    this.sidebar.toggle();
   }
 
   openNotification(item: HeaderNotificationItem): void {
@@ -159,6 +194,33 @@ export class HeaderContainerComponent {
         error: (err: unknown) => {
           console.error('[HeaderContainer] language load failed', err);
           this.notification.error('notification.error.general');
+        }
+      });
+  }
+
+  selectRole(roleCode: string): void {
+    const current = this.profile().currentRole?.trim();
+    if (!roleCode?.trim() || roleCode === current || this.switchingRole) {
+      return;
+    }
+
+    this.switchingRole = true;
+    this.authApi
+      .switchRole(roleCode)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.switchingRole = false;
+          window.location.reload();
+        },
+        error: (err: HttpErrorResponse & { userMessage?: string }) => {
+          this.switchingRole = false;
+          const message = err.userMessage?.trim();
+          if (message) {
+            this.notification.errorRaw(message);
+            return;
+          }
+          this.notification.error('topbar.roleSwitchError');
         }
       });
   }
@@ -239,13 +301,12 @@ export class HeaderContainerComponent {
     if (!value) {
       return '';
     }
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '';
-    }
-    return new Intl.DateTimeFormat(this.i18n.currentLang() === 'ar' ? 'ar' : 'en', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    }).format(date);
+    return this.format.formatDate(value, 'dd MMM y - hh:mm a');
+  }
+
+  private resolveRoleLabel(roleCode: string): string {
+    const key = `roles.codes.${roleCode}`;
+    const label = this.i18n.instant(key);
+    return label === key ? roleCode : label;
   }
 }

@@ -5,13 +5,13 @@
   <p>{{ data.messageKey | t: data.params }}</p>
 
   <div dialogActions>
-    <button mat-stroked-button type="button" (click)="cancel()">
+    <button mat-stroked-button type="button" class="dialog-cancel-btn" (click)="cancel()">
       {{ (data.cancelButton?.labelKey ?? 'common.close') | t }}
     </button>
     <button
       mat-flat-button
+      class="dialog-confirm-btn"
       type="button"
-      [color]="data.confirmButton?.color ?? 'primary'"
       (click)="confirm()">
       {{ (data.confirmButton?.labelKey ?? 'common.confirm') | t }}
     </button>

@@ -62,6 +62,13 @@ export class CurrentUserProfileApiService {
       .pipe(tap(() => this.refresh()));
   }
 
+  getMyAvatarBlob(): Observable<Blob> {
+    return this.http.get(`${this.base}/profile/me/avatar`, {
+      responseType: 'blob',
+      context: withSilentNotifications()
+    });
+  }
+
   updateMyPassword(body: {
     currentPassword: string;
     newPassword: string;

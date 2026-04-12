@@ -5,7 +5,7 @@
   <p>{{ data.messageKey | t: data.params }}</p>
 
   <div dialogActions>
-    <button mat-flat-button type="button" color="primary" (click)="close()">
+    <button mat-flat-button type="button" class="dialog-confirm-btn" (click)="close()">
       {{ (data.closeButton?.labelKey ?? 'common.close') | t }}
     </button>
   </div>

@@ -1,86 +1,82 @@
-<button class="ai-fab" (click)="toggle()">
-   <img src="assets/img/ai_icon.png" [attr.alt]="'chat.assistant' | t" class="ai-icon" />
+<button class="ai-fab" type="button" (click)="toggle()" [attr.aria-expanded]="open">
+  <img src="assets/img/ai_icon.png" [attr.alt]="'chat.assistant' | t" class="ai-icon" />
 </button>
 
 <section class="ai-panel" [class.show]="open">
-
-  <!-- HEADER -->
-
   <div class="ai-head">
-
     <div class="ai-brand">
-
-      <div>
-           <img src="assets/img/ai_icon.png" [attr.alt]="'chat.assistant' | t" class="ai-icon" />
-      </div>
-
+      <img src="assets/img/ai_icon.png" [attr.alt]="'chat.assistant' | t" class="ai-brand__icon" />
       <div class="ai-title">
-        <b>{{ 'chat.assistant' | t }}</b>
+        <strong>{{ 'chat.assistant' | t }}</strong>
+        <span>{{ 'chat.subtitle' | t }}</span>
       </div>
-
     </div>
 
-    <button class="ai-close" (click)="open=false">
-      ✕
+    <button class="ai-close" type="button" (click)="open = false">
+      <span aria-hidden="true">&times;</span>
     </button>
-
   </div>
 
-
-  <!-- CHAT -->
-
-  <div class="ai-body">
-
-    <div
-      class="ai-msg"
-      *ngFor="let m of messages"
-      [class.me]="m.role==='user'"
-      [class.bot]="m.role==='bot'">
-
-      <div class="ai-bubble">
-
-        <div class="ai-content" [innerHTML]="m.text"></div>
-
-        <span class="ai-time">
-          {{m.time}}
-        </span>
-
+  <div class="ai-body" #messageViewport>
+    @if (!messages.length) {
+      <div class="ai-empty">
+        <strong>{{ 'chat.emptyTitle' | t }}</strong>
+        <p>{{ 'chat.emptyCopy' | t }}</p>
       </div>
+    }
 
-    </div>
+    @for (message of messages; track trackMessage($index, message)) {
+      <div
+        class="ai-msg"
+        [class.ai-msg--user]="message.role === 'user'"
+        [class.ai-msg--assistant]="message.role === 'assistant'">
+        <div class="ai-bubble" [class.ai-bubble--pending]="message.pending" [class.ai-bubble--error]="message.error">
+          <p class="ai-content">{{ message.text }}</p>
 
+          @if (message.actions?.length) {
+            <div class="ai-actions ai-actions--inline">
+              @for (action of message.actions; track action.id) {
+                <button class="ai-action" type="button" (click)="onAction(action)">
+                  {{ action.label }}
+                </button>
+              }
+            </div>
+          }
+
+          <span class="ai-time">{{ message.createdAt }}</span>
+        </div>
+      </div>
+    }
   </div>
-
-
-  <!-- QUICK ACTIONS -->
 
   <div class="ai-actions">
-
-    <button
-      class="ai-action"
-      *ngFor="let sk of suggestionKeys"
-      (click)="sendSuggestionKey(sk)">
-
-      {{ sk | t }}
-
-    </button>
-
+    @for (suggestionKey of suggestionKeys; track suggestionKey) {
+      <button class="ai-action" type="button" (click)="sendSuggestionKey(suggestionKey)">
+        {{ suggestionKey | t }}
+      </button>
+    }
   </div>
 
-
-  <!-- INPUT -->
+  @if (requestError) {
+    <div class="ai-error-bar">
+      <span>{{ 'chat.errorInline' | t }}</span>
+      <button type="button" class="ai-retry" (click)="retry()">{{ 'chat.retry' | t }}</button>
+    </div>
+  }
 
   <div class="ai-foot">
-
-    <button class="ai-send" (click)="send()">
-      {{ 'chat.send' | t }}
-    </button>
-
     <input
       [(ngModel)]="query"
+      [disabled]="loading"
       (keydown.enter)="send()"
       [attr.placeholder]="'chat.inputPlaceholder' | t" />
 
+    <button class="ai-send" type="button" [disabled]="loading || !query.trim()" (click)="send()">
+      @if (loading) {
+        <span class="ai-send__loader"></span>
+      } @else {
+        {{ 'chat.send' | t }}
+      }
+    </button>
   </div>
-
 </section>

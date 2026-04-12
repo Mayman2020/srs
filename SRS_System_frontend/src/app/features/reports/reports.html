@@ -29,22 +29,22 @@
       <div class="kpi-grid">
         <div class="kpi">
           <span>{{ 'reports.kpiTotal' | t }}</span>
-          <b>{{ kpis.total }}</b>
+          <b>{{ formatMetric(kpis.total) }}</b>
         </div>
 
         <div class="kpi success">
           <span>{{ 'reports.kpiDone' | t }}</span>
-          <b>{{ kpis.done }}</b>
+          <b>{{ formatMetric(kpis.done) }}</b>
         </div>
 
         <div class="kpi danger">
           <span>{{ 'reports.kpiLate' | t }}</span>
-          <b>{{ kpis.late }}</b>
+          <b>{{ formatMetric(kpis.late) }}</b>
         </div>
 
         <div class="kpi">
           <span>{{ 'reports.kpiAvg' | t }}</span>
-          <b>{{ kpis.avg }}</b>
+          <b>{{ formatMetric(kpis.avg) }}</b>
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@
             </td>
             <td>{{ tx.typeCode | lk:'correspondenceType' }}</td>
             <td>{{ tx.subject }}</td>
-            <td>{{ tx.created }}</td>
+            <td>{{ formatCreated(tx.created) }}</td>
             <td>
               <app-status-badge
                 [code]="tx.statusCode"

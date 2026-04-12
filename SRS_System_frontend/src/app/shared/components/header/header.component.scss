@@ -3,47 +3,92 @@
   top: 0;
   z-index: 1000;
   border-bottom: 1px solid var(--header-border);
-  box-shadow: 0 6px 18px rgba(15, 35, 65, 0.06);
+  background: color-mix(in srgb, var(--header-bg) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 28px rgba(15, 35, 65, 0.08);
 }
 
 .toolbar {
-  min-height: 82px;
+  min-height: 72px;
   background: var(--header-bg);
-  padding: 0 clamp(0.75rem, 2vw, 1rem);
+  padding: 0.75rem clamp(1rem, 2.5vw, 1.5rem);
   display: flex;
   align-items: center;
-  gap: 1rem;
   width: 100%;
 }
 
 .toolbar-main,
 .toolbar-end,
 .account-side,
-.profile-btn__content,
-.user-copy {
+.profile-btn__content {
   display: flex;
   align-items: center;
 }
 
 .toolbar-main {
   flex: 1 1 auto;
-  justify-content: flex-end;
+  justify-content: space-between;
   min-width: 0;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .toolbar-end {
   min-width: 0;
 }
 
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.toolbar-brand__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.menu-toggle {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-main);
+}
+
+.toolbar-brand__eyebrow,
+.toolbar-brand__title,
+.user-name,
+.user-role {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-brand__eyebrow {
+  color: var(--text-muted);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.toolbar-brand__title {
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
 .account-side {
-  gap: 0.65rem;
-  flex-wrap: nowrap;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .account-side .profile-btn,
 .account-side .header-icon-btn,
-.account-side .theme-toggle,
 .account-side .lang-btn {
   flex: 0 0 auto;
 }
@@ -58,35 +103,26 @@ html[dir='rtl'] .toolbar-main {
   flex-direction: row-reverse;
 }
 
-.theme-toggle {
-  color: var(--text-main);
-  border-radius: 12px;
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  margin: 0;
-  padding: 0;
-}
-
 .header-shell__notifications {
   position: relative;
 }
 
 .header-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
   color: var(--text-main);
   position: relative;
+  background: var(--surface-muted);
 }
 
 .header-icon-btn.has-badge::after {
   content: '';
   position: absolute;
-  top: 4px;
-  inset-inline-end: 4px;
-  width: 8px;
-  height: 8px;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--error-color);
   box-shadow: 0 0 8px rgba(220, 38, 38, 0.45);
@@ -94,15 +130,15 @@ html[dir='rtl'] .toolbar-main {
 
 .lang-btn,
 .profile-btn {
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .lang-btn {
-  padding-inline: 0.7rem;
-  background: transparent;
+  padding-inline: 0.7rem 0.85rem;
+  background: var(--surface-muted);
   border: 0 !important;
   box-shadow: none !important;
-  min-height: 40px;
+  min-height: 42px;
 }
 
 .flag {
@@ -124,19 +160,59 @@ html[dir='rtl'] .toolbar-main {
 
 .active-dot {
   margin-inline-start: auto;
-  color: #0d7a39;
+  color: var(--success-color);
   font-size: 0.9rem;
   line-height: 1;
 }
 
 .profile-btn {
-  min-height: 50px;
-  padding-inline: 0.65rem 0.9rem;
-  background: transparent;
+  min-height: 48px;
+  padding-inline: 0.55rem 0.85rem;
+  background: var(--surface-muted);
   border: 0 !important;
   box-shadow: none;
   overflow: hidden;
   max-width: 100%;
+}
+
+.role-switch-btn {
+  min-height: 42px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  border: 0 !important;
+  box-shadow: none !important;
+  padding-inline: 0.55rem 0.75rem;
+}
+
+.role-switch-btn .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.role-switch-btn__label {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.role-switch-btn__icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+.role-option-check {
+  margin-inline-start: auto;
+  color: var(--success-color);
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .lang-btn .mdc-button__label,
@@ -150,83 +226,66 @@ html[dir='rtl'] .toolbar-main {
   width: 100%;
 }
 
-.avatar,
-.avatar-image {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  flex: 0 0 36px;
-}
-
-.avatar {
-  display: grid;
-  place-items: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #0f4ea9, #3f8fda);
-}
-
-.avatar-image {
-  object-fit: cover;
-  border: 1px solid var(--input-border);
-  display: block;
-}
-
 .profile-btn__content {
-  min-height: 36px;
+  min-height: 38px;
   max-width: 100%;
   min-width: 0;
+  gap: 0.7rem;
 }
 
 .user-copy {
-  min-height: 36px;
+  min-height: 38px;
   min-width: 0;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
 }
 
 .user-name {
   max-width: 190px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   color: var(--text-main);
-  font-size: 0.96rem;
+  font-size: 0.92rem;
+}
+
+.user-role {
+  max-width: 190px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 :host-context(.dark-theme) .lang-btn,
-:host-context(.dark-theme) .profile-btn {
-  color: #ffffff !important;
-}
-
-:host-context(.dark-theme) .lang-name,
-:host-context(.dark-theme) .user-name,
-:host-context(.dark-theme) .theme-toggle,
-:host-context(.dark-theme) .header-icon-btn {
+:host-context(.dark-theme) .profile-btn,
+:host-context(.dark-theme) .header-icon-btn,
+:host-context(.dark-theme) .role-switch-btn {
   color: #ffffff !important;
 }
 
 .account-side .mat-mdc-button-base {
-  transition: background-color 0.18s ease, color 0.18s ease;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .account-side .mat-mdc-button-base:hover,
-.theme-toggle:hover {
-  background: rgba(10, 31, 68, 0.08);
+.account-side .mat-mdc-button-base:focus-visible {
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-muted));
+  transform: translateY(-1px);
 }
 
 :host-context(.dark-theme) .account-side .mat-mdc-button-base:hover,
-:host-context(.dark-theme) .theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
+:host-context(.dark-theme) .account-side .mat-mdc-button-base:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .header-shell__panel {
   position: absolute;
-  inset-block-start: calc(100% + 0.5rem);
+  inset-block-start: calc(100% + 0.65rem);
   inset-inline-end: 0;
-  width: min(24rem, calc(100vw - 2rem));
+  width: min(26rem, calc(100vw - 2rem));
   background: var(--surface-elevated);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -262,6 +321,11 @@ html[dir='rtl'] .toolbar-main {
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 600;
+}
+
+.header-shell__link-button:disabled {
+  color: var(--text-subtle);
+  cursor: default;
 }
 
 .header-shell__notification-list {
@@ -311,6 +375,7 @@ html[dir='rtl'] .toolbar-main {
 .header-shell__notification-copy small {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-shell__notification-copy strong {
@@ -346,9 +411,7 @@ html[dir='rtl'] .toolbar-main {
 
 @media (max-width: 1180px) {
   .toolbar {
-    padding-block: 0.75rem;
-    flex-direction: column !important;
-    align-items: stretch;
+    min-height: auto;
   }
 
   .toolbar-main,
@@ -359,12 +422,7 @@ html[dir='rtl'] .toolbar-main {
   }
 
   .toolbar-main {
-    flex-direction: column !important;
-    align-items: stretch;
-  }
-
-  .toolbar-end {
-    order: -1;
+    align-items: flex-start;
   }
 }
 
@@ -381,11 +439,24 @@ html[dir='rtl'] .toolbar-main {
   }
 
   .account-side {
-    justify-content: flex-start;
+    justify-content: space-between;
   }
 
   .profile-btn {
     width: 100%;
     max-width: 100%;
+  }
+
+  .role-switch-btn {
+    width: 100%;
+  }
+
+  .header-shell__panel {
+    inset-inline: 0;
+    width: auto;
+  }
+
+  .toolbar-brand__title {
+    font-size: 0.92rem;
   }
 }

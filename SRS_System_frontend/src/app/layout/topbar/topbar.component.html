@@ -27,7 +27,6 @@
     <div class="notification-wrapper">
 
       <button type="button" class="icon-btn modern"
-              [attr.title]="'topbar.notificationsIconTitle' | t"
               (click)="toggleNotifications()">
 
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,8 +99,7 @@
       mat-icon-button
       type="button"
       class="theme-toggle"
-      (click)="toggleTheme()"
-      [matTooltip]="themeTooltip | t">
+      (click)="toggleTheme()">
       <mat-icon *ngIf="theme.isDark">light_mode</mat-icon>
       <mat-icon *ngIf="!theme.isDark">dark_mode</mat-icon>
     </button>
@@ -111,8 +109,7 @@
       mat-button
       type="button"
       class="lang-btn"
-      [matMenuTriggerFor]="langMenu"
-      [matTooltip]="'topbar.languageMenu' | t">
+      [matMenuTriggerFor]="langMenu">
       <img class="flag" [src]="activeLanguage.flagUrl" [attr.alt]="languageLabel(activeLanguage)" />
       <span class="lang-name">{{ languageNativeLabel(activeLanguage) }}</span>
     </button>
@@ -130,8 +127,7 @@
         mat-button
         type="button"
         class="profile-btn"
-        [matMenuTriggerFor]="accountMenu"
-        [matTooltip]="'topbar.profileMenuAria' | t">
+        [matMenuTriggerFor]="accountMenu">
         <span class="profile-btn__content">
           <img *ngIf="profile().avatarPrimarySrc; else avatarFallback" class="avatar-image" [src]="profile().avatarPrimarySrc" [alt]="profile().displayName" />
           <ng-template #avatarFallback>

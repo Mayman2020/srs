@@ -15,6 +15,7 @@ import {
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 
 /** Standalone users page (original app layout) backed by `/api/v1/users`. */
@@ -50,7 +51,7 @@ export class UsersComponent implements OnInit {
     active: boolean;
   } = this.emptyUserForm();
 
-  assignRoleId: number | null = null;
+  assignRoleIds: number[] = [];
   assignTargetUserId: string | null = null;
 
   constructor(
@@ -58,6 +59,7 @@ export class UsersComponent implements OnInit {
     private deptApi: DepartmentApiService,
     private roleApi: RoleApiService,
     private i18n: I18nService,
+    private notification: NotificationService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
@@ -174,8 +176,17 @@ export class UsersComponent implements OnInit {
   openAssignModal(u: UserListDto): void {
     this.syncViewAfterAsyncMutation(() => {
       this.assignTargetUserId = u.id;
-      this.assignRoleId = this.rolesLookup[0]?.id ?? null;
+      this.assignRoleIds = [];
       this.userModal = 'assign';
+    });
+    this.userApi.getOne(u.id).subscribe({
+      next: (d) =>
+        this.syncViewAfterAsyncMutation(() => {
+          this.assignRoleIds = this.normalizeRoleIds(d.roleIds);
+        }),
+      error: (e: HttpErrorResponse & { userMessage?: string }) => {
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
+      }
     });
   }
 
@@ -183,6 +194,7 @@ export class UsersComponent implements OnInit {
     this.syncViewAfterAsyncMutation(() => {
       this.userModal = null;
       this.assignTargetUserId = null;
+      this.assignRoleIds = [];
     });
   }
 
@@ -235,13 +247,14 @@ export class UsersComponent implements OnInit {
   }
 
   saveAssignRole(): void {
-    if (!this.assignTargetUserId || this.assignRoleId == null) {
+    if (!this.assignTargetUserId || this.assignRoleIds.length === 0) {
       return;
     }
-    this.userApi.assignRole(this.assignTargetUserId, this.assignRoleId).subscribe({
+    this.userApi.assignRoles(this.assignTargetUserId, this.assignRoleIds).subscribe({
       next: () => {
         this.userModal = null;
         this.assignTargetUserId = null;
+        this.assignRoleIds = [];
         this.loadUsers();
         this.toastOk('admin.roleAssigned');
       },
@@ -297,6 +310,21 @@ export class UsersComponent implements OnInit {
     });
   }
 
+  isRoleAssigned(roleId: number): boolean {
+    return this.assignRoleIds.includes(roleId);
+  }
+
+  onRoleAssignmentToggle(roleId: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
+    if (checked) {
+      if (!this.assignRoleIds.includes(roleId)) {
+        this.assignRoleIds = [...this.assignRoleIds, roleId];
+      }
+      return;
+    }
+    this.assignRoleIds = this.assignRoleIds.filter((id) => id !== roleId);
+  }
+
   private emptyUserForm() {
     return {
       username: '',
@@ -323,11 +351,22 @@ export class UsersComponent implements OnInit {
     this.userModal = viewOnly ? 'view' : 'edit';
   }
 
+  private normalizeRoleIds(roleIds: readonly number[] | null | undefined): number[] {
+    if (!roleIds?.length) {
+      return [];
+    }
+    const unique = new Set<number>();
+    for (const roleId of roleIds) {
+      if (Number.isFinite(roleId)) {
+        unique.add(roleId);
+      }
+    }
+    return [...unique];
+  }
+
   private toastOk(key: string): void {
     this.errorMsg = '';
-    this.successMsg = this.i18n.instant(key);
-    setTimeout(() => {
-      this.successMsg = '';
-    }, 4000);
+    this.successMsg = '';
+    this.notification.success(key);
   }
 }

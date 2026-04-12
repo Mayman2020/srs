@@ -9,12 +9,12 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { NotificationDispatchApiService } from '../../core/api/notification-dispatch-api.service';
 import { ErpDialogComponent } from '../erp/erp-dialog.component';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface SendMailDialogData {
   defaultSubject: string;
@@ -31,7 +31,6 @@ export interface SendMailDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSnackBarModule,
     TranslatePipe,
     ErpDialogComponent,
   ],
@@ -52,12 +51,17 @@ export interface SendMailDialogData {
         </mat-form-field>
       </form>
       <div erpDialogActions>
-        <button mat-button type="button" (click)="ref.close(false)" [disabled]="sending">
+        <button
+          mat-button
+          type="button"
+          class="dialog-cancel-btn"
+          (click)="ref.close(false)"
+          [disabled]="sending">
           {{ 'common.close' | t }}
         </button>
         <button
           mat-flat-button
-          color="primary"
+          class="dialog-confirm-btn"
           type="button"
           (click)="submit()"
           [disabled]="form.invalid || sending">
@@ -89,7 +93,7 @@ export class SendMailDialogComponent {
     private fb: FormBuilder,
     private dispatchApi: NotificationDispatchApiService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar,
+    private notification: NotificationService,
     @Inject(MAT_DIALOG_DATA) data: SendMailDialogData
   ) {
     this.form = this.fb.group({
@@ -119,7 +123,7 @@ export class SendMailDialogComponent {
         error: (err: HttpErrorResponse & { userMessage?: string }) => {
           this.sending = false;
           const msg = err.userMessage ?? this.i18n.instant('transactionDetails.sendMailError');
-          this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
+          this.notification.errorRaw(msg);
         },
       });
   }

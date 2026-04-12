@@ -43,7 +43,7 @@
   <div class="stat-card stat-info">
     <div class="stat-icon"><i class="fa-solid fa-paperclip"></i></div>
     <div class="stat-info">
-      <span class="stat-value">{{ transaction.attachments?.length || 0 }}</span>
+      <span class="stat-value">{{ transaction.attachments.length || 0 }}</span>
       <span class="stat-label">{{ 'transactions.table.attachments' | t }}</span>
     </div>
   </div>
@@ -51,7 +51,7 @@
   <div class="stat-card stat-purple">
     <div class="stat-icon"><i class="fa-solid fa-comment-dots"></i></div>
     <div class="stat-info">
-      <span class="stat-value">{{ transaction.notes?.length || 0 }}</span>
+      <span class="stat-value">{{ transaction.notes.length || 0 }}</span>
       <span class="stat-label">{{ 'transactionDetails.statComments' | t }}</span>
     </div>
   </div>
@@ -202,7 +202,7 @@
       <div class="info-content">
         <span class="info-label">{{ 'transactionDetails.labelCreated' | t }}</span>
         <span class="info-value">
-          {{ transaction.created | date:'d MMM y' : '' : 'en' }}
+          {{ (transaction.created | date:'d MMM y') | latinDigits }}
         </span>
       </div>
 
@@ -393,7 +393,7 @@
                 <span class="wf-username">{{ step.user }}</span>
                 <span class="wf-datetime">
                   <mat-icon>schedule</mat-icon>
-                  {{ step.date | date:'d MMM y • hh:mm a' }}
+                  {{ (step.date | date:'d MMM y - hh:mm a') | latinDigits }}
                 </span>
               </div>
             </div>
@@ -509,7 +509,7 @@
             <span class="wf-username">{{ step.user }}</span>
             <span class="wf-datetime">
               <mat-icon>schedule</mat-icon>
-              {{ step.date | date:'d MMM y • hh:mm a' }}
+              {{ (step.date | date:'d MMM y - hh:mm a') | latinDigits }}
             </span>
           </div>
         </div>
@@ -573,7 +573,7 @@
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-paperclip"></i></div>
           <h3>{{ 'transactionDetails.attachmentsHeading' | t }}</h3>
-          <span class="count-badge">{{ transaction.attachments?.length || 0 }}</span>
+          <span class="count-badge">{{ transaction.attachments.length || 0 }}</span>
         </div>
         <button class="btn secondary btn-sm" (click)="addAttachment()">
           <i class="fa-solid fa-plus"></i> {{ 'transactionDetails.addAttachment' | t }}
@@ -635,7 +635,7 @@
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="!transaction.attachments?.length">
+        <div class="empty-state" *ngIf="!transaction.attachments.length">
           <i class="fa-solid fa-paperclip empty-icon"></i>
           <p>{{ 'transactionDetails.noAttachments' | t }}</p>
         </div>
@@ -647,13 +647,13 @@
 
     <!-- ── NOTES ── -->
      <div *ngIf="activeTab==='notes'"> 
-    <div class="card full-width" *ngIf="transaction.notes?.length || canAddNote">
+    <div class="card full-width" *ngIf="transaction.notes.length || canAddNote">
 
       <div class="card-header">
         <div class="card-header-title">
           <div class="header-icon"><i class="fa-solid fa-comments"></i></div>
           <h3>{{ 'transactionDetails.notesTitle' | t }}</h3>
-          <span class="count-badge">{{ transaction.notes?.length || 0 }}</span>
+          <span class="count-badge">{{ transaction.notes.length || 0 }}</span>
         </div>
       </div>
 
@@ -667,7 +667,7 @@
           <div class="note-body">
             <div class="note-header">
               <span class="note-author">{{ note.author }}</span>
-              <span class="note-date">{{ note.date | date:'d MMM y • hh:mm a' }}</span>
+              <span class="note-date">{{ (note.date | date:'d MMM y - hh:mm a') | latinDigits }}</span>
             </div>
             <p class="note-text">{{ note.text }}</p>
           </div>
@@ -682,7 +682,7 @@
                  (keyup.enter)="submitNote()" />
           <button class="btn primary btn-sm"
                   (click)="submitNote()"
-                  [disabled]="!newNote?.trim()">
+                  [disabled]="!newNote.trim()">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </div>
@@ -704,7 +704,7 @@
         </div>
       </div>
 
-      <div class="related-list" *ngIf="relatedTransactions?.length">
+      <div class="related-list" *ngIf="relatedTransactions.length">
         <div class="related-item"
              *ngFor="let rel of relatedTransactions"
              (click)="navigateToTransaction(rel.id)">
@@ -713,7 +713,7 @@
             <span class="related-title">{{ rel.subject }}</span>
             <span class="related-meta">
               {{ rel.referenceNumber || rel.id }}
-              <ng-container *ngIf="rel.created"> · {{ rel.created | date:'d MMM y' : '' : 'en' }}</ng-container>
+              <ng-container *ngIf="rel.created"> - {{ (rel.created | date:'d MMM y') | latinDigits }}</ng-container>
               · {{ rel.status }}
             </span>
           </div>
@@ -721,7 +721,7 @@
         </div>
       </div>
 
-      <div class="empty-state" *ngIf="!relatedTransactions?.length">
+      <div class="empty-state" *ngIf="!relatedTransactions.length">
         <p>{{ 'transactionDetails.relatedEmpty' | t }}</p>
       </div>
 
@@ -844,7 +844,7 @@
         <div class="qi-row">
           <span class="qi-label">{{ 'transactionDetails.qiDueDate' | t }}</span>
           <span class="qi-value" [class.overdue]="isOverdue">
-            {{ transaction.dueDate | date:'d/M/yyyy' : '' : 'en' }}
+            {{ (transaction.dueDate | date:'d/M/yyyy') | latinDigits }}
           </span>
         </div>
 
@@ -878,7 +878,7 @@
               <span class="mini-tl-user">{{ step.user }}</span>
               <span class="mini-tl-date" *ngIf="step.date">
                 <i class="fa-regular fa-clock fa-xs"></i>
-                {{ step.date | date:'d MMM • hh:mm a' }}
+                {{ (step.date | date:'d MMM - hh:mm a') | latinDigits }}
               </span>
             </div>
           </div>

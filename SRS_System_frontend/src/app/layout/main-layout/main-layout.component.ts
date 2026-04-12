@@ -6,7 +6,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ChatBubbleComponent } from '../chat-bubble/chat-bubble.component';
 import { SidebarService } from '../../services/sidebar.service';
 import { HeaderContainerComponent } from '../../shared/components/header/header-container.component';
-import { ToastComponent } from '../../shared/components/toast/toast.component';
+import { FooterMainComponent } from '../../shared/components/footer-main/footer-main.component';
 
 @Component({
   selector: 'app-main-layout',
@@ -17,7 +17,7 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
     SidebarComponent,
     ChatBubbleComponent,
     HeaderContainerComponent,
-    ToastComponent
+    FooterMainComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'

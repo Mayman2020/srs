@@ -66,8 +66,10 @@
   </div>
 
   <div erpDialogActions>
-    <button mat-button type="button" mat-dialog-close>{{ 'departmentTree.cancel' | t }}</button>
-    <button mat-flat-button color="primary" type="button" (click)="confirm()">
+    <button mat-button type="button" class="dialog-cancel-btn" mat-dialog-close>
+      {{ 'departmentTree.cancel' | t }}
+    </button>
+    <button mat-flat-button type="button" class="dialog-confirm-btn" (click)="confirm()">
       {{ 'departmentTree.confirm' | t }}
     </button>
   </div>

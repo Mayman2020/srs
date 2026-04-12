@@ -1,14 +1,17 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ViewChild,
   ElementRef,
   AfterViewInit,
   OnDestroy,
-  OnInit
+  OnInit,
+  inject
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
 import { Router } from '@angular/router';
@@ -30,9 +33,9 @@ import {
 import { TransactionService } from '../../services/transaction.service';
 import { Transaction } from '../../models/transaction.model';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { UiFormatService } from '../../core/i18n/ui-format.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -47,6 +50,8 @@ import type { SortDirection } from '../../shared/data-table/table-sort.util';
 import { REPORT_TABLE_SORT_PROPERTY, reportSpringSort } from './report-table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
+import { NotificationService } from '../../core/services/notification.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 Chart.register(...registerables);
 
@@ -58,7 +63,6 @@ Chart.register(...registerables);
     ReactiveFormsModule,
     TranslatePipe,
     LookupTranslatePipe,
-    MatSnackBarModule,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -116,6 +120,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
   private apiDept: DepartmentSlaRowDto[] = [];
 
   private readonly statsCap = 2000;
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private fb: FormBuilder,
@@ -124,8 +129,10 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     private lookupService: LookupService,
     private reportsApi: ReportsApiService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar,
+    private format: UiFormatService,
     private lookupLabels: LookupLabelsService,
+    private notification: NotificationService,
+    private theme: ThemeService,
     private router: Router,
     private readonly cdr: ChangeDetectorRef
   ) {
@@ -135,6 +142,14 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       type: [''],
       status: ['']
     });
+
+    this.theme.mode$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.chartsReady) {
+          this.renderCharts();
+        }
+      });
   }
 
   get reportSortParams(): string[] {
@@ -405,6 +420,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const lang = this.i18n.currentLang();
+    const colors = this.chartColors();
 
     const monthly = [...this.apiMonthly].sort((a, b) => a.period.localeCompare(b.period));
     const trendLabels = monthly.length ? monthly.map((m) => m.period) : ['—'];
@@ -419,8 +435,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
           {
             label: this.i18n.instant('reports.chartMonthlyCreated'),
             data: trendData,
-            borderColor: '#0f6b4d',
-            backgroundColor: 'rgba(15,107,77,0.15)',
+            borderColor: colors.primary,
+            backgroundColor: colors.primarySoft,
             tension: 0.4,
             fill: true,
             pointRadius: 5
@@ -429,7 +445,12 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: colors.text } } },
+        scales: {
+          x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
+          y: { ticks: { color: colors.text }, grid: { color: colors.grid } }
+        }
       }
     });
 
@@ -448,13 +469,15 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [
           {
             data: statusData,
-            backgroundColor: ['#1b7f5e', '#0f6b4d', '#f59e0b', '#22c55e', '#6366f1', '#ec4899']
+            backgroundColor: [colors.primary, '#0f6b4d', colors.warning, '#22c55e', '#6366f1', '#ec4899'],
+            borderColor: colors.surface
           }
         ]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: colors.text } } }
       }
     });
 
@@ -473,13 +496,15 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [
           {
             data: priData,
-            backgroundColor: ['#1b7f5e', '#0f6b4d', '#f59e0b', '#22c55e', '#6366f1', '#ec4899']
+            backgroundColor: [colors.primary, '#0f6b4d', colors.warning, '#22c55e', '#6366f1', '#ec4899'],
+            borderColor: colors.surface
           }
         ]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: colors.text } } }
       }
     });
 
@@ -498,7 +523,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
           {
             label: this.i18n.instant('reports.chartDeptOverdue'),
             data: deptOverdue,
-            backgroundColor: '#f59e0b'
+            backgroundColor: colors.warning
           }
         ]
       },
@@ -507,8 +532,13 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom'
+            position: 'bottom',
+            labels: { color: colors.text }
           }
+        },
+        scales: {
+          x: { ticks: { color: colors.text }, grid: { display: false } },
+          y: { ticks: { color: colors.text }, grid: { color: colors.grid } }
         }
       }
     });
@@ -523,11 +553,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (blob) => {
         if (blob.type?.includes('json')) {
           blob.text().then(() => {
-            this.snackBar.open(
-              this.i18n.instant('reports.exportExcelError'),
-              this.i18n.instant('common.close'),
-              { duration: 5000 }
-            );
+            this.notification.errorRaw(this.i18n.instant('reports.exportExcelError'));
           });
           return;
         }
@@ -537,20 +563,20 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         a.download = 'correspondences-export.xlsx';
         a.click();
         URL.revokeObjectURL(url);
-        this.snackBar.open(
-          this.i18n.instant('reports.exportExcelSuccess'),
-          this.i18n.instant('common.close'),
-          { duration: 3000 }
-        );
+        this.notification.successRaw(this.i18n.instant('reports.exportExcelSuccess'));
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.snackBar.open(
-          err.userMessage ?? this.i18n.instant('reports.exportExcelError'),
-          this.i18n.instant('common.close'),
-          { duration: 5000 }
-        );
+        this.notification.errorRaw(err.userMessage ?? this.i18n.instant('reports.exportExcelError'));
       }
     });
+  }
+
+  formatMetric(value: number): string {
+    return this.format.formatNumber(value);
+  }
+
+  formatCreated(value: string): string {
+    return this.format.formatDate(value, 'd MMM y - hh:mm a');
   }
 
   lookupTypeLabel(code: string): string {
@@ -567,5 +593,25 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       return code;
     }
     return this.i18n.currentLang() === 'en' ? row.nameEn : row.nameAr;
+  }
+
+  private chartColors(): {
+    primary: string;
+    primarySoft: string;
+    warning: string;
+    text: string;
+    grid: string;
+    surface: string;
+  } {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      primary: styles.getPropertyValue('--primary-color').trim() || '#0b6e4f',
+      primarySoft:
+        styles.getPropertyValue('--primary-light').trim() || 'rgba(11,110,79,0.18)',
+      warning: styles.getPropertyValue('--warning-color').trim() || '#d97706',
+      text: styles.getPropertyValue('--text-secondary').trim() || '#475569',
+      grid: styles.getPropertyValue('--border-color').trim() || '#d9e3ef',
+      surface: styles.getPropertyValue('--surface-elevated').trim() || '#ffffff'
+    };
   }
 }

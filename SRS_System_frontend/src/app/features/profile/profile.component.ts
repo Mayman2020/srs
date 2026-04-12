@@ -12,6 +12,7 @@ import { CurrentUserProfileApiService } from '../../core/api/current-user-profil
 import { CurrentUserProfileDto, LookupItemDto } from '../../core/api/api-types';
 import { RoleApiService } from '../../core/api/role-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpUserAvatarComponent } from '../../shared/erp/erp-user-avatar.component';
@@ -24,6 +25,7 @@ import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
     CommonModule,
     ReactiveFormsModule,
     TranslatePipe,
+    LatinDigitsPipe,
     MatTabsModule,
     MatIconModule,
     MatButtonModule,
@@ -118,7 +120,7 @@ export class ProfileComponent implements OnInit {
   }
 
   get profileImageSrc(): string | null {
-    return this.uploadPreviewUrl || this.detail?.profileImageUrl || this.profile().avatarPrimarySrc || null;
+    return this.uploadPreviewUrl || this.profile().avatarPrimarySrc || this.detail?.profileImageUrl || null;
   }
 
   async saveProfile(): Promise<void> {

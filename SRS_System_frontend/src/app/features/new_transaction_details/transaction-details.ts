@@ -1,4 +1,4 @@
-import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, forkJoin, of } from 'rxjs';
@@ -20,6 +20,7 @@ import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -30,7 +31,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { EditorModule } from '@tinymce/tinymce-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { VisualWorkflowDialogComponent } from '../visual-workflow-dialog/visual-workflow-dialog.component';
 import { TextInputDialogComponent, TextInputDialogData } from '../../shared/dialogs/text-input-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog.component';
@@ -38,6 +38,7 @@ import {
   SendMailDialogComponent,
   SendMailDialogData,
 } from '../../shared/dialogs/send-mail-dialog.component';
+import { NotificationService } from '../../core/services/notification.service';
 
 
 
@@ -144,7 +145,7 @@ export interface Transaction {
     MatIconModule,
     MatDialogModule,
     MatButtonModule,
-    MatSnackBarModule,
+    LatinDigitsPipe,
     TranslatePipe,
     StatusBadgeComponent,
   ],
@@ -206,8 +207,9 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar,
-    private ngZone: NgZone
+    private notification: NotificationService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   // ══════════════════════════════════════════════
@@ -272,11 +274,12 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.canAddNote = true;
           const draft = (d.replyDraftHtml ?? '').trim();
           this.form.patchValue({ letterContent: draft });
+          this.cdr.detectChanges();
           this.loadGuideData();
         },
         error: (err: HttpErrorResponse & { userMessage?: string }) => {
           console.error('[TransactionDetails] load correspondence failed', err);
-          this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+          this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
           this.canAddNote = false;
           this.transaction = {
             id,
@@ -301,11 +304,22 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
             notes: [],
             cancelAllowed: false,
           };
+          this.cdr.detectChanges();
         },
       });
   }
 
   private mapDetail(d: CorrespondenceDetailResponse, h: WorkflowHistoryEntryDto[]): Transaction {
+    const isAr = this.i18n.currentLang() !== 'en';
+
+    /** Return the name of a lookup item in the current UI language, falling back to the other language then the code. */
+    const labelOf = (lookup: { nameAr: string; nameEn: string; code: string } | null): string =>
+      ((isAr ? lookup?.nameAr : lookup?.nameEn) ?? (isAr ? lookup?.nameEn : lookup?.nameAr) ?? lookup?.code ?? '—');
+
+    /** Return the name of an org/dept in the current UI language, falling back to the other language. */
+    const nameOf = (item: { nameAr: string; nameEn: string } | null): string =>
+      ((isAr ? item?.nameAr : item?.nameEn) ?? (isAr ? item?.nameEn : item?.nameAr) ?? '—');
+
     const created = d.createdAt ? new Date(d.createdAt) : new Date();
     const dueDate = d.dueDate ? new Date(d.dueDate) : new Date(created.getTime() + 5 * 86_400_000);
     const maxDays = Math.max(
@@ -322,35 +336,35 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       user: s.user,
       date: s.date,
     }));
-    const typeCode = d.correspondenceType?.code ?? '—';
-    const statusCode = d.correspondenceStatus?.code ?? '—';
-    const priorityCode = d.priority?.code ?? '—';
-    const secrecyCode = d.confidentiality?.code ?? '—';
+
+    const secrecyLabel = labelOf(d.confidentiality);
 
     return {
       id: d.id,
       referenceNumber: d.referenceNumber ?? d.id,
       subject: d.subject ?? '—',
-      type: typeCode,
+      type: labelOf(d.correspondenceType),
       created,
       dueDate,
-      secrecy: secrecyCode,
-      from: d.senderOrganization?.nameAr ?? d.senderOrganization?.nameEn ?? '—',
-      to: d.recipientOrganization?.nameAr ?? d.recipientOrganization?.nameEn ?? '—',
-      status: statusCode,
+      secrecy: secrecyLabel,
+      from: nameOf(d.senderOrganization),
+      to: nameOf(d.recipientOrganization),
+      status: d.correspondenceStatus?.code ?? '—',
       statusUiVariant: d.correspondenceStatus?.uiVariant ?? null,
       maxDays,
       remainingDays: Math.max(0, Math.ceil((dueDate.getTime() - Date.now()) / 86_400_000)),
-      priority: priorityCode,
+      priority: labelOf(d.priority),
       priorityClass: 'normal',
       priorityPercent: 40,
-      currentHandler: d.ownerDepartment?.nameAr ?? d.ownerDepartment?.code ?? '—',
+      currentHandler: d.ownerDepartment
+        ? ((isAr ? d.ownerDepartment.nameAr : d.ownerDepartment.nameEn) ?? d.ownerDepartment.code ?? '—')
+        : '—',
       timeline: steps,
       attachments: (d.attachments ?? []).map((a) => ({
         id: a.id,
         name: a.displayName,
         type: a.contentType?.code ?? 'FILE',
-        secrecy: secrecyCode,
+        secrecy: secrecyLabel,
         size: this.formatBytes(
           (a.versions ?? []).reduce((m, v) => Math.max(m, v.byteSize), 0)
         ),
@@ -457,8 +471,20 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   // ACTION HANDLERS
   // ══════════════════════════════════════════════
 
-  private toast(msg: string, duration = 5000): void {
-    this.snackBar.open(msg, this.i18n.instant('common.close'), { duration });
+  private toast(msg: string, type: 'success' | 'error' | 'warning' | 'info' = 'info'): void {
+    if (type === 'success') {
+      this.notification.successRaw(msg);
+      return;
+    }
+    if (type === 'warning') {
+      this.notification.warningRaw(msg);
+      return;
+    }
+    if (type === 'error') {
+      this.notification.errorRaw(msg);
+      return;
+    }
+    this.notification.infoRaw(msg);
   }
 
   /** Display label from DB for current language. */
@@ -516,7 +542,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
             return;
           }
           if (!String(comment).trim()) {
-            this.toast(this.i18n.instant('transactionDetails.workflowCommentRequired'));
+            this.toast(this.i18n.instant('transactionDetails.workflowCommentRequired'), 'warning');
             return;
           }
           this.runWorkflowAction(a.code, String(comment).trim());
@@ -535,7 +561,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => this.loadTransaction(),
         error: (err: HttpErrorResponse & { userMessage?: string }) => {
-          this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+          this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
         },
       });
   }
@@ -573,11 +599,11 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           })
           .subscribe({
             next: () => {
-              this.toast(this.i18n.instant('transactionDetails.workflowDelegateSuccess'));
+              this.toast(this.i18n.instant('transactionDetails.workflowDelegateSuccess'), 'success');
               this.loadTransaction();
             },
             error: (err: HttpErrorResponse & { userMessage?: string }) => {
-              this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+              this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
             },
           });
       });
@@ -604,7 +630,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       .pipe(take(1))
       .subscribe((ok) => {
         if (ok) {
-          this.toast(this.i18n.instant('transactionDetails.sendMailSuccess'));
+          this.toast(this.i18n.instant('transactionDetails.sendMailSuccess'), 'success');
         }
       });
   }
@@ -633,11 +659,11 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         }
         this.transactionService.cancelCorrespondence(cid).subscribe({
           next: () => {
-            this.toast(this.i18n.instant('transactionDetails.cancelSuccess'));
+            this.toast(this.i18n.instant('transactionDetails.cancelSuccess'), 'success');
             this.router.navigate(['/transactions']);
           },
           error: (err: HttpErrorResponse & { userMessage?: string }) => {
-            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
           },
         });
       });
@@ -665,9 +691,9 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     }
     const html = (this.form.get('letterContent')?.value ?? '') as string;
     this.transactionService.saveReplyDraft(this.correspondenceUuid, html).subscribe({
-      next: () => this.toast(this.i18n.instant('transactionDetails.saveDraftSuccess')),
+      next: () => this.toast(this.i18n.instant('transactionDetails.saveDraftSuccess'), 'success'),
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
       },
     });
   }
@@ -678,17 +704,17 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     }
     const html = ((this.form.get('letterContent')?.value ?? '') as string).trim();
     if (!html) {
-      this.toast(this.i18n.instant('transactionDetails.sendReplyEmpty'));
+      this.toast(this.i18n.instant('transactionDetails.sendReplyEmpty'), 'warning');
       return;
     }
     this.transactionService.sendCorrespondenceReply(this.correspondenceUuid, html).subscribe({
       next: () => {
-        this.toast(this.i18n.instant('transactionDetails.sendReplySuccess'));
+        this.toast(this.i18n.instant('transactionDetails.sendReplySuccess'), 'success');
         this.form.patchValue({ letterContent: '' });
         this.loadTransaction();
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
       },
     });
   }
@@ -728,16 +754,16 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           })
           .subscribe({
             next: () => {
-              this.toast(this.i18n.instant('transactionDetails.addAttachmentSuccess'));
+              this.toast(this.i18n.instant('transactionDetails.addAttachmentSuccess'), 'success');
               this.loadTransaction();
             },
             error: (err: HttpErrorResponse & { userMessage?: string }) => {
-              this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+              this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
             },
           });
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
       },
     });
   }
@@ -753,7 +779,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   private downloadWithAuth(attachmentId: number, filename: string, openInTab: boolean): void {
     const token = this.tokens.getToken();
     if (!token) {
-      this.toast(this.i18n.instant('transactionDetails.downloadNoSession'));
+      this.toast(this.i18n.instant('transactionDetails.downloadNoSession'), 'warning');
       this.authApi.logout();
       void this.router.navigate(['/login']);
       return;
@@ -764,7 +790,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       .then((r) => {
         if (r.status === 401 || r.status === 403) {
           this.ngZone.run(() => {
-            this.toast(this.i18n.instant('transactionDetails.downloadNoSession'));
+            this.toast(this.i18n.instant('transactionDetails.downloadNoSession'), 'warning');
             this.authApi.logout();
             void this.router.navigate(['/login']);
           });
@@ -794,7 +820,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           return;
         }
         console.error('[TransactionDetails] attachment download failed', e);
-        this.ngZone.run(() => this.toast(this.i18n.instant('errors.generic')));
+        this.ngZone.run(() => this.toast(this.i18n.instant('errors.generic'), 'error'));
       });
   }
 
@@ -818,11 +844,11 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         }
         this.attachmentApi.delete(att.id).subscribe({
           next: () => {
-            this.toast(this.i18n.instant('transactionDetails.deleteAttachmentSuccess'));
+            this.toast(this.i18n.instant('transactionDetails.deleteAttachmentSuccess'), 'success');
             this.loadTransaction();
           },
           error: (err: HttpErrorResponse & { userMessage?: string }) => {
-            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
           },
         });
       });
@@ -843,7 +869,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         this.loadTransaction();
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
-        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'));
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
       },
     });
   }
@@ -875,4 +901,3 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     });
   }
 }
-

@@ -253,6 +253,162 @@
   margin-top: 8px;
 }
 
+.matrix-head-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.perm-count-badge {
+  background: #e3f1eb;
+  color: #064635;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.pick-role-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: #f8faf9;
+  border-radius: 12px;
+  border: 1.5px dashed #d1d5db;
+  font-size: 0.9rem;
+}
+
+.matrix-saving-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* ── Permission grid ─────────────────────── */
+.matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 10px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding: 2px 2px 4px;
+}
+
+.perm-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1.5px solid #e5e7eb;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  user-select: none;
+
+  &:hover {
+    border-color: #06463566;
+    background: #f0f9f5;
+  }
+
+  &.perm-on {
+    border-color: #064635;
+    background: linear-gradient(135deg, #edfaf3, #f4fdf7);
+    box-shadow: 0 2px 8px rgba(6, 70, 53, 0.08);
+  }
+}
+
+.perm-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.perm-code-badge {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #064635;
+  background: #d4eddf;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.perm-on .perm-code-badge {
+  background: #064635;
+  color: #fff;
+}
+
+.perm-name {
+  font-size: 0.85rem;
+  color: #374151;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Toggle switch ───────────────────────── */
+.perm-toggle-wrap {
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.perm-checkbox-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.perm-track {
+  display: flex;
+  align-items: center;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #d1d5db;
+  padding: 3px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.perm-thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease;
+  transform: translateX(0);
+}
+
+.perm-on .perm-track {
+  background: #064635;
+}
+
+.perm-on .perm-thumb {
+  transform: translateX(18px);
+}
+
+/* ── Legacy list styles (kept for compatibility) ── */
 .matrix-list {
   display: flex;
   flex-direction: column;

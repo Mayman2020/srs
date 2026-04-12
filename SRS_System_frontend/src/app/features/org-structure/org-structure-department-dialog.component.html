@@ -1,0 +1,57 @@
+<app-erp-dialog [titleKey]="titleKey" icon="account_tree" [wide]="true">
+  <form class="editor-form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="grid">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'orgStructure.tree.fields.code' | t }}</mat-label>
+        <input matInput formControlName="code" maxlength="64" />
+        <mat-error *ngIf="form.controls.code.touched && form.controls.code.hasError('required')">
+          {{ 'orgStructure.tree.validation.required' | t }}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'orgStructure.tree.fields.sortOrder' | t }}</mat-label>
+        <input matInput type="number" min="0" formControlName="sortOrder" />
+        <mat-error
+          *ngIf="form.controls.sortOrder.touched && form.controls.sortOrder.hasError('min')">
+          {{ 'orgStructure.tree.validation.sortOrderMin' | t }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>{{ 'orgStructure.tree.fields.nameAr' | t }}</mat-label>
+      <input matInput formControlName="nameAr" maxlength="250" />
+      <mat-error *ngIf="form.controls.nameAr.touched && form.controls.nameAr.hasError('required')">
+        {{ 'orgStructure.tree.validation.required' | t }}
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>{{ 'orgStructure.tree.fields.nameEn' | t }}</mat-label>
+      <input matInput formControlName="nameEn" maxlength="250" />
+      <mat-error *ngIf="form.controls.nameEn.touched && form.controls.nameEn.hasError('required')">
+        {{ 'orgStructure.tree.validation.required' | t }}
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>{{ 'orgStructure.tree.fields.parent' | t }}</mat-label>
+      <mat-select formControlName="parentId">
+        <mat-option [value]="null">{{ 'orgStructure.tree.parentNone' | t }}</mat-option>
+        <mat-option *ngFor="let item of availableParents" [value]="item.id">
+          {{ parentLabel(item) }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  <div erpDialogActions>
+    <button mat-button type="button" class="dialog-cancel-btn" (click)="cancel()">
+      {{ 'common.close' | t }}
+    </button>
+    <button mat-flat-button type="button" class="dialog-confirm-btn" (click)="save()">
+      {{ 'common.confirm' | t }}
+    </button>
+  </div>
+</app-erp-dialog>

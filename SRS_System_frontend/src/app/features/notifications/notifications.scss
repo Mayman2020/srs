@@ -14,10 +14,11 @@
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
-  background: var(--white);
+  background: var(--surface-elevated);
   padding: 0.75rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 
   .filter-btn {
     flex: 1;
@@ -38,7 +39,7 @@
 
     &.active {
       background: var(--primary-green);
-      color: var(--white);
+      color: #fff;
       border-color: var(--primary-green);
     }
   }
@@ -55,24 +56,24 @@
 /* ================= ITEM ================= */
 
 .notification-item {
-  background: var(--white);
+  background: var(--surface-elevated);
   border-radius: 14px;
   padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+  box-shadow: var(--shadow-sm);
   transition: all .25s ease;
   cursor: pointer;
   border-right: 3px solid transparent;
 
   &:hover {
     transform: translateX(4px); /* RTL direction */
-    box-shadow: 0 8px 18px rgba(0,0,0,.1);
+    box-shadow: var(--shadow-md);
   }
 
   &.unread {
-    background: #F6FBF9;
+    background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-elevated));
     border-right-color: var(--primary-green);
   }
 
@@ -85,7 +86,7 @@
   }
 
   &.notification-info {
-    border-right-color: #3B82F6;
+    border-right-color: var(--info-color);
   }
 }
 
@@ -122,7 +123,7 @@
       h3 {
         font-size: 1rem;
         margin: 0.25rem 0 0 0;
-        color: var(--primary-dark);
+        color: var(--text-color);
       }
     }
 
@@ -136,7 +137,7 @@
   .notification-type-badge {
     display: inline-block;
     background: var(--primary-green);
-    color: var(--white);
+    color: #fff;
     padding: 0.2rem 0.6rem;
     border-radius: 10px;
     font-size: 0.7rem;
@@ -203,7 +204,7 @@
 
       &:hover {
         background: var(--danger);
-        color: var(--white);
+        color: #fff;
       }
     }
 
@@ -213,7 +214,7 @@
 
       &:hover {
         background: var(--primary-green);
-        color: var(--white);
+        color: #fff;
       }
 
       /* Fix arrow for RTL */
@@ -229,7 +230,8 @@
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
-  background: var(--white);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   color: var(--text-secondary);
 
@@ -239,7 +241,7 @@
   }
 
   h3 {
-    color: var(--primary-dark);
+    color: var(--text-color);
     margin-bottom: 0.5rem;
   }
 

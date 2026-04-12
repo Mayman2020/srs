@@ -1,0 +1,24 @@
+<footer class="shell-footer">
+  <div class="shell-footer__inner">
+    <div class="shell-footer__brand">
+      <img src="assets/img/logo.png" alt="" class="shell-footer__logo" />
+      <div class="shell-footer__copy">
+        <strong>{{ 'app.title' | t }}</strong>
+        <span>{{ 'shellFooter.subtitle' | t }}</span>
+      </div>
+    </div>
+
+    <nav class="shell-footer__links" aria-label="footer links">
+      <a routerLink="/dashboard">{{ 'shellFooter.dashboard' | t }}</a>
+      <a routerLink="/transactions">{{ 'shellFooter.transactions' | t }}</a>
+      <a routerLink="/reports">{{ 'shellFooter.reports' | t }}</a>
+      <a routerLink="/profile">{{ 'shellFooter.profile' | t }}</a>
+    </nav>
+
+    <div class="shell-footer__meta">
+      <span>{{ 'shellFooter.support' | t }}</span>
+      <small>{{ 'shellFooter.copyright' | t: { year: formattedYear() } }}</small>
+    </div>
+  </div>
+</footer>
+

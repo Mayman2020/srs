@@ -1,33 +1,23 @@
 <div id="particles-js"></div>
 
+<div class="page-header">
+  <div>
+    <h2>{{ 'dashboard.pageTitle' | t }}</h2>
+  </div>
+</div>
+
 <section class="grid c2 dashboard-top-section">
-
-  <!-- ================= SLA CARD ================= -->
   <div class="card sla-summary">
-
     <div class="card-title">
       <h3>{{ 'dashboard.slaCardTitle' | t }}</h3>
     </div>
 
-    <!-- KPI -->
-
     <div class="sla-kpi">
-
-      <div class="sla-percent">
-        {{ animatedSlaPercent() }}%
-      </div>
-
-      <div class="sla-label">
-        {{ 'dashboard.slaKpiLabel' | t }}
-      </div>
-
+      <div class="sla-percent">{{ animatedSlaPercent() }}%</div>
+      <div class="sla-label">{{ 'dashboard.slaKpiLabel' | t }}</div>
     </div>
 
-
-    <!-- stats -->
-
     <div class="sla-stats">
-
       <div class="sla-item ok">
         <mat-icon>check_circle</mat-icon>
         <span>{{ 'dashboard.slaOnTime' | t }}</span>
@@ -45,130 +35,69 @@
         <span>{{ 'dashboard.slaAction' | t }}</span>
         <b>{{ format(slaAction) }}</b>
       </div>
-
     </div>
 
-
-    <!-- progress -->
-
     <div class="sla-progress">
-
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="animatedSlaPercent()"></div>
       </div>
-
     </div>
-
   </div>
 
-  <!-- ================= KPI GRID ================= -->
   <div class="grid kpi-grid">
-
-  <div class="kpi-card total">
-
-    <div class="kpi-icon">
-      <mat-icon>dashboard</mat-icon>
-    </div>
-
-    <div class="kpi-content">
-      <div class="kpi-title">
-        {{ 'dashboard.kpiTotal' | t }}
+    <div class="kpi-card total">
+      <div class="kpi-icon">
+        <mat-icon>dashboard</mat-icon>
       </div>
-
-      <div class="kpi-value">
-        {{ format(total) }}
-      </div>
-
-      <div class="kpi-desc">
-        {{ 'dashboard.kpiTotalDesc' | t }}
+      <div class="kpi-content">
+        <div class="kpi-title">{{ 'dashboard.kpiTotal' | t }}</div>
+        <div class="kpi-value">{{ format(total) }}</div>
+        <div class="kpi-desc">{{ 'dashboard.kpiTotalDesc' | t }}</div>
       </div>
     </div>
 
+    <div class="kpi-card done">
+      <div class="kpi-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-title">{{ 'dashboard.kpiDone' | t }}</div>
+        <div class="kpi-value">{{ format(done) }}</div>
+        <div class="kpi-desc">{{ 'dashboard.kpiDoneDesc' | t }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card progress">
+      <div class="kpi-icon">
+        <mat-icon>pending_actions</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-title">{{ 'dashboard.kpiProgress' | t }}</div>
+        <div class="kpi-value">{{ format(inProgress) }}</div>
+        <div class="kpi-desc">{{ 'dashboard.kpiProgressDesc' | t }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card incoming">
+      <div class="kpi-icon">
+        <mat-icon>move_to_inbox</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-title">{{ 'dashboard.kpiInbound' | t }}</div>
+        <div class="kpi-value">{{ format(incoming) }}</div>
+        <div class="kpi-desc">{{ 'dashboard.kpiInboundDesc' | t }}</div>
+      </div>
+    </div>
   </div>
-
-
-  <div class="kpi-card done">
-
-    <div class="kpi-icon">
-      <mat-icon>check_circle</mat-icon>
-    </div>
-
-    <div class="kpi-content">
-      <div class="kpi-title">
-        {{ 'dashboard.kpiDone' | t }}
-      </div>
-
-      <div class="kpi-value">
-        {{ format(done) }}
-      </div>
-
-      <div class="kpi-desc">
-        {{ 'dashboard.kpiDoneDesc' | t }}
-      </div>
-    </div>
-
-  </div>
-
-
-  <div class="kpi-card progress">
-
-    <div class="kpi-icon">
-      <mat-icon>pending_actions</mat-icon>
-    </div>
-
-    <div class="kpi-content">
-      <div class="kpi-title">
-        {{ 'dashboard.kpiProgress' | t }}
-      </div>
-
-      <div class="kpi-value">
-        {{ format(inProgress) }}
-      </div>
-
-      <div class="kpi-desc">
-        {{ 'dashboard.kpiProgressDesc' | t }}
-      </div>
-    </div>
-
-  </div>
-
-
-  <div class="kpi-card incoming">
-
-    <div class="kpi-icon">
-      <mat-icon>move_to_inbox</mat-icon>
-    </div>
-
-    <div class="kpi-content">
-      <div class="kpi-title">
-        {{ 'dashboard.kpiInbound' | t }}
-      </div>
-
-      <div class="kpi-value">
-        {{ format(incoming) }}
-      </div>
-
-      <div class="kpi-desc">
-        {{ 'dashboard.kpiInboundDesc' | t }}
-      </div>
-    </div>
-
-  </div>
-
-</div>
-
 </section>
-<div class="  "></div>
 
-<section class="grid c3" style="margin-top:12px">
+<section class="grid c3" style="margin-top: 12px">
   <div class="card sla-card">
-
     <div class="card-title">
       <h3>{{ 'dashboard.slaAlertsTitle' | t }}</h3>
     </div>
 
     <div class="sla-alert-list">
-
       <div class="sla-alert-row info" *ngIf="overdueCount === 0">
         <div class="sla-alert-icon">
           <mat-icon>info</mat-icon>
@@ -186,18 +115,15 @@
           <div class="sla-alert-text">{{ 'dashboard.slaLate' | t }}</div>
           <div class="sla-alert-id">{{ format(overdueCount) }}</div>
         </div>
-        <div class="sla-alert-badge today">
-          {{ 'dashboard.badgeToday' | t }}
-        </div>
+        <div class="sla-alert-badge today">{{ 'dashboard.badgeToday' | t }}</div>
       </div>
-
     </div>
 
     <div class="sla-alert-footer">
       <button type="button" (click)="openTransctions()">{{ 'dashboard.viewAllAlerts' | t }}</button>
     </div>
-
   </div>
+
   <div class="card">
     <div class="title">
       <h3>{{ 'dashboard.statusChartTitle' | t }}</h3>
@@ -205,7 +131,7 @@
     <div class="chart-container">
       <canvas #statusDonut></canvas>
     </div>
-    <div class="muted" style="margin-top:8px">{{ 'dashboard.statusChartHint' | t }}</div>
+    <div class="muted" style="margin-top: 8px">{{ 'dashboard.statusChartHint' | t }}</div>
   </div>
 
   <div class="card">
@@ -215,174 +141,94 @@
     <div class="chart-container">
       <canvas #deptBar></canvas>
     </div>
-    <div class="muted" style="margin-top:8px">{{ 'dashboard.deptChartHint' | t }}</div>
+    <div class="muted" style="margin-top: 8px">{{ 'dashboard.deptChartHint' | t }}</div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<section class="card" style="margin-top:12px">
+<section class="card" style="margin-top: 12px">
   <div class="title">
     <h3>{{ 'dashboard.recentTitle' | t }}</h3>
   </div>
-  <srs-data-table
-    [loading]="recentLoading"
-    [skeletonRows]="5"
-    [skeletonColumns]="6"
-    [skeletonAriaLabel]="'common.loading' | t"
-    [page]="recentPage"
-    [pageSize]="recentPageSize"
-    [total]="recentTotal"
-    [legacyCountOnPage]="0"
-    (paginationPage)="onRecentPage($event)"
-    (paginationPageSize)="onRecentPageSize($event)"
-  >
+  <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>
-            <srs-sort-header
-              columnId="ref"
-              labelKey="dashboard.thRef"
-              [activeColumn]="recentSortColumn"
-              [direction]="recentSortDir"
-              (sortChange)="onRecentSort($event)"
-            />
-          </th>
-          <th>
-            <srs-sort-header
-              columnId="type"
-              labelKey="dashboard.thType"
-              [activeColumn]="recentSortColumn"
-              [direction]="recentSortDir"
-              (sortChange)="onRecentSort($event)"
-            />
-          </th>
-          <th>
-            <srs-sort-header
-              columnId="subject"
-              labelKey="dashboard.thSubject"
-              [activeColumn]="recentSortColumn"
-              [direction]="recentSortDir"
-              (sortChange)="onRecentSort($event)"
-            />
-          </th>
-          <th>
-            <srs-sort-header
-              columnId="created"
-              labelKey="dashboard.thCreated"
-              [activeColumn]="recentSortColumn"
-              [direction]="recentSortDir"
-              (sortChange)="onRecentSort($event)"
-            />
-          </th>
-          <th>
-            <srs-sort-header
-              columnId="status"
-              labelKey="dashboard.thStatus"
-              [activeColumn]="recentSortColumn"
-              [direction]="recentSortDir"
-              (sortChange)="onRecentSort($event)"
-            />
-          </th>
-          <th class="srs-dt-th-plain">{{ 'dashboard.thActions' | t }}</th>
+          <th>{{ 'dashboard.thRef' | t }}</th>
+          <th>{{ 'dashboard.thType' | t }}</th>
+          <th>{{ 'dashboard.thSubject' | t }}</th>
+          <th>{{ 'dashboard.thCreated' | t }}</th>
+          <th>{{ 'dashboard.thStatus' | t }}</th>
+          <th>{{ 'dashboard.thActions' | t }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let tx of recentRows; trackBy: trackByRecentId" [@srsTableRowEnter]>
+        <tr *ngFor="let tx of recentRows; trackBy: trackByRecentId">
           <td><span class="link">{{ tx.referenceNumber }}</span></td>
           <td>{{ tx.typeCode | lk:'correspondenceType' }}</td>
           <td>{{ tx.subject }}</td>
           <td>{{ tx.created }}</td>
           <td>
-            <app-status-badge
-              [code]="tx.statusCode"
-              [uiVariant]="tx.statusUiVariant"
-              size="sm"
-            />
+            <span class="pill" [ngClass]="statusPillClass(tx.statusUiVariant)">
+              {{ tx.statusCode | lk:'correspondenceStatus' }}
+            </span>
           </td>
           <td>
-            <button type="button" class="btn" (click)="openTransaction(tx.id)">{{ 'common.open' | t }}</button>
+            <button type="button" class="btn" (click)="openTransaction(tx.id)">
+              {{ 'common.open' | t }}
+            </button>
           </td>
         </tr>
 
         <tr *ngIf="!recentLoading && recentAll.length === 0">
-          <td colspan="6" class="srs-dt-empty">{{ 'dashboard.noTransactions' | t }}</td>
+          <td colspan="6" class="muted">{{ 'dashboard.noTransactions' | t }}</td>
         </tr>
       </tbody>
     </table>
-  </srs-data-table>
+  </div>
 </section>
 
 <div class="divider"></div>
 
-
-<section class="grid c2" style="margin-top:12px" id="aiAnalytics">
+<section class="grid c2" style="margin-top: 12px" id="aiAnalytics">
   <div class="card ai-card">
-
     <div class="ai-title">
       <mat-icon>insights</mat-icon>
       <h3>{{ 'dashboard.liveOpsTitle' | t }}</h3>
     </div>
 
     <div class="ai-grid">
-
       <div class="ai-item">
-
-        <div class="ai-label">
-          {{ 'dashboard.liveOpsOverdue' | t }}
-        </div>
-
-        <div class="ai-value danger">
-          {{ format(overdueCount) }}
-        </div>
-
+        <div class="ai-label">{{ 'dashboard.liveOpsOverdue' | t }}</div>
+        <div class="ai-value danger">{{ format(overdueCount) }}</div>
       </div>
 
-
       <div class="ai-item">
-
-        <div class="ai-label">
-          {{ 'dashboard.liveOpsInProgress' | t }}
-        </div>
-
-        <div class="ai-value ok">
-          {{ format(inProgress) }}
-        </div>
-
+        <div class="ai-label">{{ 'dashboard.liveOpsInProgress' | t }}</div>
+        <div class="ai-value ok">{{ format(inProgress) }}</div>
       </div>
-
 
       <div class="ai-item wide">
-
-        <div class="ai-label">
-          {{ 'dashboard.kpiTotal' | t }}
-        </div>
-
-        <div class="ai-value">
-          {{ format(total) }}
-        </div>
-
+        <div class="ai-label">{{ 'dashboard.kpiTotal' | t }}</div>
+        <div class="ai-value">{{ format(total) }}</div>
       </div>
-
     </div>
 
-    <div class="ai-note">
-      {{ 'dashboard.liveOpsNote' | t }}
-    </div>
-
+    <div class="ai-note">{{ 'dashboard.liveOpsNote' | t }}</div>
   </div>
+
   <div class="card">
     <div class="title">
       <h3>{{ 'dashboard.liveSplitTitle' | t }}</h3>
     </div>
     <div class="grid c2">
-      <div class="chart-box" class="chart-container"><canvas #aiStatusDonut></canvas></div>
-      <div class="chart-box" class="chart-container"><canvas #aiPriorityBar></canvas></div>
+      <div class="chart-box chart-container">
+        <canvas #aiStatusDonut></canvas>
+      </div>
+      <div class="chart-box chart-container">
+        <canvas #aiPriorityBar></canvas>
+      </div>
     </div>
   </div>
 </section>
-
-<div class="toast" id="toast"><b id="toastTitle">{{ 'common.toastOk' | t }}</b>
-  <p id="toastMsg">{{ 'common.dash' | t }}</p>
-</div>

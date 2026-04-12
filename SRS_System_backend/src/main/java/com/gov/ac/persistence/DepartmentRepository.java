@@ -12,4 +12,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
   @EntityGraph(attributePaths = "parent")
   List<Department> findByDeletedAtIsNullAndActiveTrueOrderBySortOrderAsc();
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNullAndIdNot(String code, Long id);
+
+  List<Department> findByParent_IdAndDeletedAtIsNull(Long parentId);
 }

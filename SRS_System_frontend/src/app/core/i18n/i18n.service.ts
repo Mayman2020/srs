@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { toLatinDigits } from './digit-normalization.util';
 
 export type AppLang = 'ar' | 'en';
 
@@ -86,10 +87,10 @@ export class I18nService {
     let s = typeof cur === 'string' ? cur : key;
     if (params) {
       for (const [k, v] of Object.entries(params)) {
-        s = s.split(`{{${k}}}`).join(String(v));
+        s = s.split(`{{${k}}}`).join(toLatinDigits(v));
       }
     }
-    return s;
+    return toLatinDigits(s);
   }
 
 }

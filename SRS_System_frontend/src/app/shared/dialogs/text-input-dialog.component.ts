@@ -51,8 +51,10 @@ export interface TextInputDialogData {
         <input *ngIf="!data.multiline" matInput [(ngModel)]="value" />
       </mat-form-field>
       <div erpDialogActions>
-        <button mat-button type="button" (click)="cancel()">{{ 'common.close' | t }}</button>
-        <button mat-flat-button color="primary" type="button" (click)="ok()">
+        <button mat-button type="button" class="dialog-cancel-btn" (click)="cancel()">
+          {{ 'common.close' | t }}
+        </button>
+        <button mat-flat-button type="button" class="dialog-confirm-btn" (click)="ok()">
           {{ data.confirmKey | t }}
         </button>
       </div>

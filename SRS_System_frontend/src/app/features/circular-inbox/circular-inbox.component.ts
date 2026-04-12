@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -11,8 +10,10 @@ import {
   PlatformCircularInboxRow,
 } from '../../core/api/platform-circular-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-circular-inbox',
@@ -20,7 +21,7 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
   imports: [
     CommonModule,
     TranslatePipe,
-    MatSnackBarModule,
+    LatinDigitsPipe,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule
@@ -38,7 +39,7 @@ export class CircularInboxComponent implements OnInit {
     private circularApi: PlatformCircularApiService,
     private auth: AuthTokenService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar,
+    private notification: NotificationService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
@@ -74,16 +75,14 @@ export class CircularInboxComponent implements OnInit {
   markRead(row: PlatformCircularInboxRow): void {
     const userId = this.auth.getUserId()?.trim();
     if (!userId) {
-      this.snackBar.open(this.i18n.instant('circularInbox.noUserId'), this.i18n.instant('common.close'), {
-        duration: 5000,
-      });
+      this.notification.warningRaw(this.i18n.instant('circularInbox.noUserId'));
       return;
     }
     this.circularApi.markRead(row.id, { userId }).subscribe({
       next: () => this.load(),
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         const msg = err.userMessage ?? this.i18n.instant('circularInbox.loadError');
-        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
+        this.notification.errorRaw(msg);
       },
     });
   }

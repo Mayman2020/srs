@@ -1,13 +1,15 @@
 .leave-page {
   padding: 1rem 1.25rem;
   max-width: 900px;
+  color: var(--text-color);
 }
 .card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 .form-grid {
   display: grid;
@@ -20,22 +22,43 @@
 .btn {
   grid-column: 1 / -1;
   padding: 0.5rem 1rem;
-  background: #0b6e4f;
+  background: var(--primary-color);
   color: #fff;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 76%, #000 24%);
   border-radius: 8px;
   cursor: pointer;
+  transition: filter 180ms ease, transform 180ms ease;
+}
+.btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  background: var(--surface-elevated);
 }
 .data-table th,
 .data-table td {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 6px;
+  color: var(--text-color);
+}
+.data-table thead th {
+  background: color-mix(in srgb, var(--surface-muted) 85%, transparent);
+  color: var(--text-primary);
 }
 .muted {
-  color: #666;
+  color: var(--text-muted);
+}
+
+@media (max-width: 760px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }

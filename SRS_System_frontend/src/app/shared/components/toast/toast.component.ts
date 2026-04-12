@@ -28,4 +28,17 @@ export class ToastComponent {
   dismiss(id: string): void {
     this.notification.dismiss(id);
   }
+
+  iconFor(type: string): string {
+    switch (type) {
+      case 'success':
+        return 'check_circle';
+      case 'error':
+        return 'error';
+      case 'warning':
+        return 'warning';
+      default:
+        return 'info';
+    }
+  }
 }

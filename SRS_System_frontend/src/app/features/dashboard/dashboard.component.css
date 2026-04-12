@@ -2,7 +2,9 @@
 /* =================== THEME VARIABLES ================= */
 /* ===================================================== */
 
-:root {
+:host {
+  display: block;
+  padding-bottom: 6px;
 
   /* ================= GOVERNMENT COLORS ================= */
 
@@ -57,10 +59,43 @@
 /* ======================= GENERAL ===================== */
 /* ===================================================== */
 
-body {
-  background: var(--bg-primary);
+.page-header {
+  margin-bottom: 12px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--text-primary);
-  font-family: "Cairo", sans-serif;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.grid.c2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid.c3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboard-top-section {
+  margin-top: 6px;
+}
+
+.divider {
+  height: 1px;
+  margin: 14px 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--border-light) 88%, transparent),
+    transparent
+  );
 }
 
 
@@ -233,6 +268,46 @@ body {
     max-width: 100%;
     padding: 15px;
   }
+}
+
+
+/* ===================================================== */
+/* ======================= TABLE ======================= */
+/* ===================================================== */
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrap th {
+  background: #E6F4EF;
+  font-weight: 600;
+}
+
+.table-wrap th,
+.table-wrap td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-light);
+  text-align: center;
+}
+
+.table-wrap tr:hover {
+  background: rgba(11, 110, 79, 0.058);
+}
+
+.link {
+  color: #0B6E4F;
+  font-weight: 700;
+}
+
+.table-wrap .btn {
+  min-height: 32px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(11, 110, 79, 0.2);
+  color: #0B6E4F;
+  background: rgba(11, 110, 79, 0.08);
 }
 
 
@@ -946,4 +1021,25 @@ font-size:11px;
 
 color:#9ca3af;
 
+}
+
+@media (max-width: 1200px) {
+  .grid.c3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .grid.c2,
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sla-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
 }

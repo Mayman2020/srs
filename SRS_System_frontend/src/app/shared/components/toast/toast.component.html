@@ -1,7 +1,11 @@
 <div class="toast-stack" aria-live="polite" aria-atomic="true">
   @for (item of notification.items(); track item.id) {
-    <article class="toast toast--{{ item.type }}" [@toastMotion]>
+    <article
+      class="toast toast--{{ item.type }}"
+      [@toastMotion]
+      [style.--toast-duration]="item.durationMs + 'ms'">
       <div class="toast__rail"></div>
+      <span class="toast__icon material-icons" aria-hidden="true">{{ iconFor(item.type) }}</span>
       <div class="toast__content">
         <div class="toast__title">{{ ('notification.types.' + item.type) | t }}</div>
         <p class="toast__message">
@@ -13,8 +17,10 @@
         class="toast__close"
         (click)="dismiss(item.id)"
         [attr.aria-label]="'common.close' | t">
-        <span aria-hidden="true">x</span>
+        <span aria-hidden="true">&times;</span>
       </button>
+      <div class="toast__progress" aria-hidden="true"></div>
     </article>
   }
 </div>
+

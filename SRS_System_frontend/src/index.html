@@ -6,6 +6,25 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('theme');
+        var mode = stored === 'dark' || stored === 'light'
+          ? stored
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        var roots = [document.documentElement, document.body];
+        for (var i = 0; i < roots.length; i += 1) {
+          roots[i].classList.remove('light-theme', 'dark-theme');
+          roots[i].classList.add(mode + '-theme');
+          roots[i].setAttribute('data-theme', mode);
+        }
+        document.documentElement.style.colorScheme = mode;
+      } catch (err) {
+        console.warn('[ThemeBoot] early theme restore failed', err);
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">

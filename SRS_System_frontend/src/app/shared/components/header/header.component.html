@@ -1,32 +1,23 @@
 <header class="header-wrap">
   <mat-toolbar class="toolbar">
     <div class="toolbar-main">
+      <div class="toolbar-brand">
+        <button
+          mat-icon-button
+          type="button"
+          class="menu-toggle"
+          (click)="menuToggle.emit()">
+          <mat-icon>menu</mat-icon>
+        </button>
+
+        <div class="toolbar-brand__copy">
+          <div class="toolbar-brand__eyebrow">{{ 'shellHeader.workspace' | t }}</div>
+          <div class="toolbar-brand__title">{{ 'app.title' | t }}</div>
+        </div>
+      </div>
+
       <div class="toolbar-end">
         <div class="account-side">
-          <button
-            mat-button
-            type="button"
-            class="profile-btn"
-            [matMenuTriggerFor]="accountMenu"
-            [matTooltip]="'topbar.profileMenuAria' | t">
-            <span class="profile-btn__content">
-              @if (profileAvatarUrl) {
-                <img class="avatar-image" [src]="profileAvatarUrl" [alt]="profileName" />
-              } @else {
-                <span class="avatar">{{ profileInitials }}</span>
-              }
-
-              <span class="user-copy">
-                <strong class="user-name">{{ profileName }}</strong>
-              </span>
-            </span>
-          </button>
-
-          <mat-menu #accountMenu="matMenu" [xPosition]="submenuXPosition">
-            <a mat-menu-item routerLink="/profile">{{ 'topbar.menuProfile' | t }}</a>
-            <button mat-menu-item type="button" (click)="logout.emit()">{{ 'auth.logout' | t }}</button>
-          </mat-menu>
-
           <div
             class="header-shell__notifications"
             clickOutside
@@ -36,7 +27,6 @@
               type="button"
               class="header-icon-btn"
               [class.has-badge]="unreadCount > 0"
-              [matTooltip]="'topbar.notificationsIconTitle' | t"
               (click)="notificationsToggle.emit()">
               <mat-icon>notifications</mat-icon>
             </button>
@@ -52,6 +42,7 @@
                   <button
                     type="button"
                     class="header-shell__link-button"
+                    [disabled]="!hasNotifications"
                     (click)="markAllNotificationsRead.emit()">
                     {{ 'topbar.markAllRead' | t }}
                   </button>
@@ -88,25 +79,72 @@
             }
           </div>
 
-          <button
-            mat-icon-button
-            type="button"
-            class="theme-toggle"
-            (click)="themeToggle.emit()"
-            [matTooltip]="(isDark ? 'topbar.themeSwitchLight' : 'topbar.themeSwitchDark') | t"
-            [attr.aria-label]="(isDark ? 'topbar.themeSwitchLight' : 'topbar.themeSwitchDark') | t">
-            <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
-          </button>
+          <app-dark-light-mode-switch-main
+            [compact]="true"
+            [checked]="isDark"
+            [ariaLabel]="((isDark ? 'topbar.themeSwitchLight' : 'topbar.themeSwitchDark') | t)"
+            (toggled)="themeToggle.emit()"
+          />
 
           <button
             mat-button
             type="button"
             class="lang-btn"
-            [matMenuTriggerFor]="languageMenu"
-            [matTooltip]="'topbar.languageMenu' | t">
+            [matMenuTriggerFor]="languageMenu">
             <img class="flag" [src]="activeLanguage.flagUrl" [alt]="activeLanguage.labelKey | t" />
             <span class="lang-name">{{ activeLanguage.nativeLabelKey | t }}</span>
           </button>
+
+          <button
+            mat-button
+            type="button"
+            class="profile-btn"
+            [matMenuTriggerFor]="accountMenu">
+            <span class="profile-btn__content">
+              <app-erp-user-avatar
+                [primarySrc]="profileAvatarUrl"
+                [initials]="profileInitials"
+                size="md"
+                hostClass="profile-avatar"
+              />
+
+              <span class="user-copy">
+                <strong class="user-name">{{ profileName }}</strong>
+                @if (!showRoleSwitcher) {
+                  <small class="user-role">{{ profileRole }}</small>
+                }
+              </span>
+            </span>
+          </button>
+
+          @if (showRoleSwitcher) {
+            <button
+              mat-button
+              type="button"
+              class="role-switch-btn"
+              [disabled]="roleSwitching"
+              [matMenuTriggerFor]="roleMenu"
+              [attr.aria-label]="'topbar.roleMenuAria' | t">
+              <span class="role-switch-btn__label">{{ profileRole }}</span>
+              <mat-icon class="role-switch-btn__icon">arrow_drop_down</mat-icon>
+            </button>
+          }
+
+          <mat-menu #accountMenu="matMenu" [xPosition]="submenuXPosition">
+            <a mat-menu-item routerLink="/profile">{{ 'topbar.menuProfile' | t }}</a>
+            <button mat-menu-item type="button" (click)="logout.emit()">{{ 'auth.logout' | t }}</button>
+          </mat-menu>
+
+          <mat-menu #roleMenu="matMenu" [xPosition]="submenuXPosition">
+            @for (role of roleOptions; track trackRole($index, role)) {
+              <button mat-menu-item type="button" (click)="selectRole(role.code)">
+                <span>{{ role.label }}</span>
+                @if (role.code === currentRoleCode) {
+                  <mat-icon class="role-option-check">check</mat-icon>
+                }
+              </button>
+            }
+          </mat-menu>
 
           <mat-menu #languageMenu="matMenu" [xPosition]="submenuXPosition">
             @for (language of languages; track language.code) {

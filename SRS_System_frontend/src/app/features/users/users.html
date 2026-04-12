@@ -190,15 +190,24 @@
 <div class="modal-overlay" *ngIf="userModal === 'assign'" (click)="closeUserModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <h3>{{ 'admin.assignRole' | t }}</h3>
-    <select [(ngModel)]="assignRoleId">
-      <option *ngFor="let r of rolesLookup" [ngValue]="r.id">{{ labelRoleCard(r) }}</option>
-    </select>
+    <div class="roles-multi-select" *ngIf="rolesLookup.length; else rolesEmptyState">
+      <label class="role-option" *ngFor="let r of rolesLookup">
+        <input
+          type="checkbox"
+          [checked]="isRoleAssigned(r.id)"
+          (change)="onRoleAssignmentToggle(r.id, $event)" />
+        <span>{{ labelRoleCard(r) }}</span>
+      </label>
+    </div>
+    <ng-template #rolesEmptyState>
+      <p class="empty-cell">{{ 'common.empty' | t }}</p>
+    </ng-template>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="closeUserModal()">
         <i class="fa-solid fa-xmark"></i>
         {{ 'common.close' | t }}
       </button>
-      <button type="button" class="btn primary" (click)="saveAssignRole()">
+      <button type="button" class="btn primary" [disabled]="assignRoleIds.length === 0" (click)="saveAssignRole()">
         <i class="fa-solid fa-user-tag"></i>
         {{ 'common.apply' | t }}
       </button>

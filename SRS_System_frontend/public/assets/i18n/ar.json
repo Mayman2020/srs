@@ -188,7 +188,36 @@
     "pageTitle": "الهيكل التنظيمي",
     "deptTab": "الإدارات (داخلي)",
     "orgTab": "الجهات (خارجي / شركاء)",
-    "empty": "لا بيانات."
+    "empty": "لا بيانات.",
+    "treeButton": "شجرة الهيكل",
+    "backToTable": "الرجوع إلى الجدول",
+    "treePageTitle": "شجرة الهيكل التنظيمي",
+    "treeSubtitle": "يمكنك إدارة الإدارات بالكامل: إضافة، تعديل، وحذف.",
+    "tree": {
+      "addRoot": "إضافة إدارة رئيسية",
+      "createDialogTitle": "إضافة إدارة",
+      "editDialogTitle": "تعديل الإدارة",
+      "deleteDialogTitle": "حذف الإدارة",
+      "deleteDialogMessage": "سيتم حذف الإدارة \"{{name}}\" ونقل الإدارات التابعة لها إلى المستوى الأعلى. هل تريد المتابعة؟",
+      "emptyTree": "لا توجد إدارات حالياً.",
+      "loadError": "تعذر تحميل شجرة الإدارات.",
+      "created": "تمت إضافة الإدارة بنجاح.",
+      "updated": "تم تعديل الإدارة بنجاح.",
+      "deleted": "تم حذف الإدارة بنجاح.",
+      "deleteNode": "حذف",
+      "fields": {
+        "code": "الكود",
+        "nameAr": "الاسم بالعربية",
+        "nameEn": "الاسم بالإنجليزية",
+        "parent": "الإدارة الأم",
+        "sortOrder": "الترتيب"
+      },
+      "parentNone": "بدون إدارة أم (مستوى رئيسي)",
+      "validation": {
+        "required": "هذا الحقل مطلوب.",
+        "sortOrderMin": "الترتيب يجب أن يكون صفر أو أكبر."
+      }
+    }
   },
   "leave": {
     "pageTitle": "الإجازات",
@@ -828,7 +857,40 @@
       "fromMarker": "من |from ",
       "toMarker": "إلى |to ",
       "today": "اليوم|today"
-    }
+    },
+    "greetingDynamic": "مرحبًا. أستطيع مساعدتك بإحصاءات المعاملات المباشرة، الأعمال قيد التنفيذ، المتأخرات، الإشعارات، وآخر النشاطات.",
+    "subtitle": "مساعد مباشر للمعاملات وسير العمل والتنبيهات",
+    "emptyTitle": "اسأل سؤالًا",
+    "emptyCopy": "اختر إجراءً سريعًا أو اكتب ما تحتاجه.",
+    "emptyPrompt": "اكتب سؤالك وسأعرض لك ملخصًا مباشرًا من النظام.",
+    "typing": "جارٍ التحقق من أحدث البيانات...",
+    "error": "تعذر إكمال الطلب الآن.",
+    "errorInline": "تعذر تحميل أحدث رد من المساعد.",
+    "retry": "إعادة المحاولة",
+    "quick": {
+      "pending": "كم عدد المعاملات قيد التنفيذ؟",
+      "overdue": "اعرض المعاملات المتأخرة",
+      "latest": "اعرض أحدث المعاملات",
+      "notifications": "اعرض أحدث الإشعارات"
+    },
+    "actions": {
+      "openTransactions": "فتح المعاملات",
+      "openReports": "فتح التقارير",
+      "openDashboard": "فتح لوحة التحكم",
+      "openNotifications": "فتح الإشعارات",
+      "openReference": "فتح المعاملة"
+    },
+    "latestEmpty": "لا توجد معاملات حديثة للعرض حاليًا.",
+    "latestIntro": "هذه أحدث المعاملات:",
+    "pendingAnswer": "يوجد {{n}} معاملة قيد التنفيذ حاليًا.",
+    "overdueAnswer": "يوجد {{n}} معاملة متأخرة حاليًا.",
+    "overdueDepartment": "أعلى تكدس حاليًا في {{dept}} بعدد {{n}} معاملة متأخرة.",
+    "notificationsEmpty": "لا توجد إشعارات حديثة حاليًا.",
+    "notificationsAnswer": "وجدت {{n}} إشعارات حديثة.",
+    "totalAnswer": "يوجد في النظام {{total}} معاملة، منها {{done}} منجزة ضمن SLA و{{inbound}} واردة.",
+    "notFoundLive": "لم أجد معاملة مباشرة تطابق هذا المرجع.",
+    "referenceAnswer": "المعاملة {{ref}} بعنوان \"{{subject}}\" وحالتها الحالية {{status}}.",
+    "fallbackAnswer": "أستطيع مساعدتك بالأرقام المباشرة. حاليًا يوجد {{total}} معاملة و{{overdue}} معاملة متأخرة."
   },
   "workflowDialog": {
     "title": "التتبع البصري",
@@ -971,12 +1033,36 @@
     "confirmDeleteUser": "حذف هذا المستخدم من النظام؟"
   },
   "legacyCharts": {
-    "donutStatusLabels": ["جديدة", "قيد الإجراء", "معادة", "منجزة"],
-    "barDeptLabels": ["المراسلات الإدارية", "العمليات", "اللوجستيات", "الشؤون القانونية", "تقنية المعلومات"],
+    "donutStatusLabels": [
+      "جديدة",
+      "قيد الإجراء",
+      "معادة",
+      "منجزة"
+    ],
+    "barDeptLabels": [
+      "المراسلات الإدارية",
+      "العمليات",
+      "اللوجستيات",
+      "الشؤون القانونية",
+      "تقنية المعلومات"
+    ],
     "barDatasetLabel": "منجزة",
     "lineSeriesLabel": "حركة المعاملات",
-    "lineQuarterLabels": ["س1", "س2", "س3", "س4", "س5", "س6", "س7"],
-    "reportsDonutStatusLabels": ["جديدة", "قيد الإجراء", "معادة", "منجزة"]
+    "lineQuarterLabels": [
+      "س1",
+      "س2",
+      "س3",
+      "س4",
+      "س5",
+      "س6",
+      "س7"
+    ],
+    "reportsDonutStatusLabels": [
+      "جديدة",
+      "قيد الإجراء",
+      "معادة",
+      "منجزة"
+    ]
   },
   "legacyPages": {
     "common": {
@@ -1017,8 +1103,18 @@
       "open": "فتح",
       "emptyTx": "لا توجد معاملات.",
       "aiChartTxCount": "عدد المعاملات",
-      "aiStatusesOrder": ["NEW", "IN_PROGRESS", "RETURNED", "DONE", "REJECTED"],
-      "aiPrioritiesOrder": ["HIGH", "MEDIUM", "LOW"]
+      "aiStatusesOrder": [
+        "NEW",
+        "IN_PROGRESS",
+        "RETURNED",
+        "DONE",
+        "REJECTED"
+      ],
+      "aiPrioritiesOrder": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
     },
     "reports": {
       "runSuccessTitle": "تم",
@@ -1243,5 +1339,18 @@
         "statusCode": "SUSPENDED"
       }
     }
+  },
+  "shellHeader": {
+    "workspace": "نظام تخطيط موارد المؤسسات",
+    "toggleNav": "تبديل القائمة"
+  },
+  "shellFooter": {
+    "subtitle": "منصة إدارة المراسلات والعمليات الحكومية",
+    "dashboard": "لوحة التحكم",
+    "transactions": "المعاملات",
+    "reports": "التقارير",
+    "profile": "الملف الشخصي",
+    "support": "الدعم الفني",
+    "copyright": "جميع الحقوق محفوظة {{year}}."
   }
 }

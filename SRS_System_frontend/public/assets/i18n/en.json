@@ -188,7 +188,36 @@
     "pageTitle": "Organization structure",
     "deptTab": "Departments (internal)",
     "orgTab": "Entities (external / partners)",
-    "empty": "No rows."
+    "empty": "No rows.",
+    "treeButton": "Structure tree",
+    "backToTable": "Back to table",
+    "treePageTitle": "Organization structure tree",
+    "treeSubtitle": "Manage departments with add, edit, and delete actions.",
+    "tree": {
+      "addRoot": "Add top-level department",
+      "createDialogTitle": "Add department",
+      "editDialogTitle": "Edit department",
+      "deleteDialogTitle": "Delete department",
+      "deleteDialogMessage": "The department \"{{name}}\" will be deleted and its child departments will move under the parent level. Continue?",
+      "emptyTree": "No departments found.",
+      "loadError": "Could not load the department tree.",
+      "created": "Department added successfully.",
+      "updated": "Department updated successfully.",
+      "deleted": "Department deleted successfully.",
+      "deleteNode": "Delete",
+      "fields": {
+        "code": "Code",
+        "nameAr": "Arabic name",
+        "nameEn": "English name",
+        "parent": "Parent department",
+        "sortOrder": "Sort order"
+      },
+      "parentNone": "No parent (top-level)",
+      "validation": {
+        "required": "This field is required.",
+        "sortOrderMin": "Sort order must be zero or higher."
+      }
+    }
   },
   "leave": {
     "pageTitle": "Leave requests",
@@ -828,7 +857,40 @@
       "fromMarker": "from |من ",
       "toMarker": "to |إلى ",
       "today": "today|اليوم"
-    }
+    },
+    "greetingDynamic": "Hello. I can help with live transaction counts, pending work, overdue items, notifications, and recent activity.",
+    "subtitle": "Live assistant for transactions, workflow, and alerts",
+    "emptyTitle": "Ask a question",
+    "emptyCopy": "Use a quick action or type what you need.",
+    "emptyPrompt": "Type a question and I will return a live summary from the system.",
+    "typing": "Checking the latest data...",
+    "error": "I could not complete that request right now.",
+    "errorInline": "The assistant could not load the latest response.",
+    "retry": "Retry",
+    "quick": {
+      "pending": "How many pending items are there?",
+      "overdue": "Show overdue items",
+      "latest": "Show the latest transactions",
+      "notifications": "Show recent notifications"
+    },
+    "actions": {
+      "openTransactions": "Open transactions",
+      "openReports": "Open reports",
+      "openDashboard": "Open dashboard",
+      "openNotifications": "Open notifications",
+      "openReference": "Open transaction"
+    },
+    "latestEmpty": "There are no recent transactions to show right now.",
+    "latestIntro": "Here are the latest transactions:",
+    "pendingAnswer": "There are {{n}} transactions currently in progress.",
+    "overdueAnswer": "There are {{n}} overdue transactions right now.",
+    "overdueDepartment": "The highest backlog is in {{dept}} with {{n}} overdue items.",
+    "notificationsEmpty": "There are no recent notifications right now.",
+    "notificationsAnswer": "I found {{n}} recent notifications.",
+    "totalAnswer": "The system currently tracks {{total}} transactions, with {{done}} completed within SLA and {{inbound}} inbound items.",
+    "notFoundLive": "I could not find a live transaction matching that reference.",
+    "referenceAnswer": "Transaction {{ref}} is \"{{subject}}\" and its current status is {{status}}.",
+    "fallbackAnswer": "I can help with live numbers. Right now the system has {{total}} transactions and {{overdue}} overdue items."
   },
   "workflowDialog": {
     "title": "Visual tracking",
@@ -971,12 +1033,36 @@
     "confirmDeleteUser": "Delete this user?"
   },
   "legacyCharts": {
-    "donutStatusLabels": ["New", "In progress", "Returned", "Completed"],
-    "barDeptLabels": ["Administrative correspondence", "Operations", "Logistics", "Legal affairs", "IT"],
+    "donutStatusLabels": [
+      "New",
+      "In progress",
+      "Returned",
+      "Completed"
+    ],
+    "barDeptLabels": [
+      "Administrative correspondence",
+      "Operations",
+      "Logistics",
+      "Legal affairs",
+      "IT"
+    ],
     "barDatasetLabel": "Completed",
     "lineSeriesLabel": "Correspondence volume",
-    "lineQuarterLabels": ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7"],
-    "reportsDonutStatusLabels": ["New", "In progress", "Returned", "Completed"]
+    "lineQuarterLabels": [
+      "Q1",
+      "Q2",
+      "Q3",
+      "Q4",
+      "Q5",
+      "Q6",
+      "Q7"
+    ],
+    "reportsDonutStatusLabels": [
+      "New",
+      "In progress",
+      "Returned",
+      "Completed"
+    ]
   },
   "legacyPages": {
     "common": {
@@ -1017,8 +1103,18 @@
       "open": "Open",
       "emptyTx": "No transactions.",
       "aiChartTxCount": "Transaction count",
-      "aiStatusesOrder": ["NEW", "IN_PROGRESS", "RETURNED", "DONE", "REJECTED"],
-      "aiPrioritiesOrder": ["HIGH", "MEDIUM", "LOW"]
+      "aiStatusesOrder": [
+        "NEW",
+        "IN_PROGRESS",
+        "RETURNED",
+        "DONE",
+        "REJECTED"
+      ],
+      "aiPrioritiesOrder": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
     },
     "reports": {
       "runSuccessTitle": "OK",
@@ -1243,5 +1339,18 @@
         "statusCode": "SUSPENDED"
       }
     }
+  },
+  "shellHeader": {
+    "workspace": "Executive workspace",
+    "toggleNav": "Toggle navigation"
+  },
+  "shellFooter": {
+    "subtitle": "Unified correspondence, workflow, alerts, and reporting",
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "reports": "Reports",
+    "profile": "Profile",
+    "support": "Technical support",
+    "copyright": "Copyright {{year}}. All rights reserved."
   }
 }

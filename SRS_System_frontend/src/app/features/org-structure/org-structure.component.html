@@ -10,6 +10,12 @@
   </div>
 
   <div class="panel" *ngIf="tab === 'dept'">
+    <div class="panel-actions">
+      <a class="tree-link-btn" [routerLink]="['/org-structure/tree']">
+        {{ 'orgStructure.treeButton' | t }}
+      </a>
+    </div>
+
     <table class="data-table" *ngIf="departments.length">
       <thead>
         <tr>
@@ -23,7 +29,7 @@
       <tbody>
         <tr *ngFor="let d of treeRowsDept()">
           <td>{{ d.id }}</td>
-          <td>{{ d.parentId ?? '—' }}</td>
+          <td>{{ d.parentId ?? ('common.dash' | t) }}</td>
           <td><code>{{ d.code }}</code></td>
           <td>{{ d.nameAr }}</td>
           <td>{{ d.nameEn }}</td>
@@ -47,8 +53,8 @@
       <tbody>
         <tr *ngFor="let o of organizations">
           <td>{{ o.id }}</td>
-          <td>{{ o.parentId ?? '—' }}</td>
-          <td><code>{{ o.code || '—' }}</code></td>
+          <td>{{ o.parentId ?? ('common.dash' | t) }}</td>
+          <td><code>{{ o.code || ('common.dash' | t) }}</code></td>
           <td>{{ o.nameAr }}</td>
           <td>{{ o.external ? 'Y' : 'N' }}</td>
         </tr>

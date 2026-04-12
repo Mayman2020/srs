@@ -39,7 +39,7 @@ table {
 }
 
 thead {
-  background: #f1f5f9;
+  background: color-mix(in srgb, var(--surface-muted) 88%, transparent);
   position: sticky;
   top: 0;
 }
@@ -53,11 +53,11 @@ th {
 
 td {
   padding: 14px 12px;
-  border-bottom: 1px solid #eef2f7;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
 }
 
 tbody tr:hover {
-  background: #f9fafb;
+  background: color-mix(in srgb, var(--surface-muted) 72%, transparent);
 }
 
 .type-badge {
@@ -67,25 +67,25 @@ tbody tr:hover {
 }
 
 .type-badge.in {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: color-mix(in srgb, var(--info-color) 18%, transparent);
+  color: var(--info-color);
 }
 
 .type-badge.out {
-  background: #fef3c7;
-  color: #92400e;
+  background: color-mix(in srgb, var(--warning-color) 18%, transparent);
+  color: color-mix(in srgb, var(--warning-color) 82%, var(--text-primary));
 }
 
 .sla-bar {
   width: 100px;
   height: 6px;
-  background: #e5e7eb;
+  background: color-mix(in srgb, var(--border-color) 74%, transparent);
   border-radius: 10px;
 }
 
 .sla-bar .bar {
   height: 100%;
-  background: linear-gradient(90deg, #10B981, #0B6E4F);
+  background: linear-gradient(90deg, var(--success-color), var(--primary-color));
   border-radius: 10px;
 }
 
@@ -95,13 +95,13 @@ tbody tr:hover {
   justify-content: space-between;
   padding: 25px 0;
   margin-top: 30px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
   font-size: 13px;
 }
 
 /* info */
 .pager-info {
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
@@ -119,20 +119,20 @@ tbody tr:hover {
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: #374151;
+  color: var(--text-secondary);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .page-btn:hover {
-  background: #eef4f2;
+  background: color-mix(in srgb, var(--surface-muted) 78%, transparent);
 }
 
 /* active page */
 .page-btn.active {
-  background: #0B6E4F;
-  color: white;
+  background: var(--primary-color);
+  color: var(--text-on-primary);
   box-shadow: 0 6px 18px rgba(11, 110, 79, 0.25);
 }
 
@@ -140,16 +140,16 @@ tbody tr:hover {
 .nav-btn {
   padding: 6px 14px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #374151;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
   cursor: pointer;
   font-weight: 500;
   transition: 0.2s;
 }
 
 .nav-btn:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: color-mix(in srgb, var(--surface-muted) 80%, transparent);
 }
 
 .nav-btn:disabled {
@@ -161,8 +161,8 @@ tbody tr:hover {
 .pager-size select {
   border-radius: 10px;
   padding: 6px 10px;
-  border: 1px solid #e5e7eb;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
   cursor: pointer;
 }
 
@@ -179,7 +179,7 @@ tbody tr:hover {
   margin: 0;
   font-size: 18px;
   font-weight: 800;
-  color: #064635;
+  color: var(--text-primary);
 }
 
 .page-header h2::after {
@@ -189,7 +189,7 @@ tbody tr:hover {
   height: 2px;
   margin-top: 6px;
   border-radius: 2px;
-  background: linear-gradient(to right,#0B6E4F,#D4AF37);
+  background: linear-gradient(to right, var(--primary-color), var(--gov-gold));
 }
 
 .page-header-container {

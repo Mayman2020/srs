@@ -47,7 +47,7 @@
             dir="ltr"
             style="unicode-bidi:isolate"
           >
-            {{ node.data.date | date:'d MMM y • hh:mm a' }}
+            {{ (node.data.date | date:'d MMM y - hh:mm a') | latinDigits }}
           </div>
         </footer>
       </section>

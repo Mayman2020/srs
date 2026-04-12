@@ -20,7 +20,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TransactionService } from '../../../services/transaction.service';
 import { LookupService } from '../../../core/api/lookup.service';
 import { AttachmentApiService } from '../../../core/api/attachment-api.service';
@@ -38,9 +37,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { UiFormatService } from '../../../core/i18n/ui-format.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { GenericSelectComponent } from '../../../component/generic-select/generic-select.component';
 import { ErpAutoReferenceFieldComponent } from '../../../shared/erp/erp-auto-reference-field.component';
 import { EditorModule } from '@tinymce/tinymce-angular';
@@ -70,7 +71,6 @@ type LetterTemplateItem = {
     MatSelectModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     GenericSelectComponent,
     EditorModule,
     TranslatePipe,
@@ -142,7 +142,7 @@ export class CreateTransactionComponent implements OnInit {
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         console.error('[CreateTransaction] lookup bundle load failed', err);
         const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
+        this.notification.errorRaw(msg);
         this.transactionTypes = [];
         this.secrecyLevels = [];
         this.priorityLevels = [];
@@ -292,7 +292,6 @@ export class CreateTransactionComponent implements OnInit {
     private departmentApi: DepartmentApiService,
     private route: ActivatedRoute,
     private router: Router,
-    private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private zone: NgZone,
     private cdr: ChangeDetectorRef,
@@ -300,7 +299,9 @@ export class CreateTransactionComponent implements OnInit {
     private letterTemplateApi: LetterTemplateApiService,
     private workflowRouteApi: WorkflowRouteApiService,
     private i18n: I18nService,
-    private lookupLabels: LookupLabelsService
+    private format: UiFormatService,
+    private lookupLabels: LookupLabelsService,
+    private notification: NotificationService
   ) {
 
     // Step 1
@@ -415,12 +416,7 @@ export class CreateTransactionComponent implements OnInit {
   ================================ */
 
   buildBaseTemplate(bodyContent: string): string {
-    const locale = this.i18n.currentLang() === 'en' ? 'en-GB' : 'ar-EG';
-    const today = new Date().toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const today = this.format.formatDate(new Date(), 'd MMMM y');
 
     return `
 <div style="
@@ -845,15 +841,15 @@ export class CreateTransactionComponent implements OnInit {
   }
 
   showNotification(message: string, type: 'success' | 'error' | 'warning'): void {
-    const panelClass = type === 'success' ? 'success-snackbar' :
-      type === 'error' ? 'error-snackbar' : 'warning-snackbar';
-
-    this.snackBar.open(message, this.i18n.instant('common.close'), {
-      duration: 5000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: [panelClass]
-    });
+    if (type === 'success') {
+      this.notification.successRaw(message);
+      return;
+    }
+    if (type === 'warning') {
+      this.notification.warningRaw(message);
+      return;
+    }
+    this.notification.errorRaw(message);
   }
 
 

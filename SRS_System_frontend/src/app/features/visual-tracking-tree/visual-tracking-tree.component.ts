@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, ViewChild, inject } from '@angular/core';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import {
@@ -43,7 +44,7 @@ type OrgNode = OrgChartNode<NodeData>;
 @Component({
   selector: 'app-visual-tracking-tree',
   standalone: true,
-  imports: [CommonModule, NgxInteractiveOrgChart, TranslatePipe],
+  imports: [CommonModule, NgxInteractiveOrgChart, TranslatePipe, LatinDigitsPipe],
   templateUrl: './visual-tracking-tree.component.html',
   styleUrls: ['./visual-tracking-tree.component.scss'],
 })

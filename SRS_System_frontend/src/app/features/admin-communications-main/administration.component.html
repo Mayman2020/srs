@@ -184,18 +184,40 @@
 
     <div class="matrix-block">
       <div class="panel-head">
-        <h2>{{ 'admin.matrixTitle' | t }}</h2>
+        <div class="matrix-head-info">
+          <h2>{{ 'admin.matrixTitle' | t }}</h2>
+          <span class="perm-count-badge" *ngIf="matrixRoleId != null && matrixChecks.length > 0">
+            {{ checkedPermCount }} / {{ matrixChecks.length }}
+          </span>
+        </div>
         <button type="button" class="btn primary" (click)="saveMatrix()" [disabled]="matrixSaving || matrixRoleId == null">
           <i class="fa-solid fa-floppy-disk"></i>
           {{ 'admin.saveMatrix' | t }}
         </button>
       </div>
-      <p class="muted" *ngIf="matrixRoleId == null">{{ 'admin.pickRole' | t }}</p>
-      <p class="muted" *ngIf="matrixSaving">{{ 'common.loading' | t }}</p>
-      <div class="matrix-list" *ngIf="matrixRoleId != null">
-        <label class="matrix-row" *ngFor="let row of matrixChecks">
-          <input type="checkbox" [(ngModel)]="row.checked" />
-          <span class="matrix-label"><strong>{{ row.code }}</strong> — {{ row.label }}</span>
+
+      <p class="muted pick-role-hint" *ngIf="matrixRoleId == null">
+        <i class="fa-solid fa-arrow-up"></i>
+        {{ 'admin.pickRole' | t }}
+      </p>
+
+      <div class="matrix-saving-bar" *ngIf="matrixSaving">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        {{ 'common.loading' | t }}
+      </div>
+
+      <div class="matrix-grid" *ngIf="matrixRoleId != null && !matrixSaving">
+        <label class="perm-card" *ngFor="let row of matrixChecks" [class.perm-on]="row.checked">
+          <div class="perm-card-body">
+            <span class="perm-code-badge">{{ row.code }}</span>
+            <span class="perm-name">{{ row.label }}</span>
+          </div>
+          <div class="perm-toggle-wrap">
+            <input type="checkbox" [(ngModel)]="row.checked" class="perm-checkbox-hidden" />
+            <span class="perm-track">
+              <span class="perm-thumb"></span>
+            </span>
+          </div>
         </label>
       </div>
     </div>
@@ -225,7 +247,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let i of issues" [class.resolved]="issueResolved(i)">
-            <td>{{ i.createdAt | date: 'short' }}</td>
+            <td>{{ (i.createdAt | date: 'short') | latinDigits }}</td>
             <td>{{ i.severity }}</td>
             <td class="msg-cell">{{ i.message }}</td>
             <td class="url-cell" [title]="i.pageUrl || ''">{{ i.pageUrl || ('common.dash' | t) }}</td>

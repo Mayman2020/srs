@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { UserDirectoryApiService } from '../../core/api/user-directory-api.service';
@@ -20,14 +21,16 @@ import {
   UserListDto
 } from '../../core/api/api-types';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { CapabilitiesService } from '../../core/auth/capabilities.service';
 
 export type AdminTab = 'users' | 'permissions' | 'screens' | 'roles' | 'issues';
 
 @Component({
   selector: 'app-administration',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, ErpAutoReferenceFieldComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, LatinDigitsPipe, ErpAutoReferenceFieldComponent],
   templateUrl: './administration.component.html',
   styleUrl: './administration.component.scss'
 })
@@ -82,7 +85,9 @@ export class AdministrationComponent implements OnInit {
     private roleApi: RoleApiService,
     private deptApi: DepartmentApiService,
     private i18n: I18nService,
-    private readonly cdr: ChangeDetectorRef
+    private notification: NotificationService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly cap: CapabilitiesService
   ) {}
 
   ngOnInit(): void {
@@ -258,10 +263,17 @@ export class AdministrationComponent implements OnInit {
       source: this.adminApi.saveRolePermissionIds(this.matrixRoleId, ids),
       next: () => {
         this.toastOk('admin.matrixSaved');
+        // Reload capabilities so the UI reflects new permissions immediately (acts like re-login)
+        this.cap.clear();
+        this.cap.load().subscribe({
+          complete: () => window.location.reload(),
+          error: () => window.location.reload()
+        });
       },
       error: (e: unknown) => {
         const err = e as HttpErrorResponse & { userMessage?: string };
         this.errorMsg = err.userMessage ?? this.i18n.instant('admin.saveFailed');
+        this.cdr.detectChanges();
       }
     });
   }
@@ -534,6 +546,10 @@ export class AdministrationComponent implements OnInit {
     });
   }
 
+  get checkedPermCount(): number {
+    return this.matrixChecks.filter((c) => c.checked).length;
+  }
+
   labelRoleCard(r: LookupItemDto): string {
     return r.nameAr?.trim() || r.nameEn?.trim() || r.code;
   }
@@ -620,9 +636,7 @@ export class AdministrationComponent implements OnInit {
 
   private toastOk(key: string): void {
     this.errorMsg = '';
-    this.successMsg = this.i18n.instant(key);
-    setTimeout(() => {
-      this.successMsg = '';
-    }, 4000);
+    this.successMsg = '';
+    this.notification.success(key);
   }
 }

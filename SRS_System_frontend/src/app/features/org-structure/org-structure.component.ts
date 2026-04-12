@@ -6,11 +6,12 @@ import { DepartmentFlatDto, OrganizationFlatDto } from '../../core/api/api-types
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { forkJoin } from 'rxjs';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-org-structure',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, RouterLink],
   templateUrl: './org-structure.component.html',
   styleUrl: './org-structure.component.css'
 })

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, Observable } from 'rxjs';
-import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
+import { combineLatest, Observable, of } from 'rxjs';
+import { catchError, distinctUntilChanged, map, shareReplay, switchMap } from 'rxjs/operators';
 import { API_BASE_URL } from '../../core/api/api-url';
 import { CurrentUserProfileApiService } from '../../core/api/current-user-profile-api.service';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
@@ -23,6 +23,8 @@ export class ErpUserProfileStore {
   private readonly currentProfileApi = inject(CurrentUserProfileApiService);
   private readonly i18n = inject(I18nService);
   private readonly lang$ = toObservable(this.i18n.currentLang);
+  private protectedAvatarObjectUrl: string | null = null;
+  private protectedAvatarKey: string | null = null;
 
   /**
    * Hot observable — safe for `async` pipe or `toSignal(..., { initialValue: snapshot() })`.
@@ -33,7 +35,11 @@ export class ErpUserProfileStore {
     this.currentProfileApi.currentProfile$,
     this.lang$
   ]).pipe(
-    map(([s, profile]) => this.mapSession(s, profile)),
+    switchMap(([s, profile]) =>
+      this.resolveAvatarPrimarySrc(s, profile).pipe(
+        map((avatarPrimarySrc) => this.mapSession(s, profile, avatarPrimarySrc))
+      )
+    ),
     distinctUntilChanged(
       (a, b) =>
         a.rev === b.rev &&
@@ -56,11 +62,9 @@ export class ErpUserProfileStore {
         fullNameEn: string;
         profileImageUrl?: string | null;
         lastLoginAt: string | null;
-      } | null): ErpUserProfileViewModel {
+      } | null,
+      avatarPrimarySrc: string | null = this.resolveFallbackAvatarSrc(s, profile)): ErpUserProfileViewModel {
     const displayName = this.resolveDisplayName(s, profile);
-    const raw = profile?.profileImageUrl?.trim() || s.profileImageUrl?.trim() || null;
-    const resolved = raw ? this.resolveAssetUrl(raw) : null;
-    const avatarPrimarySrc = resolved ? this.withCacheBuster(resolved, s.rev) : null;
     return {
       rev: s.rev,
       userId: s.userId,
@@ -71,6 +75,42 @@ export class ErpUserProfileStore {
       roles: [...s.roles],
       lastLoginAt: profile?.lastLoginAt ?? null
     };
+  }
+
+  private resolveAvatarPrimarySrc(
+    session: AuthSessionSnapshot,
+    profile: {
+      profileImageUrl?: string | null;
+    } | null
+  ): Observable<string | null> {
+    const raw = profile?.profileImageUrl?.trim() || session.profileImageUrl?.trim() || null;
+    if (!raw) {
+      this.clearProtectedAvatarCache();
+      return of(null);
+    }
+
+    const resolved = this.resolveAssetUrl(raw);
+    if (!this.isProtectedMyAvatarUrl(resolved)) {
+      this.clearProtectedAvatarCache();
+      return of(this.withCacheBuster(resolved, session.rev));
+    }
+
+    const key = `${session.userId ?? ''}|${raw}`;
+    if (this.protectedAvatarKey === key && this.protectedAvatarObjectUrl) {
+      return of(this.protectedAvatarObjectUrl);
+    }
+
+    return this.currentProfileApi.getMyAvatarBlob().pipe(
+      map((blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        this.cacheProtectedAvatar(key, objectUrl);
+        return objectUrl;
+      }),
+      catchError(() => {
+        this.clearProtectedAvatarCache();
+        return of(null);
+      })
+    );
   }
 
   private resolveDisplayName(
@@ -95,6 +135,20 @@ export class ErpUserProfileStore {
     return t.charAt(0).toUpperCase();
   }
 
+  private resolveFallbackAvatarSrc(
+    session: AuthSessionSnapshot,
+    profile: {
+      profileImageUrl?: string | null;
+    } | null
+  ): string | null {
+    const raw = profile?.profileImageUrl?.trim() || session.profileImageUrl?.trim() || null;
+    if (!raw) {
+      return null;
+    }
+    const resolved = this.resolveAssetUrl(raw);
+    return this.withCacheBuster(resolved, session.rev);
+  }
+
   /** Turn API-relative paths into same-origin URLs suitable for `<img src>`. */
   private resolveAssetUrl(raw: string): string {
     const t = raw.trim();
@@ -111,5 +165,25 @@ export class ErpUserProfileStore {
   private withCacheBuster(url: string, rev: number): string {
     const sep = url.includes('?') ? '&' : '?';
     return `${url}${sep}_s=${rev}`;
+  }
+
+  private isProtectedMyAvatarUrl(url: string): boolean {
+    return /\/api\/v1\/profile\/me\/avatar(?:\?|$)/.test(url);
+  }
+
+  private cacheProtectedAvatar(key: string, url: string): void {
+    if (this.protectedAvatarObjectUrl && this.protectedAvatarObjectUrl !== url) {
+      URL.revokeObjectURL(this.protectedAvatarObjectUrl);
+    }
+    this.protectedAvatarKey = key;
+    this.protectedAvatarObjectUrl = url;
+  }
+
+  private clearProtectedAvatarCache(): void {
+    if (this.protectedAvatarObjectUrl) {
+      URL.revokeObjectURL(this.protectedAvatarObjectUrl);
+    }
+    this.protectedAvatarObjectUrl = null;
+    this.protectedAvatarKey = null;
   }
 }

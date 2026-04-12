@@ -2,6 +2,7 @@ import {
   afterNextRender,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   Injector,
   OnInit,
@@ -12,6 +13,7 @@ import {
 
 import { CommonModule } from '@angular/common';
 import { Chart } from 'chart.js/auto';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -25,13 +27,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
-import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
-import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
-import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
-import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
-import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
-import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
-import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
+import { ThemeService } from '../../core/services/theme.service';
+import { UiFormatService } from '../../core/i18n/ui-format.service';
 
 export type DashboardRecentRow = {
   id: string;
@@ -50,14 +47,10 @@ export type DashboardRecentRow = {
     CommonModule,
     MatIcon,
     TranslatePipe,
-    LookupTranslatePipe,
-    SrsDataTableComponent,
-    SrsSortHeaderComponent,
-    StatusBadgeComponent,
+    LookupTranslatePipe
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
-  animations: [srsTableRowEnter]
+  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
   @ViewChild('statusDonut') statusDonut!: ElementRef<HTMLCanvasElement>;
@@ -69,6 +62,13 @@ export class DashboardComponent implements OnInit {
   readonly animatedSlaPercent = signal(0);
 
   private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly theme = inject(ThemeService);
+  private readonly formatUi = inject(UiFormatService);
+  private statusDonutChart?: Chart;
+  private deptBarChart?: Chart;
+  private aiStatusDonutChart?: Chart;
+  private aiPriorityBarChart?: Chart;
 
   constructor(
     public router: Router,
@@ -78,7 +78,15 @@ export class DashboardComponent implements OnInit {
     private transactionService: TransactionService,
     private i18n: I18nService,
     private readonly cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.theme.mode$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.dash) {
+          this.renderCharts();
+        }
+      });
+  }
 
   slaPercent = 0;
 
@@ -98,11 +106,6 @@ export class DashboardComponent implements OnInit {
   recentLoading = true;
   recentAll: DashboardRecentRow[] = [];
   recentRows: DashboardRecentRow[] = [];
-  recentTotal = 0;
-  recentPage = 1;
-  recentPageSize = SRS_TABLE_DEFAULT_PAGE_SIZE;
-  recentSortColumn = 'created';
-  recentSortDir: SortDirection = 'desc';
 
   ngOnInit(): void {
     subscribePageLoad({
@@ -141,7 +144,7 @@ export class DashboardComponent implements OnInit {
           statusCode: t.statusCode,
           statusUiVariant: t.statusUiVariant ?? null,
         }));
-        this.rebuildRecentTable();
+        this.recentRows = this.recentAll.slice(0, 8);
         afterNextRender(
           () => {
             this.animateSla();
@@ -154,7 +157,6 @@ export class DashboardComponent implements OnInit {
         this.total = 0;
         this.recentAll = [];
         this.recentRows = [];
-        this.recentTotal = 0;
         this.dash = null;
         this.overdueCount = 0;
         this.slaOnTime = 0;
@@ -203,12 +205,14 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
+    const colors = this.chartColors();
     const status = this.bucketSeries(this.dash.byStatus);
     const priorities = this.bucketSeries(this.dash.byPriority);
 
     const countAxisLabel = this.i18n.instant('dashboard.chart.count');
 
-    const palette = ['#10B981', '#F59E0B', '#0da1eb', '#6366F1', '#EC4899', '#14B8A6', '#8B5CF6'];
+    const statusPalette = ['#0da1eb', '#F59E0B', '#eb0808', '#10B981', '#6366F1', '#EC4899', '#14B8A6'];
+    const priorityPalette = ['#0B6E4F', '#10B981', '#34D399', '#86EFAC', '#22C55E'];
 
     const doughnutOpts = {
       responsive: true,
@@ -220,6 +224,7 @@ export class DashboardComponent implements OnInit {
           labels: {
             font: { size: 13, family: 'Cairo, sans-serif', weight: 'bold' as const },
             padding: 15,
+            color: colors.text,
             usePointStyle: true,
             pointStyle: 'circle' as const
           }
@@ -228,15 +233,16 @@ export class DashboardComponent implements OnInit {
     };
 
     if (this.statusDonut?.nativeElement) {
-      new Chart(this.statusDonut.nativeElement, {
+      this.statusDonutChart?.destroy();
+      this.statusDonutChart = new Chart(this.statusDonut.nativeElement, {
         type: 'doughnut',
         data: {
           labels: status.labels,
           datasets: [
             {
               data: status.data,
-              backgroundColor: status.labels.map((_, i) => palette[i % palette.length]),
-              borderColor: '#FFFFFF',
+              backgroundColor: status.labels.map((_, i) => statusPalette[i % statusPalette.length]),
+              borderColor: colors.surface,
               borderWidth: 3,
               hoverOffset: 10
             }
@@ -247,7 +253,8 @@ export class DashboardComponent implements OnInit {
     }
 
     if (this.deptBar?.nativeElement) {
-      new Chart(this.deptBar.nativeElement, {
+      this.deptBarChart?.destroy();
+      this.deptBarChart = new Chart(this.deptBar.nativeElement, {
         type: 'bar',
         data: {
           labels: priorities.labels,
@@ -255,8 +262,8 @@ export class DashboardComponent implements OnInit {
             {
               label: countAxisLabel,
               data: priorities.data,
-              backgroundColor: priorities.labels.map((_, i) => palette[(i + 2) % palette.length]),
-              borderColor: '#FFFFFF',
+              backgroundColor: priorities.labels.map((_, i) => priorityPalette[i % priorityPalette.length]),
+              borderColor: colors.surface,
               borderWidth: 2,
               borderRadius: 8
             }
@@ -267,32 +274,46 @@ export class DashboardComponent implements OnInit {
           maintainAspectRatio: true,
           plugins: { legend: { display: false } },
           scales: {
-            y: { beginAtZero: true },
-            x: { grid: { display: false } }
+            y: {
+              beginAtZero: true,
+              ticks: { color: colors.text },
+              grid: { color: colors.grid }
+            },
+            x: {
+              ticks: { color: colors.text },
+              grid: { display: false }
+            }
           }
         }
       });
     }
 
     if (this.aiStatusDonut?.nativeElement) {
-      new Chart(this.aiStatusDonut.nativeElement, {
+      this.aiStatusDonutChart?.destroy();
+      this.aiStatusDonutChart = new Chart(this.aiStatusDonut.nativeElement, {
         type: 'doughnut',
         data: {
           labels: status.labels,
           datasets: [
             {
               data: status.data,
-              backgroundColor: status.labels.map((_, i) => palette[i % palette.length]),
+              backgroundColor: status.labels.map((_, i) => statusPalette[i % statusPalette.length]),
+              borderColor: colors.surface,
               borderWidth: 3
             }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: true }
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { labels: { color: colors.text } } }
+        }
       });
     }
 
     if (this.aiPriorityBar?.nativeElement) {
-      new Chart(this.aiPriorityBar.nativeElement, {
+      this.aiPriorityBarChart?.destroy();
+      this.aiPriorityBarChart = new Chart(this.aiPriorityBar.nativeElement, {
         type: 'bar',
         data: {
           labels: priorities.labels,
@@ -300,19 +321,45 @@ export class DashboardComponent implements OnInit {
             {
               label: this.i18n.instant('dashboard.chart.priorityAxis'),
               data: priorities.data,
-              backgroundColor: priorities.labels.map((_, i) => palette[(i + 1) % palette.length]),
+              backgroundColor: priorities.labels.map((_, i) => priorityPalette[i % priorityPalette.length]),
               borderRadius: 8
             }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: true }
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { labels: { color: colors.text } } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: colors.text },
+              grid: { color: colors.grid }
+            },
+            x: {
+              ticks: { color: colors.text },
+              grid: { display: false }
+            }
+          }
+        }
       });
     }
   }
 
   format(n: number): string {
-    const loc = this.i18n.currentLang() === 'en' ? 'en-US' : 'ar-SA';
-    return n.toLocaleString(loc);
+    return this.formatUi.formatNumber(n);
+  }
+
+  private chartColors(): { primary: string; warning: string; info: string; text: string; grid: string; surface: string } {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      primary: styles.getPropertyValue('--primary-color').trim() || '#0b6e4f',
+      warning: styles.getPropertyValue('--warning-color').trim() || '#d97706',
+      info: styles.getPropertyValue('--info-color').trim() || '#2563eb',
+      text: styles.getPropertyValue('--text-secondary').trim() || '#475569',
+      grid: styles.getPropertyValue('--border-color').trim() || '#d9e3ef',
+      surface: styles.getPropertyValue('--surface-elevated').trim() || '#ffffff'
+    };
   }
 
   openTransctions(): void {
@@ -323,59 +370,21 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/transactions', id]);
   }
 
-  onRecentSort(ev: { columnId: string; direction: SortDirection }): void {
-    this.recentSortColumn = ev.columnId;
-    this.recentSortDir = ev.direction;
-    this.recentPage = 1;
-    this.rebuildRecentTable();
-  }
-
-  onRecentPage(p: number): void {
-    this.recentPage = p;
-    this.rebuildRecentTable();
-  }
-
-  onRecentPageSize(n: number): void {
-    this.recentPageSize = n;
-    this.recentPage = 1;
-    this.rebuildRecentTable();
-  }
-
   trackByRecentId(_i: number, row: DashboardRecentRow): string {
     return row.id;
   }
 
-  private rebuildRecentTable(): void {
-    const sorted = this.sortRecentRows([...this.recentAll]);
-    const r = srsClientPaginate(sorted, this.recentPage, this.recentPageSize);
-    this.recentPage = r.page;
-    this.recentTotal = r.total;
-    this.recentRows = r.pageRows;
-  }
-
-  private sortRecentRows(rows: DashboardRecentRow[]): DashboardRecentRow[] {
-    const col = this.recentSortColumn;
-    const dir = this.recentSortDir;
-    return rows.sort((a, b) => {
-      switch (col) {
-        case 'ref':
-          return compareSortValues(a.referenceNumber, b.referenceNumber, dir);
-        case 'type':
-          return compareSortValues(a.typeCode, b.typeCode, dir);
-        case 'subject':
-          return compareSortValues(a.subject, b.subject, dir);
-        case 'created': {
-          const ta = new Date(a.created).getTime();
-          const tb = new Date(b.created).getTime();
-          const na = Number.isNaN(ta) ? 0 : ta;
-          const nb = Number.isNaN(tb) ? 0 : tb;
-          return compareSortValues(na, nb, dir);
-        }
-        case 'status':
-          return compareSortValues(a.statusCode, b.statusCode, dir);
-        default:
-          return 0;
-      }
-    });
+  statusPillClass(variant: string | null): string {
+    const value = (variant ?? '').toLowerCase();
+    if (value.includes('danger') || value.includes('error') || value.includes('reject') || value.includes('return')) {
+      return 'bad';
+    }
+    if (value.includes('warn') || value.includes('pending') || value.includes('progress')) {
+      return 'warn';
+    }
+    if (value.includes('success') || value.includes('done')) {
+      return 'ok';
+    }
+    return '';
   }
 }

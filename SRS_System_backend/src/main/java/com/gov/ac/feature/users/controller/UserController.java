@@ -1,6 +1,7 @@
 package com.gov.ac.feature.users.controller;
 
 import com.gov.ac.feature.users.dto.AssignRoleRequest;
+import com.gov.ac.feature.users.dto.AssignRolesRequest;
 import com.gov.ac.feature.users.dto.CreateAppUserRequest;
 import com.gov.ac.feature.users.dto.UpdateAppUserRequest;
 import com.gov.ac.feature.users.dto.UserDetailDto;
@@ -69,5 +70,12 @@ public class UserController {
   public void assignRole(
       @PathVariable UUID userId, @Valid @RequestBody AssignRoleRequest body) {
     userAdminService.assignRole(SecurityUtils.requireCurrentUserId(), userId, body.roleId());
+  }
+
+  @PutMapping("/{userId}/roles")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void assignRoles(
+      @PathVariable UUID userId, @Valid @RequestBody AssignRolesRequest body) {
+    userAdminService.setRoles(SecurityUtils.requireCurrentUserId(), userId, body.roleIds());
   }
 }

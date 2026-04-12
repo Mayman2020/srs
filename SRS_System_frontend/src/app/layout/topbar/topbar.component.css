@@ -582,9 +582,9 @@
 
 :host-context(html.dark-theme) .lang-btn,
 :host-context(html.dark-theme) .profile-btn {
-  background: #1e293b !important;
-  border-color: #334155 !important;
-  color: #f1f5f9 !important;
+  background: var(--surface-elevated) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
 }
 
 :host-context(html.dark-theme) .user-name {
@@ -592,11 +592,134 @@
 }
 
 :host-context(html.dark-theme) .theme-toggle {
-  color: #e2e8f0;
+  color: var(--text-color);
 }
 
 :host-context(html.dark-theme) .icon-btn.modern {
-  background: #1e293b;
-  border-color: #334155;
-  color: #e2e8f0;
+  background: var(--surface-elevated);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+:host-context(html.dark-theme) .topbar-toast {
+  background: color-mix(in srgb, var(--primary-color) 58%, #0b1423);
+  color: #f8fafc;
+}
+
+:host-context(html.dark-theme) .page-title {
+  color: var(--text-color);
+}
+
+:host-context(html.dark-theme) .page-subtitle,
+:host-context(html.dark-theme) .role-static {
+  color: var(--text-muted);
+}
+
+:host-context(html.dark-theme) .primary-btn {
+  background: var(--primary-color);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary-color) 34%, transparent);
+}
+
+:host-context(html.dark-theme) .primary-btn:hover {
+  background: color-mix(in srgb, var(--primary-color) 84%, #000 16%);
+}
+
+:host-context(html.dark-theme) .role-chip {
+  border-color: color-mix(in srgb, var(--primary-color) 34%, var(--border-color));
+  background: color-mix(in srgb, var(--surface-muted) 84%, transparent);
+  color: var(--text-color);
+}
+
+:host-context(html.dark-theme) .role-chip:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary-color) 56%, var(--border-color));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
+:host-context(html.dark-theme) .role-chevron {
+  border-top-color: var(--text-secondary);
+}
+
+:host-context(html.dark-theme) .role-dropdown {
+  background: var(--surface-elevated);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+:host-context(html.dark-theme) .role-option {
+  color: var(--text-secondary);
+}
+
+:host-context(html.dark-theme) .role-option:hover,
+:host-context(html.dark-theme) .role-option.active {
+  background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+  color: var(--text-color);
+}
+
+:host-context(html.dark-theme) .notification-popover {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+:host-context(html.dark-theme) .noti-header,
+:host-context(html.dark-theme) .popover-footer {
+  border-color: var(--border-color);
+}
+
+:host-context(html.dark-theme) .noti-title-box h3 {
+  color: var(--text-color);
+}
+
+:host-context(html.dark-theme) .noti-count,
+:host-context(html.dark-theme) .noti-time {
+  color: var(--text-muted);
+}
+
+:host-context(html.dark-theme) .mark-all-btn {
+  background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+  color: var(--text-color);
+  border-color: color-mix(in srgb, var(--primary-color) 34%, transparent);
+}
+
+:host-context(html.dark-theme) .mark-all-btn:hover {
+  background: color-mix(in srgb, var(--primary-color) 24%, transparent);
+}
+
+:host-context(html.dark-theme) .close-btn {
+  background: var(--surface-muted);
+  color: var(--text-color);
+}
+
+:host-context(html.dark-theme) .close-btn:hover {
+  background: color-mix(in srgb, var(--surface-muted) 84%, #000 16%);
+}
+
+:host-context(html.dark-theme) .notification-item {
+  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 82%, transparent);
+  box-shadow: none;
+}
+
+:host-context(html.dark-theme) .notification-item:hover {
+  background: var(--surface-muted);
+}
+
+:host-context(html.dark-theme) .notification-item.unread {
+  border-right-color: var(--primary-color);
+}
+
+:host-context(html.dark-theme) .noti-icon span {
+  background: var(--text-subtle);
+}
+
+:host-context(html.dark-theme) .noti-title {
+  color: var(--text-primary);
+}
+
+:host-context(html.dark-theme) .noti-text {
+  color: var(--text-secondary);
+}
+
+:host-context(html.dark-theme) .view-all-btn {
+  color: var(--primary-color);
 }

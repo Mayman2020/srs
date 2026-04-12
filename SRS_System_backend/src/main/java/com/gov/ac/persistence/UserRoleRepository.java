@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> {
 
+  @Query("select ur from UserRole ur where ur.id.appUserId = :userId")
+  List<UserRole> findAllByUserId(@Param("userId") UUID userId);
+
   @Query(
       value =
           "select ur.role_id from srs_system.user_role ur "

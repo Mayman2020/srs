@@ -1,0 +1,25 @@
+<label
+  class="theme-switch"
+  [class.theme-switch--compact]="compact"
+  [attr.aria-label]="ariaLabel || null">
+  <input
+    type="checkbox"
+    [checked]="checked"
+    [attr.aria-label]="ariaLabel || null"
+    (change)="toggled.emit()" />
+
+  <span class="theme-switch__track" aria-hidden="true">
+    <span class="theme-switch__thumb">
+      <span class="theme-switch__shade"></span>
+    </span>
+
+    <span class="theme-switch__sky">
+      <img src="assets/theme-switch/cloud_1.svg" alt="" class="theme-switch__cloud theme-switch__cloud--1" />
+      <img src="assets/theme-switch/cloud_2.svg" alt="" class="theme-switch__cloud theme-switch__cloud--2" />
+      <img src="assets/theme-switch/cloud_3.svg" alt="" class="theme-switch__cloud theme-switch__cloud--3" />
+      <img src="assets/theme-switch/cloud_4.svg" alt="" class="theme-switch__cloud theme-switch__cloud--4" />
+      <img src="assets/theme-switch/stars.svg" alt="" class="theme-switch__stars" />
+    </span>
+  </span>
+</label>
+

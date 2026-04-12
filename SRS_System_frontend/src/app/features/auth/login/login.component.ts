@@ -11,6 +11,7 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { MfaOtpDialogComponent } from '../../../shared/dialogs/mfa-otp-dialog.component';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
 import { catchError, of } from 'rxjs';
+import { NotificationService } from '../../../core/services/notification.service';
 
 declare var particlesJS: unknown;
 
@@ -35,13 +36,6 @@ function isMfaRequired(err: HttpErrorResponse): boolean {
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   form!: FormGroup;
 
-  toast: { show: boolean; title: string; message: string; kind: 'success' | 'error' | 'info' } = {
-    show: false,
-    title: '',
-    message: '',
-    kind: 'info'
-  };
-
   submitting = false;
 
   constructor(
@@ -51,6 +45,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private i18n: I18nService,
     private lookupLabels: LookupLabelsService,
     private dialog: MatDialog,
+    private notification: NotificationService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
@@ -186,10 +181,15 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     message: string,
     kind: 'success' | 'error' | 'info' = 'info'
   ): void {
-    this.toast = { show: true, title, message, kind };
-    const ms = kind === 'error' ? 6000 : 4000;
-    setTimeout(() => {
-      this.toast.show = false;
-    }, ms);
+    const content = title && title !== message ? `${title}: ${message}` : message;
+    if (kind === 'success') {
+      this.notification.successRaw(content);
+      return;
+    }
+    if (kind === 'error') {
+      this.notification.errorRaw(content);
+      return;
+    }
+    this.notification.infoRaw(content);
   }
 }

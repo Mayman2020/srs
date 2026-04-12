@@ -55,4 +55,8 @@ export class UserDirectoryApiService {
   assignRole(userId: string, roleId: number): Observable<void> {
     return this.http.post<void>(`${this.base}/users/${userId}/roles`, { roleId });
   }
+
+  assignRoles(userId: string, roleIds: number[]): Observable<void> {
+    return this.http.put<void>(`${this.base}/users/${userId}/roles`, { roleIds });
+  }
 }

@@ -4,6 +4,7 @@ import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.NotFoundException;
 import com.gov.ac.domain.org.Department;
 import com.gov.ac.domain.user.AppUser;
+import com.gov.ac.domain.user.Role;
 import com.gov.ac.domain.user.UserRole;
 import com.gov.ac.domain.user.UserRoleId;
 import com.gov.ac.feature.lookups.dto.LookupItemDto;
@@ -17,9 +18,14 @@ import com.gov.ac.persistence.DepartmentRepository;
 import com.gov.ac.persistence.RoleRepository;
 import com.gov.ac.persistence.UserRoleRepository;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -89,6 +95,68 @@ public class UserAdminService {
     ur.setCreatedBy(actorId);
     ur.setUpdatedBy(actorId);
     userRoleRepository.save(ur);
+  }
+
+  @Transactional
+  public void setRoles(UUID actorId, UUID targetUserId, List<Long> roleIds) {
+    AppUser user =
+        appUserRepository
+            .findByIdAndDeletedAtIsNull(targetUserId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+    if (!Boolean.TRUE.equals(user.getActive())) {
+      throw new BadRequestException("Cannot assign roles to an inactive user");
+    }
+
+    Set<Long> selectedRoleIds =
+        roleIds == null
+            ? Set.of()
+            : roleIds.stream()
+                .filter(id -> id != null && id > 0)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    if (selectedRoleIds.isEmpty()) {
+      throw new BadRequestException("At least one role must be selected");
+    }
+
+    List<Role> validRoles = roleRepository.findByIdInAndDeletedAtIsNullAndActiveTrue(List.copyOf(selectedRoleIds));
+    Set<Long> validRoleIds = validRoles.stream().map(Role::getId).collect(Collectors.toSet());
+    if (validRoleIds.size() != selectedRoleIds.size()) {
+      throw new NotFoundException("One or more roles were not found");
+    }
+
+    Instant now = Instant.now();
+    List<UserRole> existing = userRoleRepository.findAllByUserId(targetUserId);
+    Map<Long, UserRole> existingByRoleId =
+        existing.stream().collect(Collectors.toMap(e -> e.getId().getRoleId(), Function.identity()));
+
+    for (UserRole row : existing) {
+      Long roleId = row.getId().getRoleId();
+      boolean shouldBeActive = selectedRoleIds.contains(roleId);
+      boolean isActive = row.getValidTo() == null || row.getValidTo().isAfter(now);
+
+      if (shouldBeActive && !isActive) {
+        row.setValidFrom(now);
+        row.setValidTo(null);
+        row.setUpdatedBy(actorId);
+      } else if (!shouldBeActive && isActive) {
+        row.setValidTo(now);
+        row.setUpdatedBy(actorId);
+      }
+    }
+
+    for (Long roleId : selectedRoleIds) {
+      if (existingByRoleId.containsKey(roleId)) {
+        continue;
+      }
+      UserRole ur = new UserRole();
+      ur.setId(new UserRoleId(targetUserId, roleId));
+      ur.setAppUser(user);
+      ur.setRole(roleRepository.getReferenceById(roleId));
+      ur.setValidFrom(now);
+      ur.setValidTo(null);
+      ur.setCreatedBy(actorId);
+      ur.setUpdatedBy(actorId);
+      userRoleRepository.save(ur);
+    }
   }
 
   @Transactional(readOnly = true)

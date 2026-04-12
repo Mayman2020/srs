@@ -3,7 +3,6 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 @Component({
@@ -14,7 +13,6 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
     TranslatePipe
   ],
   templateUrl: './dialog-shell.component.html',

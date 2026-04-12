@@ -1,0 +1,193 @@
+:host {
+  display: inline-flex;
+}
+
+.theme-switch {
+  --switch-width: 142px;
+  --switch-height: 60px;
+  --switch-radius: 999px;
+  --switch-padding: 5px;
+  --thumb-size: 50px;
+  --switch-border-width: 2px;
+  position: relative;
+  display: inline-flex;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  cursor: pointer;
+  user-select: none;
+}
+
+.theme-switch--compact {
+  --switch-width: 88px;
+  --switch-height: 38px;
+  --switch-padding: 3px;
+  --thumb-size: 30px;
+  --switch-border-width: 1px;
+}
+
+.theme-switch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.theme-switch__track,
+.theme-switch__track::before,
+.theme-switch__track::after {
+  border-radius: var(--switch-radius);
+  transition: all 260ms ease;
+}
+
+.theme-switch__track {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  padding: var(--switch-padding);
+  background: linear-gradient(180deg, #7ec6ff, #bddfff);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 10px 24px rgba(15, 23, 42, 0.14);
+}
+
+.theme-switch__track::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--switch-border-width) * -1);
+  background: linear-gradient(180deg, #cfe7ff, #8dc6fb);
+  z-index: -2;
+}
+
+.theme-switch__track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #1f2937, #0f172a);
+  opacity: 0;
+  z-index: -1;
+}
+
+.theme-switch__thumb {
+  position: absolute;
+  inset-block-start: var(--switch-padding);
+  inset-inline-start: var(--switch-padding);
+  display: inline-flex;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: 50%;
+  background: #ffc98f;
+  box-shadow:
+    0 0 16px rgba(255, 193, 135, 0.65),
+    inset -2px -2px 5px rgba(255, 171, 92, 0.75);
+  z-index: 1;
+}
+
+.theme-switch__shade {
+  position: absolute;
+  inset-block-start: 8%;
+  inset-inline-start: 8%;
+  width: 74%;
+  height: 74%;
+  border-radius: 50%;
+  background: #ffc98f;
+  transition: background-color 260ms ease;
+}
+
+.theme-switch__sky {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.theme-switch__cloud,
+.theme-switch__stars {
+  position: absolute;
+  transition: all 320ms ease;
+  pointer-events: none;
+}
+
+.theme-switch__cloud {
+  width: 60%;
+}
+
+.theme-switch__cloud--1 {
+  inset-block-end: -55%;
+  inset-inline-start: 0;
+}
+
+.theme-switch__cloud--2 {
+  inset-block-end: -42%;
+  inset-inline-start: 17%;
+}
+
+.theme-switch__cloud--3 {
+  inset-block-end: -38%;
+  inset-inline-end: 0;
+}
+
+.theme-switch__cloud--4 {
+  inset-block-end: -10%;
+  inset-inline-end: -14%;
+}
+
+.theme-switch__stars {
+  inset-block-start: 140%;
+  inset-inline-start: 0;
+  width: 100%;
+}
+
+.theme-switch input:focus-visible + .theme-switch__track {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.theme-switch input:checked + .theme-switch__track {
+  background: linear-gradient(180deg, #273244, #181e29);
+}
+
+.theme-switch input:checked + .theme-switch__track::before {
+  background: linear-gradient(180deg, #020617, #64748b);
+}
+
+.theme-switch input:checked + .theme-switch__track::after {
+  opacity: 1;
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__thumb {
+  inset-inline-start: calc(100% - var(--thumb-size) - var(--switch-padding));
+  background: #e2e8f0;
+  box-shadow: 0 0 24px rgba(226, 232, 240, 0.58);
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__shade {
+  background: #5f6878;
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__cloud--1 {
+  inset-block-end: -35%;
+  inset-inline-start: -120%;
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__cloud--2 {
+  inset-block-end: -12%;
+  inset-inline-start: -120%;
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__cloud--3 {
+  inset-block-end: -10%;
+  inset-inline-end: -120%;
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__cloud--4 {
+  inset-block-end: 0;
+  inset-inline-end: -120%;
+}
+
+.theme-switch input:checked + .theme-switch__track .theme-switch__stars {
+  inset-block-start: 12%;
+}
+

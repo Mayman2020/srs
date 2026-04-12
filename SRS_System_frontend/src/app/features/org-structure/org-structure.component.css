@@ -1,6 +1,7 @@
 .org-page {
   padding: 1rem 1.25rem;
   max-width: 1100px;
+  color: var(--text-color);
 }
 .tabs {
   display: flex;
@@ -10,17 +11,41 @@
 .tabs button {
   padding: 0.4rem 0.9rem;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  color: var(--text-color);
   cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
 }
 .tabs button.active {
-  background: #0b6e4f;
+  background: var(--primary-color);
   color: #fff;
-  border-color: #0b6e4f;
+  border-color: var(--primary-color);
 }
 .panel {
   overflow: auto;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 0.75rem 0;
+}
+.tree-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 86%, #ffffff);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 .data-table {
   width: 100%;
@@ -29,10 +54,16 @@
 }
 .data-table th,
 .data-table td {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   padding: 8px;
   text-align: start;
+  color: var(--text-color);
+}
+
+.data-table th {
+  background: color-mix(in srgb, var(--surface-muted) 85%, transparent);
+  color: var(--text-primary);
 }
 .muted {
-  color: #666;
+  color: var(--text-muted);
 }

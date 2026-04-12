@@ -29,6 +29,8 @@
   </div>
 
   <div class="vwd-actions">
-    <button mat-stroked-button (click)="close()">{{ 'workflowDialog.close' | t }}</button>
+    <button mat-flat-button class="dialog-cancel-btn" (click)="close()">
+      {{ 'workflowDialog.close' | t }}
+    </button>
   </div>
 </div>

@@ -22,13 +22,13 @@ export interface ConfirmDialogData {
     <app-erp-dialog [titleKey]="data.titleKey" icon="help_outline">
       <p class="msg">{{ data.messageKey | t }}</p>
       <div erpDialogActions>
-        <button mat-button type="button" (click)="ref.close(false)">
+        <button mat-button type="button" class="dialog-cancel-btn" (click)="ref.close(false)">
           {{ data.cancelKey | t }}
         </button>
         <button
           mat-flat-button
+          class="dialog-confirm-btn"
           type="button"
-          [color]="data.warn ? 'warn' : 'primary'"
           (click)="ref.close(true)">
           {{ data.confirmKey | t }}
         </button>

@@ -51,7 +51,7 @@
 
         <div class="notification-footer">
           <span class="notification-date">
-            {{ notification.date | date: 'dd/MM/yyyy - HH:mm' }}
+            {{ (notification.date | date: 'dd/MM/yyyy - HH:mm') | latinDigits }}
           </span>
           <span class="notification-status" *ngIf="!notification.read">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

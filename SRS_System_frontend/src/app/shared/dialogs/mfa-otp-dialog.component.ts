@@ -5,12 +5,12 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { ErpDialogComponent } from '../erp/erp-dialog.component';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface MfaOtpDialogData {
   username: string;
@@ -27,7 +27,6 @@ export interface MfaOtpDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSnackBarModule,
     TranslatePipe,
     ErpDialogComponent,
   ],
@@ -77,8 +76,15 @@ export interface MfaOtpDialogData {
         </mat-form-field>
       </div>
       <div erpDialogActions>
-        <button mat-button type="button" (click)="cancel()">{{ 'auth.mfaBack' | t }}</button>
-        <button mat-flat-button color="primary" type="button" (click)="verify()" [disabled]="verifying">
+        <button mat-button type="button" class="dialog-cancel-btn" (click)="cancel()">
+          {{ 'auth.mfaBack' | t }}
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          class="dialog-confirm-btn"
+          (click)="verify()"
+          [disabled]="verifying">
           {{ 'auth.mfaVerifySubmit' | t }}
         </button>
       </div>
@@ -136,7 +142,7 @@ export class MfaOtpDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: MfaOtpDialogData,
     private authApi: AuthApiService,
     private i18n: I18nService,
-    private snackBar: MatSnackBar
+    private notification: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -156,17 +162,13 @@ export class MfaOtpDialogComponent implements OnInit {
     this.authApi.mfaChallenge(u, this.channel).subscribe({
       next: () => {
         this.sending = false;
-        this.snackBar.open(
-          this.i18n.instant('auth.mfaCodeSent'),
-          this.i18n.instant('common.close'),
-          { duration: 4000 }
-        );
+        this.notification.successRaw(this.i18n.instant('auth.mfaCodeSent'));
       },
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         this.sending = false;
         console.error('[MFA] challenge failed', err);
         const msg = err.userMessage ?? this.i18n.instant('auth.mfaSendFailed');
-        this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
+        this.notification.errorRaw(msg);
       },
     });
   }
@@ -175,11 +177,7 @@ export class MfaOtpDialogComponent implements OnInit {
     const u = this.data.username?.trim();
     const code = this.code.trim();
     if (!u || !code) {
-      this.snackBar.open(
-        this.i18n.instant('auth.mfaCodePlaceholder'),
-        this.i18n.instant('common.close'),
-        { duration: 4000 }
-      );
+      this.notification.warningRaw(this.i18n.instant('auth.mfaCodePlaceholder'));
       return;
     }
     this.verifying = true;
@@ -194,7 +192,7 @@ export class MfaOtpDialogComponent implements OnInit {
           this.verifying = false;
           console.error('[MFA] verify failed', err);
           const msg = err.userMessage ?? this.i18n.instant('errors.generic');
-          this.snackBar.open(msg, this.i18n.instant('common.close'), { duration: 6000 });
+          this.notification.errorRaw(msg);
         },
       });
   }

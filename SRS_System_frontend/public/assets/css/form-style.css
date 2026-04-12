@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --field-h: 44px;   
   --field-px: 12px;
   --icon-gap: 10px;
@@ -40,9 +40,9 @@
   padding: 6px 8px;
   font-size: 14px;
   text-align: center;
-  border: 1px solid #ccc;
+  border: 1px solid var(--control-border);
   border-radius: 5px;
-  background-color: white !important;
+  background-color: var(--control-bg) !important;
   box-shadow: none;
   outline: none;
   box-sizing: border-box;
@@ -54,7 +54,7 @@
   height: var(--field-h);
   padding: 0 var(--field-px); 
   text-align: center;
-  border: 1px solid #ccc;
+  border: 1px solid var(--control-border);
   border-radius: 6px;
   font-size: 14px; 
   width: 100%;
@@ -71,7 +71,7 @@
 }
 
 .custom-input.date-field {
-  padding-inline-end: calc(50px + var(--icon-gap)); /* 28px ≈ icon area */
+  padding-inline-end: calc(50px + var(--icon-gap)); /* 28px â‰ˆ icon area */
   direction: ltr;          
   text-align: right;       
   padding: 2px ;
@@ -91,7 +91,7 @@
 .prefix {
   height: var(--field-h);
   padding: 0 var(--field-px); 
-  border: 1px solid #ddd;
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px; 
@@ -122,37 +122,37 @@
 .custom-input.ng-invalid.ng-touched,
 .was-validated .custom-input:invalid,
 .form-control.is-invalid {
-  background-color: #fff !important;  
+  background-color: var(--control-bg) !important;  
   background-image: none !important;  
-  border-color: #dc3545 !important;   
-  box-shadow: 0 0 4px rgba(220,53,69,.35);
+  border-color: var(--danger-color) !important;   
+  box-shadow: 0 0 4px color-mix(in srgb, var(--danger-color) 35%, transparent);
 }
 
 .custom-input.input-error:focus,
 .custom-input.ng-invalid.ng-touched:focus,
 .was-validated .custom-input:invalid:focus {
-  background-color: #fff !important;
+  background-color: var(--control-bg) !important;
   outline: none;
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 4px rgba(220,53,69,.35);
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 4px color-mix(in srgb, var(--danger-color) 35%, transparent);
 }
 
 .mdc-text-field--invalid .mdc-text-field__input {
-  background-color: #fff !important;
+  background-color: var(--control-bg) !important;
 }
 
 
 .error-text {
   margin-top: 4px;
   font-size: 12px;
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 .input-error,
 .combo-shell.input-error {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 4px rgba(220,53,69,.35);
-  background-color: #fff !important;       
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 4px color-mix(in srgb, var(--danger-color) 35%, transparent);
+  background-color: var(--control-bg) !important;       
 
 }
 
@@ -165,18 +165,18 @@
 .was-validated .form-control:invalid,
 .was-validated .form-select:invalid {
   background-image: none !important;
-  background-color: #fff !important;
+  background-color: var(--control-bg) !important;
 }
 
 .mdc-text-field--invalid,
 .mdc-text-field--invalid .mdc-text-field__input {
-  background-color: #fff !important;
+  background-color: var(--control-bg) !important;
 }
 
 /* styles.css (global) */
 /* UNSELECTED tabs */
 .mat-mdc-tab:not(.mdc-tab--active) .mdc-tab__text-label {
-  color: hsl(var(--muted-foreground)) !important; /* choose your token */
+  color: var(--text-muted) !important; /* choose your token */
   font-weight: 500;
   font-size: 14px;
   opacity: .9; /* optional */
@@ -190,7 +190,7 @@
 
 /* Disabled tab (optional) */
 .mat-mdc-tab.mat-mdc-tab-disabled .mdc-tab__text-label {
-  color: hsl(var(--muted-foreground) / .6) !important;
+  color: color-mix(in srgb, var(--text-muted) 60%, transparent) !important;
 }
 
 /* ACTIVE tab */
@@ -216,7 +216,7 @@
 .generic-form-container {
   margin-top: 20px;
   padding: 10px;
-  background : white;
+  background: var(--surface-elevated);
 }
 
 .form-grid {
@@ -270,8 +270,8 @@
 .combo-shell {
   position: relative;
   width: 100%;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--surface-elevated);
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
@@ -281,13 +281,13 @@
 /* Hover */
 .combo-shell:hover {
   border-color:  var(--primary-color);
-  background: #f8fafb;
+  background: var(--surface-muted);
 }
 
 /* Focus */
 .combo-shell:focus-within {
   border-color:  var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(49, 131, 132, 0.1);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* ================= SELECT ================= */
@@ -300,7 +300,7 @@
   font-size: 14px;
   font-family: 'Cairo', 'El Messiri', system-ui, sans-serif;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.5;
 
   cursor: pointer;
@@ -325,17 +325,17 @@
 
 /* Placeholder */
 .combo-shell select option:first-child {
-  color: #999;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
 /* When placeholder selected */
 .combo-shell select:invalid {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .combo-shell select:valid {
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* ================= ARROW AT END ================= */
@@ -368,18 +368,18 @@
   font-size: 14px;
   font-family: 'Cairo', 'El Messiri', system-ui, sans-serif;
   font-weight: 500;
-  color: #333;
-  background: #fff;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
 }
 
 .combo-shell select option:checked {
   background:  var(--primary-color);
-  color: #fff;
+  color: var(--text-on-primary);
   font-weight: 600;
 }
 
 .combo-shell select option:hover {
-  background: #f8f9fa;
+  background: var(--surface-muted);
 }
 
 /* ================= LOADING STATE ================= */
@@ -400,29 +400,29 @@
 
 /* ================= ERROR STATE ================= */
 .combo-shell.input-error {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-color) 18%, transparent);
 }
 
 .combo-shell.input-error::after {
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 /* ================= DISABLED STATE ================= */
 .combo-shell select:disabled {
   background: transparent;
-  color: #999;
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
 .combo-shell:has(select:disabled) {
-  background: #f5f5f5;
-  border-color: #ddd;
+  background: var(--surface-muted);
+  border-color: var(--control-border);
   cursor: not-allowed;
 }
 
 .combo-shell:has(select:disabled)::after {
-  color: #999;
+  color: var(--text-muted);
 }
 
 /* ================= RTL SUPPORT ================= */
@@ -486,9 +486,9 @@
   height: var(--field-h);
   width: 100%;
 
-  border: 1px solid #ccc;
+  border: 1px solid var(--control-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface-elevated);
 
   padding-inline-start: var(--field-px);
   padding-inline-end: 36px;
@@ -505,7 +505,7 @@
 
 /* ===== ERROR ===== */
 .input-icon-wrapper.input-error {
-  border-color: #dc3545;
+  border-color: var(--danger-color);
 }
 
 .icon-input {
@@ -546,7 +546,7 @@
 }
 
 .search-icon:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-radius: 50%;
 }
 
@@ -568,11 +568,11 @@
   display: flex;              
   align-items: center;  
   justify-content: center;         
-  border: 1px solid #ddd;
+  border: 1px solid var(--control-border);
   border-radius: 6px;
-  background: #f5f5f5;
+  background: var(--surface-muted);
   font-size: 14px;
-  color: #555;
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -605,7 +605,7 @@
   align-items: center;
   justify-content: center;
   height: 38px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--control-border);
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s;
@@ -648,13 +648,13 @@
   cursor: pointer;
   padding: 0;
   opacity: 0.45;
-  color: #d9d9d9 !important;
+  color: var(--text-muted) !important;
   transition: transform 0.2s, color 0.2s;
 }
 
 .star.filled {
   opacity: 1;
-  color: #f59e0b !important; 
+  color: var(--warning-color) !important; 
 }
 
 .star:hover {
@@ -673,7 +673,7 @@
   cursor: pointer;
   font-weight: bold;
   opacity: 0.8;
-  color: hsl(var(--bg));
+  color: var(--text-primary);
 
   font-size: 1.4rem;     
   padding: 0.5rem 0.8rem; 
@@ -708,7 +708,7 @@
   resize: vertical;           
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--control-border);
   font: inherit;
   font-family: 'cairoFont';
   font-size: 14px;
@@ -753,7 +753,7 @@
   background: rgba(11,110,79,0.06);
   border: 1px solid rgba(11,110,79,0.15);
 
-  color: #0B6E4F;
+  color: var(--primary-color);
 
   transition: all .25s ease;
   position: relative;
@@ -811,11 +811,11 @@
 
 /* Hover close */
 .modern-tag-close:hover {
-  background: #0B6E4F;
+  background: var(--primary-color);
 }
 
 .modern-tag-close:hover mat-icon {
-  color: #fff;
+  color: var(--text-on-primary);
 }
 
 /* ================= ANIMATION ================= */

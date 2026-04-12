@@ -64,6 +64,15 @@ export const routes: Routes = [
         data: { titleKey: 'orgStructure.pageTitle', permission: 'correspondence.view' }
       },
       {
+        path: 'org-structure/tree',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/org-structure/org-structure-tree.component').then(
+            (m) => m.OrgStructureTreeComponent
+          ),
+        data: { titleKey: 'orgStructure.treePageTitle', permission: 'lookup.manage' }
+      },
+      {
         path: 'leave-requests',
         canMatch: [permissionCanMatch],
         loadComponent: () =>

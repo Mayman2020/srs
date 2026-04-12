@@ -39,7 +39,8 @@
               "public/assets/css/app.css",
               "public/assets/css/generic_style.css",
               "public/assets/css/form-style.css",
-              "public/assets/css/timeline-style.scss"
+              "public/assets/css/timeline-style.scss",
+              "src/theme-system.css"
             ],
             "scripts": []
           },

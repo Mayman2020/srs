@@ -1,0 +1,268 @@
+:host {
+  display: block;
+}
+
+.org-tree-page {
+  padding: 1rem 1.25rem;
+  color: var(--text-color);
+}
+
+.tree-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  min-height: 38px;
+  padding: 0 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.toolbar-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.toolbar-btn--ghost {
+  background: var(--surface-elevated);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.toolbar-btn--primary {
+  background: color-mix(in srgb, var(--primary-color) 84%, #ffffff);
+  border-color: color-mix(in srgb, var(--primary-color) 76%, #ffffff);
+  color: #ffffff;
+}
+
+.tree-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.tree-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.tree-subtitle {
+  margin: 0.4rem 0 1rem;
+  color: var(--text-muted);
+}
+
+.tree-wrapper {
+  border-top: 1px dashed var(--border-color);
+  padding-top: 0.9rem;
+}
+
+.muted {
+  color: var(--text-muted);
+  margin: 0.45rem 0;
+}
+
+.entity-tree,
+mat-tree {
+  background: transparent !important;
+  direction: rtl !important;
+}
+
+mat-tree-node,
+.mat-tree-node,
+.mat-nested-tree-node {
+  min-height: unset !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  display: block !important;
+  direction: rtl !important;
+}
+
+.parent-group {
+  margin-bottom: 4px;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  direction: rtl;
+  padding: 5px 6px;
+  border-radius: 10px;
+  min-height: 30px;
+  transition: background 0.18s ease;
+}
+
+.tree-row:hover {
+  background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
+}
+
+.children-container {
+  margin-right: 19px;
+  padding: 0 16px 0 0;
+  position: relative;
+  direction: rtl;
+}
+
+.children-container::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 14px;
+  right: 0;
+  width: 2px;
+  background: color-mix(in srgb, var(--border-color) 72%, transparent);
+}
+
+.child-row {
+  position: relative;
+}
+
+.child-row::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -16px;
+  width: 16px;
+  height: 2px;
+  background: color-mix(in srgb, var(--border-color) 72%, transparent);
+  transform: translateY(-50%);
+}
+
+.node-dot {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.parent-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 26%, transparent);
+}
+
+.child-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--surface-elevated);
+  border: 2px solid var(--text-subtle);
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  margin-right: -12px;
+}
+
+.node-main {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-inline-start: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.node-label {
+  font-size: 0.93rem;
+  line-height: 1.5;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.parent-label {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.child-label {
+  color: var(--text-color);
+}
+
+.node-meta {
+  font-family: var(--app-font-latin);
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  background: color-mix(in srgb, var(--surface-muted) 85%, transparent);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tree-action {
+  width: 30px;
+  height: 30px;
+}
+
+.tree-action .mat-icon {
+  font-size: 19px;
+  width: 19px;
+  height: 19px;
+}
+
+.tree-action--add {
+  color: color-mix(in srgb, #16a34a 82%, #ffffff);
+}
+
+.tree-action--edit {
+  color: color-mix(in srgb, #2563eb 82%, #ffffff);
+}
+
+.tree-action--delete {
+  color: color-mix(in srgb, #dc2626 82%, #ffffff);
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+  color: var(--primary-color);
+}
+
+.toggle-icon {
+  font-size: 18px;
+  transition: transform 0.25s ease;
+}
+
+.toggle-icon.open {
+  transform: rotate(-90deg);
+}
+
+@media (max-width: 768px) {
+  .org-tree-page {
+    padding: 0.85rem;
+  }
+
+  .tree-card {
+    padding: 0.75rem;
+  }
+
+  .node-meta {
+    display: none;
+  }
+}
