@@ -24,10 +24,40 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
-                "glob": "**/*",
+                "glob": "favicon.ico",
                 "input": "public"
               },
-               {
+              {
+                "glob": "**/*",
+                "input": "public/assets/i18n",
+                "output": "assets/i18n"
+              },
+              {
+                "glob": "**/*",
+                "input": "public/assets/img",
+                "output": "assets/img"
+              },
+              {
+                "glob": "**/*",
+                "input": "public/assets/theme-switch",
+                "output": "assets/theme-switch"
+              },
+              {
+                "glob": "**/*",
+                "input": "public/assets/flags",
+                "output": "assets/flags"
+              },
+              {
+                "glob": "cairo.woff2",
+                "input": "public/assets/fonts",
+                "output": "assets/fonts"
+              },
+              {
+                "glob": "ibmplex.woff2",
+                "input": "public/assets/fonts",
+                "output": "assets/fonts"
+              },
+              {
                 "glob": "**/*",
                 "input": "node_modules/@kolkov/angular-editor/assets/icons",
                 "output": "assets/ae-icons/"

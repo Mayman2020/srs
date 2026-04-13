@@ -1,4 +1,8 @@
 .header-wrap {
+  /* One height for menu / icons / language / profile / role — keeps the bar visually aligned */
+  --header-ctrl-h: 44px;
+  --header-ctrl-r: 11px;
+
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -53,9 +57,9 @@
 }
 
 .menu-toggle {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
+  width: var(--header-ctrl-h);
+  height: var(--header-ctrl-h);
+  border-radius: var(--header-ctrl-r);
   background: var(--surface-muted);
   color: var(--text-main);
 }
@@ -82,15 +86,19 @@
 }
 
 .account-side {
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .account-side .profile-btn,
 .account-side .header-icon-btn,
-.account-side .lang-btn {
+.account-side .lang-btn,
+.account-side .role-switch-btn,
+.account-side app-dark-light-mode-switch-main {
   flex: 0 0 auto;
+  align-self: center;
 }
 
 html[dir='ltr'] .toolbar,
@@ -108,9 +116,9 @@ html[dir='rtl'] .toolbar-main {
 }
 
 .header-icon-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
+  width: var(--header-ctrl-h);
+  height: var(--header-ctrl-h);
+  border-radius: var(--header-ctrl-r);
   color: var(--text-main);
   position: relative;
   background: var(--surface-muted);
@@ -129,16 +137,20 @@ html[dir='rtl'] .toolbar-main {
 }
 
 .lang-btn,
-.profile-btn {
-  border-radius: 8px;
+.profile-btn,
+.role-switch-btn {
+  border-radius: var(--header-ctrl-r);
 }
 
 .lang-btn {
-  padding-inline: 0.7rem 0.85rem;
+  padding-inline: 0.65rem 0.75rem;
   background: var(--surface-muted);
   border: 0 !important;
   box-shadow: none !important;
-  min-height: 42px;
+  height: var(--header-ctrl-h);
+  min-height: var(--header-ctrl-h);
+  max-height: var(--header-ctrl-h);
+  padding-block: 0;
 }
 
 .flag {
@@ -166,8 +178,11 @@ html[dir='rtl'] .toolbar-main {
 }
 
 .profile-btn {
-  min-height: 48px;
-  padding-inline: 0.55rem 0.85rem;
+  height: var(--header-ctrl-h);
+  min-height: var(--header-ctrl-h);
+  max-height: var(--header-ctrl-h);
+  padding-block: 0;
+  padding-inline: 0.5rem 0.75rem;
   background: var(--surface-muted);
   border: 0 !important;
   box-shadow: none;
@@ -176,12 +191,14 @@ html[dir='rtl'] .toolbar-main {
 }
 
 .role-switch-btn {
-  min-height: 42px;
-  border-radius: 8px;
+  height: var(--header-ctrl-h);
+  min-height: var(--header-ctrl-h);
+  max-height: var(--header-ctrl-h);
+  padding-block: 0;
   background: var(--surface-muted);
   border: 0 !important;
   box-shadow: none !important;
-  padding-inline: 0.55rem 0.75rem;
+  padding-inline: 0.55rem 0.65rem;
 }
 
 .role-switch-btn .mdc-button__label {
@@ -227,32 +244,36 @@ html[dir='rtl'] .toolbar-main {
 }
 
 .profile-btn__content {
-  min-height: 38px;
+  min-height: 0;
   max-width: 100%;
   min-width: 0;
-  gap: 0.7rem;
+  gap: 0.45rem;
 }
 
 .user-copy {
-  min-height: 38px;
+  min-height: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.05rem;
+  justify-content: center;
+  gap: 0;
+  line-height: 1.15;
 }
 
 .user-name {
   max-width: 190px;
   color: var(--text-main);
-  font-size: 0.92rem;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .user-role {
   max-width: 190px;
   color: var(--text-muted);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 :host-context(.dark-theme) .lang-btn,
@@ -274,6 +295,29 @@ html[dir='rtl'] .toolbar-main {
 .account-side .mat-mdc-button-base:focus-visible {
   background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-muted));
   transform: translateY(-1px);
+}
+
+/* Material default heights differ from our bar — lock to --header-ctrl-h */
+.account-side .mat-mdc-button-base.lang-btn,
+.account-side .mat-mdc-button-base.profile-btn,
+.account-side .mat-mdc-button-base.role-switch-btn {
+  --mdc-text-button-container-height: var(--header-ctrl-h);
+  min-height: var(--header-ctrl-h);
+  height: var(--header-ctrl-h);
+}
+
+.account-side .mat-mdc-icon-button.menu-toggle,
+.account-side .mat-mdc-icon-button.header-icon-btn {
+  width: var(--header-ctrl-h) !important;
+  height: var(--header-ctrl-h) !important;
+  padding: 0 !important;
+  --mdc-icon-button-state-layer-size: var(--header-ctrl-h);
+}
+
+.account-side .mat-mdc-icon-button.menu-toggle .mat-mdc-button-touch-target,
+.account-side .mat-mdc-icon-button.header-icon-btn .mat-mdc-button-touch-target {
+  height: var(--header-ctrl-h);
+  width: var(--header-ctrl-h);
 }
 
 :host-context(.dark-theme) .account-side .mat-mdc-button-base:hover,

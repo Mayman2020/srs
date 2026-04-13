@@ -1,4 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -61,8 +68,12 @@ export class AdministrationComponent implements OnInit {
     departmentId: number | null;
     active: boolean;
   } = this.emptyUserForm();
-  assignRoleId: number | null = null;
+  assignRoleIds: number[] = [];
   assignTargetUserId: string | null = null;
+  /** Multi-select roles: dropdown open state */
+  assignRolesDropdownOpen = false;
+
+  @ViewChild('assignRolesDropdownHost') assignRolesDropdownHost?: ElementRef<HTMLElement>;
 
   permModal: 'add' | 'edit' | null = null;
   permForm = this.emptyPermForm();
@@ -303,8 +314,17 @@ export class AdministrationComponent implements OnInit {
 
   openAssignRole(u: UserListDto): void {
     this.assignTargetUserId = u.id;
-    this.assignRoleId = this.rolesLookup[0]?.id ?? null;
+    this.assignRoleIds = [];
+    this.assignRolesDropdownOpen = false;
     this.userModal = 'assign';
+    this.usersApi.getOne(u.id).subscribe({
+      next: (d) => {
+        this.assignRoleIds = this.normalizeRoleIds(d.roleIds);
+      },
+      error: (e: HttpErrorResponse & { userMessage?: string }) => {
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
+      }
+    });
   }
 
   saveUser(): void {
@@ -375,12 +395,14 @@ export class AdministrationComponent implements OnInit {
   }
 
   saveAssignRole(): void {
-    if (!this.assignTargetUserId || this.assignRoleId == null) {
+    if (!this.assignTargetUserId || this.assignRoleIds.length === 0) {
       return;
     }
-    this.usersApi.assignRole(this.assignTargetUserId, this.assignRoleId).subscribe({
+    this.usersApi.assignRoles(this.assignTargetUserId, this.assignRoleIds).subscribe({
       next: () => {
         this.userModal = null;
+        this.assignTargetUserId = null;
+        this.assignRoleIds = [];
         this.loadUsers();
         this.toastOk('admin.roleAssigned');
       },
@@ -393,6 +415,61 @@ export class AdministrationComponent implements OnInit {
   closeUserModal(): void {
     this.userModal = null;
     this.assignTargetUserId = null;
+    this.assignRoleIds = [];
+    this.assignRolesDropdownOpen = false;
+  }
+
+  toggleAssignRolesDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.assignRolesDropdownOpen = !this.assignRolesDropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClickCloseAssignRoles(event: MouseEvent): void {
+    if (this.userModal !== 'assign' || !this.assignRolesDropdownOpen) {
+      return;
+    }
+    const host = this.assignRolesDropdownHost?.nativeElement;
+    if (!host) {
+      return;
+    }
+    if (host.contains(event.target as Node)) {
+      return;
+    }
+    this.assignRolesDropdownOpen = false;
+  }
+
+  isRoleAssigned(roleId: number): boolean {
+    return this.assignRoleIds.includes(roleId);
+  }
+
+  onRoleAssignmentToggle(roleId: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
+    if (checked) {
+      if (!this.assignRoleIds.includes(roleId)) {
+        this.assignRoleIds = [...this.assignRoleIds, roleId];
+      }
+      return;
+    }
+    this.assignRoleIds = this.assignRoleIds.filter((id) => id !== roleId);
+  }
+
+  roleLabelById(roleId: number): string {
+    const r = this.rolesLookup.find((x) => x.id === roleId);
+    return r ? this.labelRoleCard(r) : `#${roleId}`;
+  }
+
+  private normalizeRoleIds(roleIds: readonly number[] | null | undefined): number[] {
+    if (!roleIds?.length) {
+      return [];
+    }
+    const unique = new Set<number>();
+    for (const roleId of roleIds) {
+      if (Number.isFinite(roleId)) {
+        unique.add(roleId);
+      }
+    }
+    return [...unique];
   }
 
   openAddPerm(): void {

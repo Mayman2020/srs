@@ -18,10 +18,11 @@
 }
 
 .theme-switch--compact {
-  --switch-width: 88px;
-  --switch-height: 38px;
-  --switch-padding: 3px;
-  --thumb-size: 30px;
+  /* Match app header control row (~44px) */
+  --switch-width: 100px;
+  --switch-height: 44px;
+  --switch-padding: 5px;
+  --thumb-size: 34px;
   --switch-border-width: 1px;
 }
 

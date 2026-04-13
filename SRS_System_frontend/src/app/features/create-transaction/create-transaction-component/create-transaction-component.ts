@@ -44,7 +44,6 @@ import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service'
 import { NotificationService } from '../../../core/services/notification.service';
 import { GenericSelectComponent } from '../../../component/generic-select/generic-select.component';
 import { ErpAutoReferenceFieldComponent } from '../../../shared/erp/erp-auto-reference-field.component';
-import { EditorModule } from '@tinymce/tinymce-angular';
 import { DepartmentTreeDialogComponent } from '../department-tree-dialog/department-tree-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import JsBarcode from 'jsbarcode';
@@ -72,7 +71,6 @@ type LetterTemplateItem = {
     MatIconModule,
     MatProgressSpinnerModule,
     GenericSelectComponent,
-    EditorModule,
     TranslatePipe,
     LookupTranslatePipe,
     ErpAutoReferenceFieldComponent
@@ -282,7 +280,6 @@ export class CreateTransactionComponent implements OnInit {
   secondaryForm: FormGroup;
   letterForm: FormGroup;
 
-  editorInit: any;
   isLoading = false;
 
   constructor(
@@ -334,42 +331,6 @@ export class CreateTransactionComponent implements OnInit {
       letterContent: [this.defaultTemplate(), Validators.required]
     });
 
-    // TinyMCE Config
-    this.editorInit = {
-      language: 'ar',
-      directionality: 'rtl',
-      height: 600,
-      menubar: false,
-      branding: false,
-      statusbar: true,
-      resize: true,
-      plugins: [
-        'lists', 'link', 'table', 'code', 'fullscreen', 'wordcount'
-      ],
-      toolbar:
-        'undo redo | formatselect | bold italic underline | ' +
-        'alignright aligncenter alignleft | ' +
-        'bullist numlist | table | removeformat code fullscreen',
-      font_family_formats:
-        'Cairo=Cairo, sans-serif;' +
-        'Tajawal=Tajawal, sans-serif;' +
-        'Arial=arial,helvetica,sans-serif',
-      content_style: `
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-        body {
-          font-family: 'Cairo', sans-serif;
-          font-size: 15px;
-          line-height: 2;
-          color: #1a1a1a;
-          direction: rtl;
-          padding: 40px;
-          max-width: 210mm;
-          margin: 0 auto;
-        }
-        h1, h2, h3 { color: #0B6E4F; font-weight: 700; }
-        .label { font-weight: 600; color: #0B6E4F; }
-      `
-    };
   }
 
   selectedTemplateKey: string = 'default';

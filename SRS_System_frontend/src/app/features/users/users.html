@@ -180,10 +180,12 @@
     <p><strong>{{ 'admin.colNameEn' | t }}:</strong> {{ userForm.fullNameEn }}</p>
     <p><strong>{{ 'admin.colEmail' | t }}:</strong> {{ userForm.email }}</p>
     <p><strong>{{ 'admin.colActive' | t }}:</strong> {{ userForm.active ? ('users.statusActive' | t) : ('users.statusSuspended' | t) }}</p>
-    <button type="button" class="btn primary" (click)="closeUserModal()">
-      <i class="fa-solid fa-check"></i>
-      {{ 'common.close' | t }}
-    </button>
+    <div class="modal-actions">
+      <button type="button" class="btn primary" (click)="closeUserModal()">
+        <i class="fa-solid fa-check"></i>
+        {{ 'common.close' | t }}
+      </button>
+    </div>
   </div>
 </div>
 

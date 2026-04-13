@@ -48,14 +48,14 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../vendor/fonts/cairo-v31-latin-regular.woff2') format('woff2');
+  src: url('../fonts/cairo.woff2') format('woff2');
 }
 @font-face{
   font-family: 'IBM Plex Sans Arabic';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../vendor/fonts/ibm-plex-sans-arabic-v14-latin-regular.woff2') format('woff2');
+  src: url('../fonts/ibmplex.woff2') format('woff2');
 }
 
 *{ box-sizing: border-box; }
@@ -469,8 +469,7 @@ tbody tr:hover{ background: rgba(245,247,246,.85); }
 :root[data-theme="dark"] .tlcard{ background: rgba(15,27,44,.65); border-color: rgba(223,243,234,.10); }
 .tlcard b{ color: var(--g-700); font-weight: 1300; }
 
-.modal{ position:fixed; left: 18px; top: 18px; width: min(560px, 94vw); background: var(--card); border:1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow2); z-index: 90; display:none; overflow:hidden; }
-.modal.show{ display:block; animation: pop .18s var(--ease); }
+/* Legacy fixed modal removed — use `.modal-overlay > .modal` (theme-system.css) */
 .modal .d-head{ padding: 12px 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; border-bottom:1px solid rgba(6,70,53,.12); }
 .modal .d-body{ padding: 14px; }
 .modal .d-foot{ padding: 12px 14px; display:flex; gap:10px; flex-wrap:wrap; border-top:1px solid rgba(6,70,53,.12); }
