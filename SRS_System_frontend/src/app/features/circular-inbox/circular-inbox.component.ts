@@ -7,7 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
 import {
   PlatformCircularApiService,
-  PlatformCircularInboxRow,
+  PlatformCircularInboxRowDto,
 } from '../../core/api/platform-circular-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
@@ -30,7 +30,7 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrl: './circular-inbox.component.scss',
 })
 export class CircularInboxComponent implements OnInit {
-  rows: PlatformCircularInboxRow[] = [];
+  rows: PlatformCircularInboxRowDto[] = [];
   loading = false;
   /** Localized message when inbox cannot be loaded */
   errorText: string | null = null;
@@ -72,7 +72,7 @@ export class CircularInboxComponent implements OnInit {
     });
   }
 
-  markRead(row: PlatformCircularInboxRow): void {
+  markRead(row: PlatformCircularInboxRowDto): void {
     const userId = this.auth.getUserId()?.trim();
     if (!userId) {
       this.notification.warningRaw(this.i18n.instant('circularInbox.noUserId'));

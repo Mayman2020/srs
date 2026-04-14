@@ -2,11 +2,11 @@ package com.gov.ac.feature.departments.service;
 
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.NotFoundException;
-import com.gov.ac.domain.org.Department;
+import com.gov.ac.feature.departments.entity.DepartmentEntity;
 import com.gov.ac.feature.departments.dto.DepartmentFlatDto;
-import com.gov.ac.feature.departments.dto.UpsertDepartmentRequest;
+import com.gov.ac.feature.departments.dto.UpsertDepartmentRequestDto;
 import com.gov.ac.feature.departments.mapper.DepartmentMapper;
-import com.gov.ac.persistence.DepartmentRepository;
+import com.gov.ac.feature.departments.repository.DepartmentRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -29,13 +29,13 @@ public class DepartmentService {
   }
 
   @Transactional
-  public DepartmentFlatDto create(UUID actorId, UpsertDepartmentRequest request) {
+  public DepartmentFlatDto create(UUID actorId, UpsertDepartmentRequestDto request) {
     String code = normalizeCode(request.code());
     if (departmentRepository.existsByCodeIgnoreCaseAndDeletedAtIsNull(code)) {
       throw new BadRequestException("departments.errors.codeExists");
     }
 
-    Department entity = new Department();
+    DepartmentEntity entity = new DepartmentEntity();
     entity.setCode(code);
     entity.setNameAr(normalizeText(request.nameAr()));
     entity.setNameEn(normalizeText(request.nameEn()));
@@ -47,8 +47,8 @@ public class DepartmentService {
   }
 
   @Transactional
-  public DepartmentFlatDto update(UUID actorId, long id, UpsertDepartmentRequest request) {
-    Department entity = loadDepartment(id);
+  public DepartmentFlatDto update(UUID actorId, long id, UpsertDepartmentRequestDto request) {
+    DepartmentEntity entity = loadDepartment(id);
     String code = normalizeCode(request.code());
     if (departmentRepository.existsByCodeIgnoreCaseAndDeletedAtIsNullAndIdNot(code, entity.getId())) {
       throw new BadRequestException("departments.errors.codeExists");
@@ -65,11 +65,11 @@ public class DepartmentService {
 
   @Transactional
   public void delete(UUID actorId, long id) {
-    Department entity = loadDepartment(id);
-    Department fallbackParent = entity.getParent();
+    DepartmentEntity entity = loadDepartment(id);
+    DepartmentEntity fallbackParent = entity.getParent();
 
-    List<Department> children = departmentRepository.findByParent_IdAndDeletedAtIsNull(entity.getId());
-    for (Department child : children) {
+    List<DepartmentEntity> children = departmentRepository.findByParent_IdAndDeletedAtIsNull(entity.getId());
+    for (DepartmentEntity child : children) {
       child.setParent(fallbackParent);
     }
     departmentRepository.saveAll(children);
@@ -80,27 +80,27 @@ public class DepartmentService {
     departmentRepository.save(entity);
   }
 
-  private Department resolveParent(Long parentId, Long currentId) {
+  private DepartmentEntity resolveParent(Long parentId, Long currentId) {
     if (parentId == null) {
       return null;
     }
     if (currentId != null && parentId.equals(currentId)) {
       throw new BadRequestException("departments.errors.parentSelf");
     }
-    Department parent = loadDepartment(parentId);
+    DepartmentEntity parent = loadDepartment(parentId);
     if (currentId != null) {
       ensureNoCycle(currentId, parent);
     }
     return parent;
   }
 
-  private void ensureNoCycle(Long currentId, Department parent) {
-    Department cursor = parent;
+  private void ensureNoCycle(Long currentId, DepartmentEntity parent) {
+    DepartmentEntity cursor = parent;
     while (cursor != null) {
       if (currentId.equals(cursor.getId())) {
         throw new BadRequestException("departments.errors.parentCycle");
       }
-      Department next = cursor.getParent();
+      DepartmentEntity next = cursor.getParent();
       if (next != null) {
         cursor = loadDepartment(next.getId());
       } else {
@@ -109,7 +109,7 @@ public class DepartmentService {
     }
   }
 
-  private Department loadDepartment(Long id) {
+  private DepartmentEntity loadDepartment(Long id) {
     return departmentRepository
         .findByIdAndDeletedAtIsNull(id)
         .orElseThrow(() -> new NotFoundException("departments.errors.notFound"));

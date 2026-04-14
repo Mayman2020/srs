@@ -1433,21 +1433,8 @@ opacity:.9;
 }
 
 .mini-table-wrap {
-  overflow: auto;
+  overflow-x: auto;
   padding: 0 1rem 1rem;
-}
-
-.mini-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-}
-
-.mini-table th,
-.mini-table td {
-  padding: 0.45rem 0.35rem;
-  border-bottom: 1px solid $border;
-  text-align: start;
 }
 
 .att-index {

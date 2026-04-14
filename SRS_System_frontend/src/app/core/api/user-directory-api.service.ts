@@ -1,8 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { withSilentSuccess } from '../interceptors/http-notification-context';
 import { API_BASE_URL } from './api-url';
 import { SpringPage, UserDetailDto, UserListDto } from './api-types';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class UserDirectoryApiService {
@@ -16,11 +18,13 @@ export class UserDirectoryApiService {
       .set('page', String(page))
       .set('size', String(size))
       .append('sort', 'createdAt,desc');
-    return this.http.get<SpringPage<UserListDto>>(`${this.base}/users`, { params });
+    return this.http.get<SpringPage<UserListDto>>(apiPath(this.base, AppConstants.API.USERS), {
+      params
+    });
   }
 
   getOne(userId: string): Observable<UserDetailDto> {
-    return this.http.get<UserDetailDto>(`${this.base}/users/${userId}`);
+    return this.http.get<UserDetailDto>(apiPathWithId(this.base, AppConstants.API.USERS, userId));
   }
 
   create(body: {
@@ -31,7 +35,9 @@ export class UserDirectoryApiService {
     email: string;
     departmentId: number;
   }): Observable<UserDetailDto> {
-    return this.http.post<UserDetailDto>(`${this.base}/users`, body);
+    return this.http.post<UserDetailDto>(apiPath(this.base, AppConstants.API.USERS), body, {
+      context: withSilentSuccess()
+    });
   }
 
   update(
@@ -45,18 +51,32 @@ export class UserDirectoryApiService {
       password?: string | null;
     }
   ): Observable<UserDetailDto> {
-    return this.http.put<UserDetailDto>(`${this.base}/users/${userId}`, body);
+    return this.http.put<UserDetailDto>(
+      apiPathWithId(this.base, AppConstants.API.USERS, userId),
+      body,
+      { context: withSilentSuccess() }
+    );
   }
 
   delete(userId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/users/${userId}`);
+    return this.http.delete<void>(apiPathWithId(this.base, AppConstants.API.USERS, userId), {
+      context: withSilentSuccess()
+    });
   }
 
   assignRole(userId: string, roleId: number): Observable<void> {
-    return this.http.post<void>(`${this.base}/users/${userId}/roles`, { roleId });
+    return this.http.post<void>(
+      `${apiPathWithId(this.base, AppConstants.API.USERS, userId)}/roles`,
+      { roleId },
+      { context: withSilentSuccess() }
+    );
   }
 
   assignRoles(userId: string, roleIds: number[]): Observable<void> {
-    return this.http.put<void>(`${this.base}/users/${userId}/roles`, { roleIds });
+    return this.http.put<void>(
+      `${apiPathWithId(this.base, AppConstants.API.USERS, userId)}/roles`,
+      { roleIds },
+      { context: withSilentSuccess() }
+    );
   }
 }

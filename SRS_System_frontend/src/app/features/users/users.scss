@@ -1,4 +1,4 @@
-﻿
+
 .page-header-container {
   display: flex;
   align-items: flex-start;
@@ -19,30 +19,7 @@
   font-size: 0.92rem;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn.primary {
-  background: linear-gradient(
-    135deg,
-    var(--primary-color),
-    color-mix(in srgb, var(--primary-color) 82%, transparent)
-  );
-  color: var(--text-on-primary);
-  border: none;
-  padding: 10px 16px;
-  border-radius: 12px;
-  font-weight: 700;
-  box-shadow: 0 12px 24px rgba(11, 110, 79, 0.16);
-}
-
-.btn.primary:hover {
-  transform: translateY(-1px);
-}
+/* Buttons: global styles.css (.btn.primary, .actions-modern .action-btn) */
 
 /* ================= Filters ================= */
 
@@ -63,41 +40,6 @@
 }
 
 /* ================= Table ================= */
-
-.table-container {
-  background: var(--surface-elevated);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.04);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead {
-  background: color-mix(in srgb, var(--surface-muted) 84%, transparent);
-  position: sticky;
-  top: 0;
-}
-
-th {
-  padding: 12px;
-  font-size: 13px;
-  text-align: right;
-  font-weight: 600;
-}
-
-td {
-  padding: 14px 12px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 84%, transparent);
-  font-size: 13px;
-}
-
-tbody tr:hover {
-  background: color-mix(in srgb, var(--surface-muted) 72%, transparent);
-}
 
 /* ================= Avatar ================= */
 
@@ -208,59 +150,6 @@ tbody tr:hover {
   border: none;
 }
 
-/* ================= Modern Actions ================= */
-
-.actions-modern {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-}
-
-.action-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background: var(--surface-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all .2s ease;
-  font-size: 13px;
-}
-
-.action-btn i {
-  pointer-events: none;
-}
-
-.action-btn.edit {
-  color: var(--primary-color);
-}
-
-.action-btn.edit:hover {
-  background: color-mix(in srgb, var(--success-color) 16%, transparent);
-  transform: translateY(-2px);
-}
-
-.action-btn.toggle {
-  color: var(--warning-color);
-}
-
-.action-btn.toggle:hover {
-  background: color-mix(in srgb, var(--warning-color) 16%, transparent);
-  transform: translateY(-2px);
-}
-
-.action-btn.delete {
-  color: var(--danger-color);
-}
-
-.action-btn.delete:hover {
-  background: color-mix(in srgb, var(--danger-color) 16%, transparent);
-  transform: translateY(-2px);
-}
-
 .banner-error {
   background: color-mix(in srgb, var(--danger-color) 14%, transparent);
   color: color-mix(in srgb, var(--danger-color) 82%, var(--text-primary));
@@ -290,43 +179,7 @@ tbody tr:hover {
 /* Dialog shell: theme-system.css (global) */
 
 .roles-multi-select {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 280px;
-  overflow-y: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 10px;
-  background: var(--surface);
-}
-
-.role-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-}
-
-.role-option:hover {
-  background: color-mix(in srgb, var(--success-color) 12%, transparent);
-  border-color: color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
-}
-
-.role-option input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--primary-color);
-}
-
-.role-option span {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  position: relative;
 }
 
 .modal-actions .btn:disabled {
@@ -358,4 +211,3 @@ tbody tr:hover {
     width: 100%;
   }
 }
-

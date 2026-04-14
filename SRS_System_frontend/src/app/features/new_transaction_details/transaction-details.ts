@@ -7,13 +7,13 @@ import { catchError, map, take, takeUntil } from 'rxjs/operators';
 import {
   AttachmentIndexEntryDto,
   CorrespondenceCommentDetailDto,
-  CorrespondenceDetailResponse,
+  CorrespondenceDetailResponseDto,
   CorrespondenceNonarchivedItemDto,
   WorkflowActionAvailableDto,
   WorkflowHistoryEntryDto
 } from '../../core/api/api-types';
 import { CorrespondenceApiService } from '../../core/api/correspondence-api.service';
-import { TransactionService } from '../../services/transaction.service';
+import { TransactionService } from '../../core/services/transaction.service';
 import { PlatformWorkflowApiService } from '../../core/api/platform-workflow-api.service';
 import { AttachmentApiService } from '../../core/api/attachment-api.service';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
@@ -309,7 +309,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
-  private mapDetail(d: CorrespondenceDetailResponse, h: WorkflowHistoryEntryDto[]): Transaction {
+  private mapDetail(d: CorrespondenceDetailResponseDto, h: WorkflowHistoryEntryDto[]): Transaction {
     const isAr = this.i18n.currentLang() !== 'en';
 
     /** Return the name of a lookup item in the current UI language, falling back to the other language then the code. */

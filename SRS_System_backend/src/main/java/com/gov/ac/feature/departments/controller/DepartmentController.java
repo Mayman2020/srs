@@ -1,7 +1,7 @@
 package com.gov.ac.feature.departments.controller;
 
 import com.gov.ac.feature.departments.dto.DepartmentFlatDto;
-import com.gov.ac.feature.departments.dto.UpsertDepartmentRequest;
+import com.gov.ac.feature.departments.dto.UpsertDepartmentRequestDto;
 import com.gov.ac.feature.departments.service.DepartmentService;
 import com.gov.ac.security.SecurityUtils;
 import jakarta.validation.Valid;
@@ -35,14 +35,14 @@ public class DepartmentController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("@effectivePermission.has(authentication, 'lookup.manage')")
-  public DepartmentFlatDto create(@Valid @RequestBody UpsertDepartmentRequest request) {
+  public DepartmentFlatDto create(@Valid @RequestBody UpsertDepartmentRequestDto request) {
     return departmentService.create(SecurityUtils.requireCurrentUserId(), request);
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("@effectivePermission.has(authentication, 'lookup.manage')")
   public DepartmentFlatDto update(
-      @PathVariable long id, @Valid @RequestBody UpsertDepartmentRequest request) {
+      @PathVariable long id, @Valid @RequestBody UpsertDepartmentRequestDto request) {
     return departmentService.update(SecurityUtils.requireCurrentUserId(), id, request);
   }
 

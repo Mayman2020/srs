@@ -8,6 +8,7 @@ import { AuthTokenService } from '../auth/auth-token.service';
 import { I18nService, AppLang } from '../i18n/i18n.service';
 import { ThemeService } from '../theme/theme.service';
 import { withSilentNotifications } from '../interceptors/http-notification-context';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class CurrentUserProfileApiService {
@@ -21,7 +22,7 @@ export class CurrentUserProfileApiService {
       if (!session.userId?.trim()) {
         return of(null);
       }
-      return this.http.get<CurrentUserProfileDto>(`${this.base}/profile/me`).pipe(
+      return this.http.get<CurrentUserProfileDto>(this.profileUrl).pipe(
         tap((dto) => this.applyServerUiPreferences(dto)),
         catchError((err: unknown) => {
           console.error('[CurrentUserProfileApi] profile load failed', err);
@@ -39,7 +40,7 @@ export class CurrentUserProfileApiService {
   ) {}
 
   getMyProfile(): Observable<CurrentUserProfileDto> {
-    return this.http.get<CurrentUserProfileDto>(`${this.base}/profile/me`);
+    return this.http.get<CurrentUserProfileDto>(this.profileUrl);
   }
 
   updateMyProfile(body: {
@@ -50,7 +51,7 @@ export class CurrentUserProfileApiService {
     nationalId?: string | null;
   }): Observable<CurrentUserProfileDto> {
     return this.http
-      .put<CurrentUserProfileDto>(`${this.base}/profile/me`, body)
+      .put<CurrentUserProfileDto>(this.profileUrl, body)
       .pipe(tap(() => this.refresh()));
   }
 
@@ -58,12 +59,12 @@ export class CurrentUserProfileApiService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http
-      .put<CurrentUserProfileDto>(`${this.base}/profile/me/avatar`, formData)
+      .put<CurrentUserProfileDto>(`${this.profileUrl}/avatar`, formData)
       .pipe(tap(() => this.refresh()));
   }
 
   getMyAvatarBlob(): Observable<Blob> {
-    return this.http.get(`${this.base}/profile/me/avatar`, {
+    return this.http.get(`${this.profileUrl}/avatar`, {
       responseType: 'blob',
       context: withSilentNotifications()
     });
@@ -73,14 +74,14 @@ export class CurrentUserProfileApiService {
     currentPassword: string;
     newPassword: string;
   }): Observable<void> {
-    return this.http.put<void>(`${this.base}/profile/me/password`, body);
+    return this.http.put<void>(`${this.profileUrl}/password`, body);
   }
 
   updateMyUiPreferences(body: {
     uiTheme: 'light' | 'dark';
     uiLocale: AppLang;
   }): Observable<CurrentUserProfileDto> {
-    return this.http.put<CurrentUserProfileDto>(`${this.base}/profile/me/ui`, body, {
+    return this.http.put<CurrentUserProfileDto>(`${this.profileUrl}/ui`, body, {
       context: withSilentNotifications()
     }).pipe(
       tap((dto) => this.applyServerUiPreferences(dto)),
@@ -90,6 +91,10 @@ export class CurrentUserProfileApiService {
 
   refresh(): void {
     this.reload$.next();
+  }
+
+  private get profileUrl(): string {
+    return apiPath(this.base, AppConstants.API.PROFILE_ME);
   }
 
   private applyServerUiPreferences(dto: CurrentUserProfileDto | null): void {

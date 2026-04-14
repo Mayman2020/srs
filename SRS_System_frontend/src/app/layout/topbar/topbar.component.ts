@@ -177,7 +177,15 @@ export class TopbarComponent implements OnInit {
   }
 
   get showRoleSwitcher(): boolean {
-    return this.profile().roles.length > 1;
+    return this.switchableRoles.length > 0;
+  }
+
+  /** Roles available to switch to (active role is hidden — it is already shown on the chip). */
+  get switchableRoles(): string[] {
+    const current = this.profile().currentRole?.trim() ?? '';
+    const raw = this.profile().roles ?? [];
+    const unique = [...new Set(raw.map((r) => r?.trim()).filter((r): r is string => !!r))];
+    return unique.filter((code) => code !== current);
   }
 
   toggleRoleMenu(event: Event): void {

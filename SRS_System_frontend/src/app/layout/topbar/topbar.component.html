@@ -160,9 +160,8 @@
               <button
                 type="button"
                 class="role-option"
-                *ngFor="let r of profile().roles"
+                *ngFor="let r of switchableRoles"
                 role="menuitem"
-                [class.active]="r === profile().currentRole"
                 (click)="selectRole(r, $event)">
                 {{ roleLabel(r) }}
               </button>

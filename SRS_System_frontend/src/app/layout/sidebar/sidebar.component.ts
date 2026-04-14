@@ -3,7 +3,7 @@ import { Component, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
-import { SidebarService } from '../../services/sidebar.service';
+import { SidebarService } from '../../core/services/sidebar.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';

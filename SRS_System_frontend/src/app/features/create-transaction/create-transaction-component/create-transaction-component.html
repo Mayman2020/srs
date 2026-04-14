@@ -111,63 +111,27 @@
         <div class="single-form-grid">
             <!-- TO -->
             <div class="form-group">
-              <label class="field-label">
-                {{ 'createTx.recipients' | t }}
-                <span class="required-indicator">*</span>
-              </label>
-
-              <input
-                class="custom-input"
-                readonly
-                [attr.placeholder]="'createTx.recipientsPlaceholder' | t"
-                (click)="openDepartmentDialog('to')"
-              />
-
-              <div class="tags-container" *ngIf="hasTo">
-                <span
-                  *ngFor="let item of toArray.controls; let i = index; trackBy: trackByIndex"
-                  class="modern-tag">
-
-                  <mat-icon>person</mat-icon>
-                  {{ deptName(item.value) }}
-
-                  <button type="button"
-                          (click)="removeTo(i)"
-                          class="modern-tag-close">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </span>
-              </div>
+              <srs-multi-choice-table
+                [options]="departmentOptions"
+                [selectedIds]="toDepartmentIds"
+                (selectedIdsChange)="setDepartmentSelection('to', $event)"
+                labelKey="createTx.recipients"
+                placeholderKey="createTx.recipientsPlaceholder"
+                selectedTitleKey="createTx.recipients"
+                [required]="true">
+              </srs-multi-choice-table>
             </div>
 
             <!-- CC -->
             <div class="form-group">
-              <label class="field-label">
-                {{ 'createTx.cc' | t }}
-              </label>
-
-              <input
-                class="custom-input"
-                #ccInput
-                [attr.placeholder]="'createTx.ccPlaceholder' | t"
-                (click)="openDepartmentDialog('cc')"
-              />
-
-              <div class="tags-container" *ngIf="hasCc">
-                <span
-                  *ngFor="let item of ccArray.controls; let i = index; trackBy: trackByIndex"
-                  class="modern-tag">
-
-                  <mat-icon>content_copy</mat-icon>
-                  {{ deptName(item.value) }}
-
-                  <button type="button"
-                          (click)="removeCc(i)"
-                          class="modern-tag-close">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </span>
-              </div>
+              <srs-multi-choice-table
+                [options]="departmentOptions"
+                [selectedIds]="ccDepartmentIds"
+                (selectedIdsChange)="setDepartmentSelection('cc', $event)"
+                labelKey="createTx.cc"
+                placeholderKey="createTx.ccPlaceholder"
+                selectedTitleKey="createTx.cc">
+              </srs-multi-choice-table>
             </div>
 
             <!-- DAYS -->
@@ -490,4 +454,3 @@
   
 
 </div>
-

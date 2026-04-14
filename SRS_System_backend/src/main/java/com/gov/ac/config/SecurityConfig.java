@@ -67,7 +67,7 @@ public class SecurityConfig {
   /**
    * Auth endpoints must not use the OAuth2 resource-server JWT filter: without a Bearer token that
    * filter responds with 401 + {@code WWW-Authenticate: Bearer} before {@code permitAll} is applied,
-   * so login/refresh/MFA never reach {@link com.gov.ac.modules.auth.controller.AuthController}.
+   * so login/refresh/MFA never reach {@link com.gov.ac.feature.auth.controller.AuthController}.
    */
   @Bean
   @Order(1)

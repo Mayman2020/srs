@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
+import { AppConstants, apiPathWithId } from '../constants/app-constants';
 
 /** Monolith workflow helpers (Camunda tasks tied to correspondence). */
 export interface CorrespondenceWorkflowDelegateRequest {
@@ -20,6 +21,9 @@ export class PlatformWorkflowApiService {
     correspondenceId: string,
     body: CorrespondenceWorkflowDelegateRequest
   ): Observable<void> {
-    return this.http.post<void>(`${this.base}/correspondence/${correspondenceId}/workflow-delegate`, body);
+    return this.http.post<void>(
+      `${apiPathWithId(this.base, AppConstants.API.CORRESPONDENCE, correspondenceId)}/workflow-delegate`,
+      body
+    );
   }
 }

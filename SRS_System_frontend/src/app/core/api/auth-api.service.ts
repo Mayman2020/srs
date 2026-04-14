@@ -5,6 +5,7 @@ import { API_BASE_URL } from './api-url';
 import { LoginResponseDto } from './api-types';
 import { AuthTokenService } from '../auth/auth-token.service';
 import { withSilentNotifications, withSilentSuccess } from '../interceptors/http-notification-context';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 export interface LoginRequestDto {
   username: string;
@@ -34,7 +35,8 @@ export class AuthApiService {
   ) {}
 
   login(body: LoginRequestDto): Observable<LoginResponseDto> {
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/login`, body, {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<LoginResponseDto>(`${auth}/login`, body, {
       context: withSilentNotifications()
     }).pipe(
       tap((r) => {
@@ -52,13 +54,15 @@ export class AuthApiService {
   }
 
   mfaChallenge(username: string, channel: 'EMAIL' | 'SMS'): Observable<void> {
-    return this.http.post<void>(`${this.base}/auth/mfa/challenge`, { username, channel }, {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<void>(`${auth}/mfa/challenge`, { username, channel }, {
       context: withSilentNotifications()
     });
   }
 
   mfaVerify(body: MfaVerifyRequestDto): Observable<LoginResponseDto> {
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/mfa/verify`, body, {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<LoginResponseDto>(`${auth}/mfa/verify`, body, {
       context: withSilentNotifications()
     }).pipe(
       tap((r) => {
@@ -77,7 +81,8 @@ export class AuthApiService {
 
   refresh(refreshToken: string): Observable<LoginResponseDto> {
     const body: RefreshRequestDto = { refreshToken };
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/refresh`, body, {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<LoginResponseDto>(`${auth}/refresh`, body, {
       context: withSilentNotifications()
     }).pipe(
       tap((r) => {
@@ -96,7 +101,8 @@ export class AuthApiService {
 
   switchRole(roleCode: string): Observable<LoginResponseDto> {
     const body: SwitchRoleRequestDto = { roleCode };
-    return this.http.post<LoginResponseDto>(`${this.base}/auth/switch-role`, body, {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<LoginResponseDto>(`${auth}/switch-role`, body, {
       context: withSilentSuccess()
     }).pipe(
       tap((r) => {

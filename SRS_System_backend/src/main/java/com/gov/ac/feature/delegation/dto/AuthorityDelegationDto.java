@@ -1,6 +1,6 @@
 package com.gov.ac.feature.delegation.dto;
 
-import com.gov.ac.correspondence.dto.UserSummaryDto;
+import com.gov.ac.feature.correspondence.dto.UserSummaryDto;
 import java.time.LocalDate;
 import java.util.UUID;
 

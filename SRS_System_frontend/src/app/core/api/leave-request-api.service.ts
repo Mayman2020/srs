@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { LeaveRequestDto } from './api-types';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class LeaveRequestApiService {
@@ -13,8 +14,8 @@ export class LeaveRequestApiService {
     private http: HttpClient,
     @Inject(API_BASE_URL) base: string
   ) {
-    this.api = `${base}/leave-requests`;
-    this.adminApi = `${base}/admin/leave-requests`;
+    this.api = apiPath(base, AppConstants.API.LEAVE_REQUESTS);
+    this.adminApi = apiPath(base, AppConstants.API.ADMIN_LEAVE_REQUESTS);
   }
 
   create(body: { startDate: string; endDate: string; reason?: string | null }): Observable<LeaveRequestDto> {
@@ -33,6 +34,9 @@ export class LeaveRequestApiService {
     id: string,
     body: { statusCode: string; decisionNote?: string | null }
   ): Observable<LeaveRequestDto> {
-    return this.http.patch<LeaveRequestDto>(`${this.adminApi}/${id}/decision`, body);
+    return this.http.patch<LeaveRequestDto>(
+      `${this.adminApi}/${encodeURIComponent(id)}/decision`,
+      body
+    );
   }
 }

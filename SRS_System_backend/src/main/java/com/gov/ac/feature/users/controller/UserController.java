@@ -1,9 +1,9 @@
 package com.gov.ac.feature.users.controller;
 
-import com.gov.ac.feature.users.dto.AssignRoleRequest;
-import com.gov.ac.feature.users.dto.AssignRolesRequest;
-import com.gov.ac.feature.users.dto.CreateAppUserRequest;
-import com.gov.ac.feature.users.dto.UpdateAppUserRequest;
+import com.gov.ac.feature.users.dto.AssignRoleRequestDto;
+import com.gov.ac.feature.users.dto.AssignRolesRequestDto;
+import com.gov.ac.feature.users.dto.CreateAppUserRequestDto;
+import com.gov.ac.feature.users.dto.UpdateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UserDetailDto;
 import com.gov.ac.feature.users.dto.UserListDto;
 import com.gov.ac.feature.users.service.UserAdminService;
@@ -49,13 +49,13 @@ public class UserController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public UserDetailDto create(@Valid @RequestBody CreateAppUserRequest body) {
+  public UserDetailDto create(@Valid @RequestBody CreateAppUserRequestDto body) {
     return userAdminService.createUser(SecurityUtils.requireCurrentUserId(), body);
   }
 
   @PutMapping("/{userId}")
   public UserDetailDto update(
-      @PathVariable UUID userId, @Valid @RequestBody UpdateAppUserRequest body) {
+      @PathVariable UUID userId, @Valid @RequestBody UpdateAppUserRequestDto body) {
     return userAdminService.updateUser(SecurityUtils.requireCurrentUserId(), userId, body);
   }
 
@@ -68,14 +68,14 @@ public class UserController {
   @PostMapping("/{userId}/roles")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void assignRole(
-      @PathVariable UUID userId, @Valid @RequestBody AssignRoleRequest body) {
+      @PathVariable UUID userId, @Valid @RequestBody AssignRoleRequestDto body) {
     userAdminService.assignRole(SecurityUtils.requireCurrentUserId(), userId, body.roleId());
   }
 
   @PutMapping("/{userId}/roles")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void assignRoles(
-      @PathVariable UUID userId, @Valid @RequestBody AssignRolesRequest body) {
+      @PathVariable UUID userId, @Valid @RequestBody AssignRolesRequestDto body) {
     userAdminService.setRoles(SecurityUtils.requireCurrentUserId(), userId, body.roleIds());
   }
 }

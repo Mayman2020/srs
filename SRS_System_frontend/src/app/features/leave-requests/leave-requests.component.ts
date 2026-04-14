@@ -4,12 +4,22 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LeaveRequestApiService } from '../../core/api/leave-request-api.service';
 import { LeaveRequestDto } from '../../core/api/api-types';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 
 @Component({
   selector: 'app-leave-requests',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, ErpAutoReferenceFieldComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslatePipe,
+    LatinDigitsPipe,
+    ErpAutoReferenceFieldComponent,
+    SrsDataTableComponent
+  ],
   templateUrl: './leave-requests.component.html',
   styleUrl: './leave-requests.component.css'
 })
@@ -24,7 +34,8 @@ export class LeaveRequestsComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly api: LeaveRequestApiService
+    private readonly api: LeaveRequestApiService,
+    private readonly i18n: I18nService
   ) {
     this.form = this.fb.group({
       startDate: ['', Validators.required],
@@ -52,6 +63,28 @@ export class LeaveRequestsComponent implements OnInit {
       next: (rows) => (this.mine = rows ?? []),
       error: () => (this.mine = [])
     });
+  }
+
+  /** Localized status text; falls back to raw code if unknown. */
+  statusLabel(code: string | undefined): string {
+    const c = (code ?? '').trim().toUpperCase();
+    const key = `leave.statusCodes.${c}`;
+    const resolved = this.i18n.instant(key);
+    return resolved === key ? (code ?? '—') : resolved;
+  }
+
+  /** Badge style: pending = neutral/warning tone, approved = in, rejected = out. */
+  statusBadgeClass(code: string | undefined): string {
+    switch ((code ?? '').toUpperCase()) {
+      case 'APPROVED':
+        return 'in';
+      case 'REJECTED':
+        return 'out';
+      case 'PENDING':
+        return 'pending';
+      default:
+        return '';
+    }
   }
 
   submit(): void {

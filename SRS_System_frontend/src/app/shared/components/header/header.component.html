@@ -11,7 +11,6 @@
         </button>
 
         <div class="toolbar-brand__copy">
-          <div class="toolbar-brand__eyebrow">{{ 'shellHeader.workspace' | t }}</div>
           <div class="toolbar-brand__title">{{ 'app.title' | t }}</div>
         </div>
       </div>
@@ -139,9 +138,6 @@
             @for (role of roleOptions; track trackRole($index, role)) {
               <button mat-menu-item type="button" (click)="selectRole(role.code)">
                 <span>{{ role.label }}</span>
-                @if (role.code === currentRoleCode) {
-                  <mat-icon class="role-option-check">check</mat-icon>
-                }
               </button>
             }
           </mat-menu>

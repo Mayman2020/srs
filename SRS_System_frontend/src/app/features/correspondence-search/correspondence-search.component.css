@@ -69,28 +69,11 @@
 }
 
 .table-scroll {
-  overflow: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.data-table th,
-.data-table td {
-  padding: 0.6rem 0.5rem;
-  text-align: start;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
 }
 
 .click-row {
   cursor: pointer;
-}
-
-.click-row:hover {
-  background: rgba(0, 0, 0, 0.03);
 }
 
 .pager {

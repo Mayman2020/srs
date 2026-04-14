@@ -1,7 +1,51 @@
 .org-page {
-  padding: 1rem 1.25rem;
+  padding: 8px 12px 32px;
   max-width: 1100px;
-  color: var(--text-color);
+  margin: 0 auto;
+  color: var(--text-primary);
+}
+
+.org-page__head {
+  margin-bottom: 16px;
+}
+
+.org-page__head .page-header h2 {
+  margin: 0;
+  font-size: 1.55rem;
+  color: var(--text-primary);
+}
+
+.org-page__loading {
+  margin: 0 0 12px;
+}
+
+.org-page .filters-modern {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.org-page .filters-modern input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 13px;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.org-page__search {
+  margin: 0 12px 14px;
+}
+
+.org-page__search input {
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.panel__empty {
+  padding: 1rem 1.25rem 1.25rem;
 }
 .tabs {
   display: flex;
@@ -19,14 +63,15 @@
 }
 .tabs button.active {
   background: var(--primary-color);
-  color: #fff;
+  color: var(--text-on-primary);
   border-color: var(--primary-color);
 }
 .panel {
   overflow: auto;
   background: var(--surface-elevated);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
 }
 .panel-actions {
   display: flex;
@@ -41,29 +86,38 @@
   padding: 0.35rem 0.8rem;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
-  background: color-mix(in srgb, var(--primary-color) 86%, #ffffff);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--primary-color) 88%, var(--surface-elevated));
+  color: var(--text-on-primary);
   text-decoration: none;
   font-size: 0.86rem;
   font-weight: 700;
 }
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.data-table th,
-.data-table td {
-  border: 1px solid var(--border-color);
-  padding: 8px;
-  text-align: start;
-  color: var(--text-color);
-}
-
-.data-table th {
-  background: color-mix(in srgb, var(--surface-muted) 85%, transparent);
-  color: var(--text-primary);
-}
 .muted {
   color: var(--text-muted);
+}
+
+.empty-cell {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1.25rem !important;
+}
+
+/* External yes/no chips */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.type-badge.in {
+  background: color-mix(in srgb, var(--success-color) 18%, transparent);
+  color: color-mix(in srgb, var(--success-color) 82%, var(--text-primary));
+}
+
+.type-badge.out {
+  background: color-mix(in srgb, var(--text-muted) 14%, transparent);
+  color: var(--text-secondary);
 }

@@ -2,7 +2,8 @@ import { Injectable, signal } from '@angular/core';
 import { NotificationParams, NotificationType, ToastNotification } from '../models/notification.model';
 
 const DEFAULT_DURATION_MS = 4500;
-const DEDUPE_WINDOW_MS = 500;
+/** Same toast key within this window is ignored (e.g. double HTTP + manual success). */
+const DEDUPE_WINDOW_MS = 2800;
 const MAX_STACK = 4;
 
 @Injectable({ providedIn: 'root' })
@@ -68,8 +69,13 @@ export class NotificationService {
       return;
     }
 
-    const signature = `${type}|${messageKey ?? ''}|${messageText ?? ''}|${JSON.stringify(payload.params ?? {})}`;
+    const signature = buildToastSignature(type, messageKey, messageText, payload.params);
     const now = Date.now();
+
+    const duplicateInStack = this.itemsSignal().some((item) => itemSignature(item) === signature);
+    if (duplicateInStack) {
+      return;
+    }
     if (signature === this.lastSignature && now - this.lastShownAt < DEDUPE_WINDOW_MS) {
       return;
     }
@@ -109,4 +115,17 @@ export class NotificationService {
       this.timers.delete(id);
     }
   }
+}
+
+function buildToastSignature(
+  type: NotificationType,
+  messageKey: string | undefined,
+  messageText: string | undefined,
+  params: NotificationParams | undefined
+): string {
+  return `${type}|${messageKey ?? ''}|${messageText ?? ''}|${JSON.stringify(params ?? {})}`;
+}
+
+function itemSignature(item: ToastNotification): string {
+  return buildToastSignature(item.type, item.messageKey, item.messageText, item.params);
 }

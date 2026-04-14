@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { ServiceWorkflowRouteDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class WorkflowRouteApiService {
@@ -13,6 +14,9 @@ export class WorkflowRouteApiService {
 
   listForCorrespondenceType(correspondenceTypeCode: string): Observable<ServiceWorkflowRouteDto[]> {
     const params = new HttpParams().set('correspondenceTypeCode', correspondenceTypeCode);
-    return this.http.get<ServiceWorkflowRouteDto[]>(`${this.base}/workflow-routes`, { params });
+    return this.http.get<ServiceWorkflowRouteDto[]>(
+      apiPath(this.base, AppConstants.API.WORKFLOW_ROUTES),
+      { params }
+    );
   }
 }

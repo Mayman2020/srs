@@ -166,23 +166,12 @@ body {
   border-color: var(--border-color);
 }
 
-:where(.table, .table-wrap, .data-table, .srs-dt-scroll) {
+:where(.table, .table-wrap, .srs-dt-scroll, .srs-table-shell, .intranet-table-wrap) {
   background: var(--surface-elevated);
   border-color: var(--border-color);
 }
 
-:where(table thead, .table thead, .data-table thead) {
-  background: color-mix(in srgb, var(--surface-muted) 88%, transparent);
-}
-
-:where(table th, table td, .table th, .table td, .data-table th, .data-table td) {
-  border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
-  color: var(--text-secondary);
-}
-
-:where(table th, .table th, .data-table th) {
-  color: var(--text-primary);
-}
+/* Unified data-table thead/tbody colors are defined in styles.css (SRS /users style). */
 
 :where(input, select, textarea, .custom-input, .header-input, .icon-input, .form-control, .form-select) {
   background: var(--control-bg);
@@ -224,18 +213,19 @@ body {
   background: var(--overlay-backdrop);
 }
 
+/* Intranet-style modal headers: light surface + dark text (overrides legacy green bar) */
 :where(.dialog-shell__header, .erp-dialog__header, .vwd-header) {
-  background: var(--menu-bg);
-  color: var(--text-on-primary);
-  border-bottom-color: color-mix(in srgb, var(--text-on-primary) 18%, transparent);
+  background: var(--surface-elevated);
+  color: var(--text-color);
+  border-bottom-color: var(--border-color);
 }
 
 :where(.dialog-shell__close, .erp-dialog__close, .vwd-tools button) {
-  color: var(--text-on-primary);
+  color: var(--text-muted);
 }
 
 :where(.dialog-shell__close:hover, .erp-dialog__close:hover, .vwd-tools button:hover) {
-  background: color-mix(in srgb, var(--text-on-primary) 16%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 100%, transparent);
 }
 
 :where(.dialog-confirm-btn) {
@@ -418,8 +408,29 @@ html.dark-theme,
 }
 
 .modal-overlay > .modal.modal-assign-roles {
-  width: min(94vw, 640px);
-  max-width: min(94vw, 640px);
+  width: min(96vw, 760px);
+  max-width: min(96vw, 760px);
+  min-height: min(520px, 88vh);
+  max-height: min(92vh, 920px);
+  overflow: hidden;
+}
+
+/* Role picker: scrollable middle, footer always visible */
+.modal-overlay > .modal.modal-assign-roles > .modal-body {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  flex: 1 1 auto;
+  min-height: min(380px, 58vh);
+  max-height: calc(92vh - 168px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 18px 22px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-overlay > .modal.modal-assign-roles > .modal-body .multi-choice__panel {
+  z-index: 30;
 }
 
 /* Title strip — simple modals (h3 first) */

@@ -5,9 +5,10 @@ import { catchError, map, shareReplay, takeUntil, tap } from 'rxjs/operators';
 import { API_BASE_URL } from '../api/api-url';
 import type { UserCapabilitiesDto } from '../api/api-types';
 import { AuthTokenService } from './auth-token.service';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 /**
- * Loads {@code GET /api/v1/me/capabilities} after login and exposes {@link #can} for UI and guards.
+ * Loads capabilities after login and exposes {@link #can} for UI and guards.
  * Permissions are never hardcoded as business rules — only compared to codes returned by the API.
  */
 @Injectable({ providedIn: 'root' })
@@ -78,7 +79,9 @@ export class CapabilitiesService implements OnDestroy {
     if (this.cachedLoad) {
       return this.cachedLoad;
     }
-    this.cachedLoad = this.http.get<UserCapabilitiesDto>(`${this.base}/me/capabilities`).pipe(
+    this.cachedLoad = this.http.get<UserCapabilitiesDto>(
+      apiPath(this.base, AppConstants.API.ME_CAPABILITIES)
+    ).pipe(
       tap((dto) => {
         this.snapshot = dto;
         this.permissionCodes = new Set(dto.permissions ?? []);

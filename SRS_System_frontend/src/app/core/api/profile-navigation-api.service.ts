@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import type { ShellNavItemDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileNavigationApiService {
@@ -13,6 +14,8 @@ export class ProfileNavigationApiService {
 
   /** Shell sidebar rows from `ui_screen`, filtered by effective permissions (union of active roles). */
   listNav(): Observable<ShellNavItemDto[]> {
-    return this.http.get<ShellNavItemDto[]>(`${this.base}/profile/me/navigation`);
+    return this.http.get<ShellNavItemDto[]>(
+      `${apiPath(this.base, AppConstants.API.PROFILE_ME)}/navigation`
+    );
   }
 }

@@ -30,7 +30,13 @@
   </select>
 </div>
 
-<div class="table-container">
+<srs-data-table
+  [loading]="loading"
+  [showPagination]="false"
+  [skeletonRows]="6"
+  [skeletonColumns]="8"
+  [skeletonAriaLabel]="'common.loading' | t"
+>
   <table>
     <thead>
       <tr>
@@ -128,7 +134,7 @@
       </tr>
     </tbody>
   </table>
-</div>
+</srs-data-table>
 
 <div class="pager-modern">
   <div class="pager-info">
@@ -190,28 +196,27 @@
 </div>
 
 <div class="modal-overlay" *ngIf="userModal === 'assign'" (click)="closeUserModal()">
-  <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal modal-assign-roles" (click)="$event.stopPropagation()">
     <h3>{{ 'admin.assignRole' | t }}</h3>
-    <div class="roles-multi-select" *ngIf="rolesLookup.length; else rolesEmptyState">
-      <label class="role-option" *ngFor="let r of rolesLookup">
-        <input
-          type="checkbox"
-          [checked]="isRoleAssigned(r.id)"
-          (change)="onRoleAssignmentToggle(r.id, $event)" />
-        <span>{{ labelRoleCard(r) }}</span>
-      </label>
+    <div class="modal-body roles-multi-select">
+      <srs-multi-choice-table
+        *ngIf="rolesLookup.length"
+        [options]="roleMultiOptions"
+        [selectedIds]="assignRoleIds"
+        (selectedIdsChange)="onAssignRoleIdsChange($event)"
+        placeholderKey="admin.assignRolePlaceholder"
+        selectedTitleKey="admin.assignRoleSelected">
+      </srs-multi-choice-table>
+      <p *ngIf="!rolesLookup.length" class="empty-cell">{{ 'common.empty' | t }}</p>
     </div>
-    <ng-template #rolesEmptyState>
-      <p class="empty-cell">{{ 'common.empty' | t }}</p>
-    </ng-template>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="closeUserModal()">
         <i class="fa-solid fa-xmark"></i>
-        {{ 'common.close' | t }}
+        {{ 'common.cancel' | t }}
       </button>
       <button type="button" class="btn primary" [disabled]="assignRoleIds.length === 0" (click)="saveAssignRole()">
-        <i class="fa-solid fa-user-tag"></i>
-        {{ 'common.apply' | t }}
+        <i class="fa-solid fa-check"></i>
+        {{ 'common.confirm' | t }}
       </button>
     </div>
   </div>

@@ -1,9 +1,9 @@
 package com.gov.ac.security.permission;
 
-import com.gov.ac.domain.user.Permission;
-import com.gov.ac.persistence.PermissionRepository;
-import com.gov.ac.persistence.RolePermissionRepository;
-import com.gov.ac.persistence.UserRoleRepository;
+import com.gov.ac.feature.roles.entity.PermissionEntity;
+import com.gov.ac.feature.roles.repository.PermissionRepository;
+import com.gov.ac.feature.roles.repository.RolePermissionRepository;
+import com.gov.ac.feature.users.repository.UserRoleRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +24,7 @@ public class EffectiveUserPermissionService {
   private final RolePermissionRepository rolePermissionRepository;
   private final PermissionRepository permissionRepository;
 
-  /** Permission id union across all active role assignments for the user. */
+  /** PermissionEntity id union across all active role assignments for the user. */
   @Transactional(readOnly = true)
   public Set<Long> effectivePermissionIds(UUID userId) {
     List<Long> roleIds = userRoleRepository.findActiveRoleIdsByUserId(userId);
@@ -44,7 +44,7 @@ public class EffectiveUserPermissionService {
     return permissionRepository
         .findByCodeIgnoreCaseAndDeletedAtIsNull(permissionCode.trim())
         .filter(p -> Boolean.TRUE.equals(p.getActive()))
-        .map(Permission::getId)
+        .map(PermissionEntity::getId)
         .map(id -> effectivePermissionIds(userId).contains(id))
         .orElse(false);
   }

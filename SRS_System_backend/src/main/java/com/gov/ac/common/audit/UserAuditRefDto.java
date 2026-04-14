@@ -1,6 +1,6 @@
 package com.gov.ac.common.audit;
 
-import com.gov.ac.domain.user.AppUser;
+import com.gov.ac.feature.users.entity.AppUserEntity;
 import java.util.UUID;
 
 /**
@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public record UserAuditRefDto(UUID id, String fullNameAr, String fullNameEn) {
 
-  public static UserAuditRefDto from(AppUser u) {
+  public static UserAuditRefDto from(AppUserEntity u) {
     return new UserAuditRefDto(u.getId(), u.getFullNameAr(), u.getFullNameEn());
   }
 }

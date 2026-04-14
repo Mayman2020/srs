@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { DashboardResponseDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardApiService {
@@ -12,6 +13,6 @@ export class DashboardApiService {
   ) {}
 
   getDashboard(): Observable<DashboardResponseDto> {
-    return this.http.get<DashboardResponseDto>(`${this.base}/dashboard`);
+    return this.http.get<DashboardResponseDto>(apiPath(this.base, AppConstants.API.DASHBOARD));
   }
 }

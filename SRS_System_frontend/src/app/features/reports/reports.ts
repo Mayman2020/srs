@@ -19,7 +19,6 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, skip } from 'rxjs/operators';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { DashboardApiService } from '../../core/api/dashboard-api.service';
-import { LookupService } from '../../core/api/lookup.service';
 import { ReportsApiService } from '../../core/api/reports-api.service';
 import { CorrespondenceListParams } from '../../core/api/correspondence-api.service';
 import {
@@ -30,8 +29,8 @@ import {
   LookupItemDto,
   ReportMonthlyPointDto
 } from '../../core/api/api-types';
-import { TransactionService } from '../../services/transaction.service';
-import { Transaction } from '../../models/transaction.model';
+import { TransactionService } from '../../core/services/transaction.service';
+import { Transaction } from '../../core/models/transaction.model';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { UiFormatService } from '../../core/i18n/ui-format.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -41,6 +40,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
 import { SrsFilterBarComponent } from '../../shared/data-table/srs-filter-bar.component';
@@ -126,7 +126,6 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     private fb: FormBuilder,
     private dashboardApi: DashboardApiService,
     private transactionService: TransactionService,
-    private lookupService: LookupService,
     private reportsApi: ReportsApiService,
     private i18n: I18nService,
     private format: UiFormatService,
@@ -165,21 +164,21 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       cdr: this.cdr,
       source: forkJoin({
         dash: this.dashboardApi.getDashboard(),
-        lookups: this.lookupService.getBundle(),
+        correspondenceTypes: this.lookupLabels.loadTable(LookupCode.CorrespondenceType),
+        correspondenceStatuses: this.lookupLabels.loadTable(LookupCode.CorrespondenceStatus),
         st: this.reportsApi.statusDistribution(),
         pr: this.reportsApi.priorityDistribution(),
         mo: this.reportsApi.monthlyTrend(),
         dep: this.reportsApi.departmentSlaHeatmap()
       }),
-      next: ({ dash, lookups, st, pr, mo, dep }) => {
+      next: ({ dash, correspondenceTypes, correspondenceStatuses, st, pr, mo, dep }) => {
         this.dash = dash;
         this.apiStatus = st ?? [];
         this.apiPriority = pr ?? [];
         this.apiMonthly = mo ?? [];
         this.apiDept = dep ?? [];
-        this.lookupLabels.hydrateFromBundle(lookups);
-        this.correspondenceTypes = lookups.correspondenceTypes ?? [];
-        this.correspondenceStatuses = lookups.correspondenceStatuses ?? [];
+        this.correspondenceTypes = correspondenceTypes ?? [];
+        this.correspondenceStatuses = correspondenceStatuses ?? [];
         this.kpis.total = dash.totalCorrespondences;
         this.kpis.late = dash.overdueCount;
         this.kpis.done = dash.kpiSlaDoneCount ?? 0;

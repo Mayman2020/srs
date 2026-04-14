@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 export interface EmailDispatchBody {
   to: string;
@@ -17,6 +18,9 @@ export class NotificationDispatchApiService {
   ) {}
 
   dispatchEmail(body: EmailDispatchBody): Observable<void> {
-    return this.http.post<void>(`${this.base}/notifications/dispatch/email`, body);
+    return this.http.post<void>(
+      `${apiPath(this.base, AppConstants.API.NOTIFICATIONS)}/dispatch/email`,
+      body
+    );
   }
 }

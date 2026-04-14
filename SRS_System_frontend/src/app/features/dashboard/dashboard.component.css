@@ -271,45 +271,12 @@
 }
 
 
-/* ===================================================== */
-/* ======================= TABLE ======================= */
-/* ===================================================== */
-
-.table-wrap table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table-wrap th {
-  background: #E6F4EF;
-  font-weight: 600;
-}
-
-.table-wrap th,
-.table-wrap td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border-light);
-  text-align: center;
-}
-
-.table-wrap tr:hover {
-  background: rgba(11, 110, 79, 0.058);
-}
+/* Table chrome: global styles.css (SRS unified / users) */
 
 .link {
   color: #0B6E4F;
   font-weight: 700;
 }
-
-.table-wrap .btn {
-  min-height: 32px;
-  padding: 0.35rem 0.8rem;
-  border-radius: 10px;
-  border: 1px solid rgba(11, 110, 79, 0.2);
-  color: #0B6E4F;
-  background: rgba(11, 110, 79, 0.08);
-}
-
 
 /* ===================================================== */
 /* ======================== TOAST ====================== */

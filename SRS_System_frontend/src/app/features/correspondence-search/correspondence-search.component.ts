@@ -4,15 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CorrespondenceApiService, CorrespondenceListParams } from '../../core/api/correspondence-api.service';
 import { CorrespondenceListItemDto, UserAuditRefDto } from '../../core/api/api-types';
-import { LookupService } from '../../core/api/lookup.service';
 import { LookupItemDto } from '../../core/api/api-types';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LookupLabelDto } from '../../core/api/api-types';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-correspondence-search',
@@ -40,7 +41,6 @@ export class CorrespondenceSearchComponent implements OnInit {
 
   constructor(
     private readonly api: CorrespondenceApiService,
-    private readonly lookup: LookupService,
     private readonly lookupLabels: LookupLabelsService,
     private readonly i18n: I18nService,
     public readonly router: Router,
@@ -62,13 +62,16 @@ export class CorrespondenceSearchComponent implements OnInit {
   ngOnInit(): void {
     subscribePageLoad({
       cdr: this.cdr,
-      source: this.lookup.getBundle(),
+      source: forkJoin({
+        correspondenceTypes: this.lookupLabels.loadTable(LookupCode.CorrespondenceType),
+        correspondenceStatuses: this.lookupLabels.loadTable(LookupCode.CorrespondenceStatus),
+        priorities: this.lookupLabels.loadTable(LookupCode.Priority),
+      }),
       setLoading: (loading) => (this.loading = loading),
-      next: (b) => {
-        this.lookupLabels.hydrateFromBundle(b);
-        this.correspondenceTypes = b.correspondenceTypes ?? [];
-        this.correspondenceStatuses = b.correspondenceStatuses ?? [];
-        this.priorities = b.priorities ?? [];
+      next: ({ correspondenceTypes, correspondenceStatuses, priorities }) => {
+        this.correspondenceTypes = correspondenceTypes ?? [];
+        this.correspondenceStatuses = correspondenceStatuses ?? [];
+        this.priorities = priorities ?? [];
         this.runSearch(0);
       },
       error: () => {

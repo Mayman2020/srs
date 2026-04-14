@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { NotificationItemDto, SpringPage } from './api-types';
 import { withSilentSuccess } from '../interceptors/http-notification-context';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationApiService {
@@ -17,16 +18,19 @@ export class NotificationApiService {
       .set('page', String(page))
       .set('size', String(size))
       .append('sort', 'createdAt,desc');
-    return this.http.get<SpringPage<NotificationItemDto>>(`${this.base}/notifications`, { params });
+    return this.http.get<SpringPage<NotificationItemDto>>(
+      apiPath(this.base, AppConstants.API.NOTIFICATIONS),
+      { params }
+    );
   }
 
   markRead(id: string): Observable<void> {
-    return this.http.patch<void>(`${this.base}/notifications/${id}/read`, {}, {
+    return this.http.patch<void>(`${apiPathWithId(this.base, AppConstants.API.NOTIFICATIONS, id)}/read`, {}, {
       context: withSilentSuccess()
     });
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/notifications/${id}`);
+    return this.http.delete<void>(apiPathWithId(this.base, AppConstants.API.NOTIFICATIONS, id));
   }
 }

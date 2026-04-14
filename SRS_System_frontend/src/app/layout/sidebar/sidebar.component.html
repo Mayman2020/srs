@@ -3,10 +3,8 @@
   <!-- HEADER -->
   <div class="brand">
 
-    <button class="collapse-btn" (click)="toggleSidebar()">
-      <i class="fa-solid"
-              [ngClass]="collapsed() ? 'fa-bars' : 'fa-layer-group'">
-      </i>
+    <button class="collapse-btn" (click)="toggleSidebar()" type="button" [attr.aria-label]="'shellHeader.toggleNav' | t">
+      <i class="fa-solid" [ngClass]="collapsed() ? 'fa-bars' : 'fa-angles-right'"></i>
     </button>
 
     <img src="assets/img/logo.png" class="logo">

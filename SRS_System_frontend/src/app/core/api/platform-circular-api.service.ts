@@ -2,8 +2,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
-export interface PlatformCircularInboxRow {
+export interface PlatformCircularInboxRowDto {
   id: string;
   title: string;
   createdBy: string;
@@ -12,7 +13,7 @@ export interface PlatformCircularInboxRow {
   read: boolean;
 }
 
-export interface PlatformCreateCircularRequest {
+export interface PlatformCreateCircularRequestDto {
   title: string;
   body: string;
   createdBy: string;
@@ -20,7 +21,7 @@ export interface PlatformCreateCircularRequest {
   recipientUserIds: string[];
 }
 
-export interface PlatformMarkCircularReadRequest {
+export interface PlatformMarkCircularReadRequestDto {
   userId: string;
 }
 
@@ -31,16 +32,25 @@ export class PlatformCircularApiService {
     @Inject(API_BASE_URL) private base: string
   ) {}
 
-  inbox(userId: string): Observable<PlatformCircularInboxRow[]> {
+  inbox(userId: string): Observable<PlatformCircularInboxRowDto[]> {
     const params = new HttpParams().set('userId', userId);
-    return this.http.get<PlatformCircularInboxRow[]>(`${this.base}/circulars/inbox`, { params });
+    return this.http.get<PlatformCircularInboxRowDto[]>(
+      `${apiPath(this.base, AppConstants.API.CIRCULARS)}/inbox`,
+      { params }
+    );
   }
 
-  markRead(circularId: string, body: PlatformMarkCircularReadRequest): Observable<void> {
-    return this.http.post<void>(`${this.base}/circulars/${circularId}/read`, body);
+  markRead(circularId: string, body: PlatformMarkCircularReadRequestDto): Observable<void> {
+    return this.http.post<void>(
+      `${apiPathWithId(this.base, AppConstants.API.CIRCULARS, circularId)}/read`,
+      body
+    );
   }
 
-  create(body: PlatformCreateCircularRequest): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>(`${this.base}/circulars`, body);
+  create(body: PlatformCreateCircularRequestDto): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(
+      apiPath(this.base, AppConstants.API.CIRCULARS),
+      body
+    );
   }
 }

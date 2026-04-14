@@ -613,6 +613,7 @@
           </div>
           <div class="att-index" *ngIf="indexEntriesByAttachmentId[att.id]?.length">
             <h4 class="att-index-title">{{ 'transactionDetails.indexTitle' | t }}</h4>
+            <div class="mini-table-wrap srs-table-shell">
             <table class="mini-table">
               <thead>
                 <tr>
@@ -632,6 +633,7 @@
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
@@ -738,7 +740,7 @@
           <span class="count-badge">{{ nonarchivedItems.length }}</span>
         </div>
       </div>
-      <div class="mini-table-wrap" *ngIf="nonarchivedItems.length">
+      <div class="mini-table-wrap srs-table-shell" *ngIf="nonarchivedItems.length">
         <table class="mini-table">
           <thead>
             <tr>

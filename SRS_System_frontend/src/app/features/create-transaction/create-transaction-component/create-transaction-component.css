@@ -63,16 +63,20 @@
   right: 50%;
   width: 100%;
   height: 3px;
-  background: #e5e7eb;
+  background: var(--border-color);
   z-index: 0;
 }
 .step.completed:not(:last-child)::after {
-  background: linear-gradient(90deg,#0B6E4F,#1fae78);
+  background: linear-gradient(
+    90deg,
+    var(--primary-color),
+    color-mix(in srgb, var(--primary-color) 72%, var(--success-color))
+  );
 }
 
 .icon {
   font-size: 28px;
-  color: #D4AF37;
+  color: var(--warning-color);
   width: 24px;
   display: flex;
   justify-content: center;
@@ -84,13 +88,13 @@
   height: 54px;
   margin: 0 auto;
   border-radius: 50%;
-  background: #f9fafb;
-  border: 2px solid #d1d5db;
+  background: var(--surface-muted);
+  border: 2px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 21px;
-  color: #6b7280;
+  color: var(--text-muted);
   transition: all 0.3s ease;
   position: relative;
   z-index: 2;
@@ -98,25 +102,25 @@
 
 /* hover */
 .step:hover .step-circle {
-  border-color: #9ca3af;
+  border-color: color-mix(in srgb, var(--primary-color) 45%, var(--border-color));
 }
 
 /* نشطة */
 .step.active .step-circle {
-  border-color: #0B6E4F;
-  background: #ffffff;
-  color: #0B6E4F;
+  border-color: var(--primary-color);
+  background: var(--surface-elevated);
+  color: var(--primary-color);
   box-shadow:
-    0 4px 12px rgba(11,110,79,0.15),
-    0 0 0 5px rgba(11,110,79,0.08);
+    0 4px 12px color-mix(in srgb, var(--primary-color) 22%, transparent),
+    0 0 0 5px color-mix(in srgb, var(--primary-color) 12%, transparent);
 }
 
 /* مكتملة */
 .step.completed .step-circle {
-  background: #0B6E4F;
-  border-color: #0B6E4F;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(11,110,79,0.25);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--text-on-primary);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 28%, transparent);
 }
 
 /* النص */
@@ -125,13 +129,13 @@
   font-weight: 600;
   font-size: 13px;
   letter-spacing: .3px;
-  color: #6b7280;
+  color: var(--text-muted);
   transition: 0.3s ease;
 }
 
 .step.active .step-label,
 .step.completed .step-label {
-  color: #0B6E4F;
+  color: var(--primary-color);
 }
 
 
@@ -140,11 +144,11 @@
 .step-content {
   width: 100%;
   padding: 5px 20px;
-  background: #ffffff;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
-  box-shadow:
-    0 20px 50px rgba(0,0,0,0.06),
-    0 4px 10px rgba(0,0,0,0.03);
+  box-shadow: var(--shadow-md);
   min-height: 380px;
   display: flex;
   flex-direction: column;
@@ -187,38 +191,42 @@
 
 /* PRIMARY */
 .btn-primary {
-  background: linear-gradient(135deg,#0B6E4F,#178f63);
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(11,110,79,0.25);
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    color-mix(in srgb, var(--primary-color) 82%, var(--success-color))
+  );
+  color: var(--text-on-primary);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary-color) 28%, transparent);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(11,110,79,0.35);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--primary-color) 36%, transparent);
 }
 
 /* OUTLINE */
 .btn-outline {
-  background: #fff;
-  border: 2px solid #e5e7eb;
-  color: #374151;
+  background: var(--surface-elevated);
+  border: 2px solid var(--border-color);
+  color: var(--text-secondary);
 }
 
 .btn-outline:hover {
-  border-color: #0B6E4F;
-  color: #0B6E4F;
-  background: #f9fbfa;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-elevated));
 }
 
 /* SUCCESS */
 .btn-success {
-  background: #0B6E4F;
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(11,110,79,0.25);
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary-color) 28%, transparent);
 }
 
 .btn-success:hover {
-  background: #095c3f;
+  background: var(--primary-color-hover);
   transform: translateY(-2px);
 }
 
@@ -266,17 +274,18 @@
   border-radius: 14px;
   overflow: visible;
   border: 2px solid var(--primary-color);
-  box-shadow: 0 4px 16px rgba(11, 110, 79, 0.12);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary-color) 18%, transparent);
   transition: all 0.3s ease;
   margin-top: 6px;
   padding: 10px;
+  background: var(--surface-muted);
 }
 
 .editor-container:hover,
 .editor-container:focus-within {
-  box-shadow: 
-    0 0 0 4px rgba(11, 110, 79, 0.15),
-    0 8px 24px rgba(11, 110, 79, 0.2);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--primary-color) 22%, transparent),
+    0 8px 24px color-mix(in srgb, var(--primary-color) 24%, transparent);
 }
 
 /* TinyMCE ظاهر بالكامل */
@@ -310,25 +319,25 @@
 .templates-panel {
   width: 30%;
   min-width: 260px;
-  background: #f8f9fa;
+  background: var(--surface-muted);
   padding: 20px;
   border-radius: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   height: fit-content;
 }
 
 .templates-panel h3 {
   margin-bottom: 20px;
-  color: #0B6E4F;
+  color: var(--primary-color);
   font-weight: 700;
 }
 
 /* Template Card */
 .template-card {
-  background: white;
+  background: var(--surface-elevated);
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.25s ease;
   margin-bottom: 12px;
@@ -337,14 +346,14 @@
 }
 
 .template-card:hover {
-  border-color: #0B6E4F;
+  border-color: var(--primary-color);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .template-card.active {
-  border: 2px solid #0B6E4F;
-  background: #eaf6f1;
+  border: 2px solid var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-elevated));
 }
 
 .template-title {
@@ -356,7 +365,7 @@
 
 .template-preview {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 /* ========== Editor Panel ========== */
@@ -366,7 +375,7 @@
 }
 
 .angular-editor {
-  background: #f3f4f6;  
+  background: var(--surface-muted);
   padding-bottom: 40px;
 }
 angular-editor {
@@ -375,13 +384,15 @@ angular-editor {
 }
 
 ::ng-deep .angular-editor-textarea {
-  background: #ffffff !important;
+  background: var(--surface-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
   max-width: 900px !important;
   width: 100% !important;
   min-height: 1100px !important;
   margin: 40px auto !important;
   padding: 10px !important;
-  box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm) !important;
   border-radius: 14px;
   line-height: 2.4 !important;
   font-family: 'Cairo', sans-serif !important;
@@ -398,7 +409,7 @@ angular-editor {
 
 .success-icon {
   font-size: 70px;
-  color: #0B6E4F;
+  color: var(--primary-color);
   margin-bottom: 20px;
   animation: popIn .4s ease;
 }
@@ -410,24 +421,25 @@ angular-editor {
 .completion-title {
   font-size: 24px;
   font-weight: 700;
-  color: #0B6E4F;
+  color: var(--primary-color);
   margin-bottom: 10px;
 }
 
 .completion-subtitle {
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 30px;
 }
 
 /* Summary Card */
 
 .summary-card {
-  background: #f9fafb;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 25px;
   max-width: 500px;
   margin: 0 auto 30px auto;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .summary-row {
@@ -438,16 +450,16 @@ angular-editor {
 }
 
 .summary-row .label {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .summary-row .value {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .summary-row .highlight {
-  color: #0B6E4F;
+  color: var(--primary-color);
   font-size: 16px;
 }
 
@@ -499,36 +511,36 @@ angular-editor {
 
 .completion-actions .btn-outline {
   background: transparent;
-  border: 1px solid #e5e7eb;
-  color: #475569;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
 }
 
 .completion-actions .btn-outline:hover {
-  border-color: #0B6E4F;
-  color: #0B6E4F;
-  background: rgba(11,110,79,.05);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
 }
 
 /* ================= PRIMARY ================= */
 
 .completion-actions .btn-primary {
-  background: #0B6E4F;
-  color: #ffffff;
+  background: var(--primary-color);
+  color: var(--text-on-primary);
 }
 
 .completion-actions .btn-primary:hover {
-  background: #095c3f;
+  background: var(--primary-color-hover);
 }
 
 /* ================= SUCCESS ================= */
 
 .completion-actions .btn-success {
-  background: #f1f5f9;
-  color: #0B6E4F;
+  background: var(--surface-muted);
+  color: var(--primary-color);
 }
 
 .completion-actions .btn-success:hover {
-  background: rgba(11,110,79,.08);
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--surface-muted));
 }
 
 /* Icons */
@@ -545,17 +557,18 @@ angular-editor {
 /* Upload Box */
 
 .upload-box{
-  border:2px dashed #d1d5db;
+  border:2px dashed var(--border-color);
   border-radius:14px;
   padding:40px;
   text-align:center;
   cursor:pointer;
   transition:.3s;
+  background: color-mix(in srgb, var(--surface-muted) 88%, transparent);
 }
 
 .upload-box:hover{
-  border-color:#0B6E4F;
-  background:#f6fbf9;
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-muted));
 }
 
 .upload-icon {
@@ -563,8 +576,8 @@ angular-editor {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: #e8f5f0;
-  color: #0B6E4F;
+  background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-muted));
+  color: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -573,7 +586,7 @@ angular-editor {
 
 .file-note{
   font-size:13px;
-  color:#6b7280;
+  color: var(--text-muted);
 }
 
 /* Files */
@@ -600,15 +613,15 @@ angular-editor {
   gap:16px;
   align-items:start;
   padding:16px;
-  border:1px solid #e5e7eb;
+  border:1px solid var(--border-color);
   border-radius:12px;
   margin-bottom:14px;
-  background:#ffffff;
+  background: var(--surface-elevated);
   transition:all .2s ease;
 }
 
 .attachment-card:hover{
-  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 /* File Icon */
@@ -618,7 +631,7 @@ angular-editor {
   align-items:center;
   justify-content:center;
   font-size:24px;
-  color:#0B6E4F;
+  color: var(--primary-color);
 }
 
 /* File Info */
@@ -633,40 +646,44 @@ angular-editor {
 
 .attachment-name{
   width:100%;
-  border:1px solid #e5e7eb;
+  border:1px solid var(--border-color);
   border-radius:8px;
   padding:8px 12px;
   font-size:14px;
   outline:none;
   transition:border .2s;
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 
 .attachment-name:focus{
-  border-color:#0B6E4F;
+  border-color: var(--primary-color);
 }
 
 /* Attachment Description */
 
 .attachment-description{
   width:100%;
-  border:1px solid #e5e7eb;
+  border:1px solid var(--border-color);
   border-radius:8px;
   padding:8px 12px;
   font-size:13px;
   min-height:60px;
   resize:vertical;
   outline:none;
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 
 .attachment-description:focus{
-  border-color:#0B6E4F;
+  border-color: var(--primary-color);
 }
 
 /* File Size */
 
 .file-size{
   font-size:12px;
-  color:#6b7280;
+  color: var(--text-muted);
 }
 
 /* Delete Button */
@@ -675,7 +692,7 @@ angular-editor {
   background:none;
   border:none;
   cursor:pointer;
-  color:#ef4444;
+  color: var(--danger-color);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -709,4 +726,16 @@ angular-editor {
   opacity: 0.78;
   margin: 0.35rem 0 0;
   line-height: 1.4;
+}
+
+/* TinyMCE chrome follows theme (editor body styled separately) */
+:host-context(html.dark-theme) ::ng-deep .tox-tinymce {
+  border-color: var(--border-color) !important;
+  background: var(--surface-elevated) !important;
+}
+
+:host-context(html.dark-theme) ::ng-deep .tox .tox-toolbar,
+:host-context(html.dark-theme) ::ng-deep .tox .tox-toolbar__primary {
+  background: var(--surface-muted) !important;
+  border-color: var(--border-color) !important;
 }

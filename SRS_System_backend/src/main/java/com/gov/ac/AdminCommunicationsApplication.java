@@ -1,6 +1,6 @@
 package com.gov.ac;
 
-import com.gov.ac.attachment.AttachmentStorageProperties;
+import com.gov.ac.feature.attachment.service.AttachmentStorageProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

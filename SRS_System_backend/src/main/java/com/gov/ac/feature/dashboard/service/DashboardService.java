@@ -4,7 +4,7 @@ import com.gov.ac.feature.dashboard.KpiSegmentCodes;
 import com.gov.ac.feature.dashboard.dto.DashboardBucketDto;
 import com.gov.ac.feature.dashboard.dto.DashboardResponseDto;
 import com.gov.ac.feature.dashboard.mapper.DashboardMapper;
-import com.gov.ac.persistence.CorrespondenceRepository;
+import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

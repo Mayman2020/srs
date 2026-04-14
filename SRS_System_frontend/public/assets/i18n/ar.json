@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "نظام تخطيط موارد المؤسسات الحكومي"
+    "title": "نظام المراسلات الذكي"
   },
   "languages": {
     "ar": {
@@ -35,10 +35,15 @@
     "empty": "لا توجد بيانات",
     "toastOk": "تم",
     "confirm": "تأكيد",
+    "cancel": "إلغاء",
     "close": "إغلاق",
     "loading": "جاري التحميل…",
     "recordReferenceLabel": "رقم السجل / المرجع",
-    "recordReferencePendingPlaceholder": "سيتم توليد الرقم تلقائياً بعد حفظ السجل"
+    "recordReferencePendingPlaceholder": "سيتم توليد الرقم تلقائياً بعد حفظ السجل",
+    "yes": "نعم",
+    "no": "لا",
+    "searchTable": "بحث في جميع الأعمدة…",
+    "noSearchResults": "لا توجد صفوف مطابقة للبحث."
   },
   "profile": {
     "avatarAlt": "صورة الملف الشخصي",
@@ -189,6 +194,12 @@
     "deptTab": "الإدارات (داخلي)",
     "orgTab": "الجهات (خارجي / شركاء)",
     "empty": "لا بيانات.",
+    "thId": "المعرّف",
+    "thParent": "الأب",
+    "thCode": "الرمز",
+    "thNameAr": "الاسم (عربي)",
+    "thNameEn": "الاسم (إنجليزي)",
+    "thExternal": "خارجي",
     "treeButton": "شجرة الهيكل",
     "backToTable": "الرجوع إلى الجدول",
     "treePageTitle": "شجرة الهيكل التنظيمي",
@@ -221,12 +232,23 @@
   },
   "leave": {
     "pageTitle": "الإجازات",
+    "formSubtitle": "قدّم طلباً جديداً وتابع طلباتك الأخيرة.",
     "submit": "إرسال الطلب",
     "start": "تاريخ البداية",
     "end": "تاريخ النهاية",
     "reason": "السبب",
     "status": "الحالة",
-    "listMine": "طلباتي"
+    "listMine": "طلباتي",
+    "adminSection": "طلبات بانتظار الموافقة (إداري)",
+    "colUser": "الموظف",
+    "actions": "إجراءات",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "statusCodes": {
+      "PENDING": "قيد المراجعة",
+      "APPROVED": "موافق عليه",
+      "REJECTED": "مرفوض"
+    }
   },
   "reports": {
     "pageTitle": "التقارير والإحصائيات",
@@ -371,6 +393,7 @@
     "colParentId": "معرّف الأب",
     "colSort": "الترتيب",
     "colActive": "نشط",
+    "colActions": "إجراءات",
     "save": "حفظ",
     "create": "إنشاء",
     "cancelEdit": "إلغاء التعديل",
@@ -946,6 +969,9 @@
   },
   "genericSelect": {
     "placeholder": "اختر..."
+  },
+  "multiChoice": {
+    "removeChip": "إزالة من التحديد"
   },
   "admin": {
     "pageTitle": "إدارة النظام",

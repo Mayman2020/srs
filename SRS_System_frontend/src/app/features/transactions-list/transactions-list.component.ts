@@ -6,11 +6,11 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 
-import { Transaction } from '../../models/transaction.model';
-import { TransactionService } from '../../services/transaction.service';
+import { Transaction } from '../../core/models/transaction.model';
+import { TransactionService } from '../../core/services/transaction.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
-import { LookupService } from '../../core/api/lookup.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
@@ -64,7 +64,6 @@ export class TransactionsListComponent implements OnInit {
     private route: ActivatedRoute,
     public router: Router,
     private lookupLabels: LookupLabelsService,
-    private lookupApi: LookupService,
     private i18n: I18nService,
     private readonly cdr: ChangeDetectorRef
   ) {}
@@ -74,9 +73,9 @@ export class TransactionsListComponent implements OnInit {
       return this.i18n.instant('common.all');
     }
     if (this.type === 'ARCHIVED') {
-      return this.lookupLabels.label('correspondenceStatus', 'ARCHIVED');
+      return this.lookupLabels.label(LookupCode.CorrespondenceStatus, 'ARCHIVED');
     }
-    return this.lookupLabels.label('correspondenceType', this.type);
+    return this.lookupLabels.label(LookupCode.CorrespondenceType, this.type);
   }
 
   ngOnInit(): void {
@@ -85,16 +84,16 @@ export class TransactionsListComponent implements OnInit {
       cdr: this.cdr,
       setLoading: (v) => (this.tableLoading = v),
       source: forkJoin({
-        bundle: this.lookupApi.getBundle().pipe(catchError(() => of(null))),
+        correspondenceStatuses: this.lookupLabels
+          .loadTable(LookupCode.CorrespondenceStatus)
+          .pipe(catchError(() => of([]))),
+        correspondenceTypes: this.lookupLabels
+          .loadTable(LookupCode.CorrespondenceType)
+          .pipe(catchError(() => of([]))),
         list: this.service.listPage().pipe(catchError(() => of([] as Transaction[])))
       }),
-      next: ({ bundle, list }) => {
-        if (bundle) {
-          this.lookupLabels.hydrateFromBundle(bundle);
-          this.statusFilterCodes = this.lookupLabels
-            .orderedRows('correspondenceStatus')
-            .map((r) => r.code);
-        }
+      next: ({ correspondenceStatuses, list }) => {
+        this.statusFilterCodes = (correspondenceStatuses ?? []).map((r) => r.code);
         if (this.type === 'ARCHIVED') {
           this.all = list.filter((t) => t.statusCode === 'ARCHIVED');
         } else if (this.type) {

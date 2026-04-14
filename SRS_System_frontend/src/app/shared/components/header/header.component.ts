@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink } from '@angular/router';
-import { ClickOutsideDirective } from '../../../directives/click-outside.directive';
+import { ClickOutsideDirective } from '../../../core/directives/click-outside.directive';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { ErpUserAvatarComponent } from '../../erp/erp-user-avatar.component';
 import { DarkLightModeSwitchMainComponent } from '../dark-light-mode-switch-main/dark-light-mode-switch-main.component';
@@ -62,7 +62,6 @@ export class HeaderComponent {
   @Input() isDark = false;
   @Input() submenuXPosition: 'before' | 'after' = 'after';
   @Input() roleOptions: readonly HeaderRoleItem[] = [];
-  @Input() currentRoleCode: string | null = null;
   @Input() roleSwitching = false;
 
   @Output() notificationsToggle = new EventEmitter<void>();
@@ -87,12 +86,13 @@ export class HeaderComponent {
     return this.notifications.length > 0;
   }
 
+  /** Show switcher only when the user has more than one role (another role to pick). */
   get showRoleSwitcher(): boolean {
     return this.roleOptions.length > 0;
   }
 
   selectRole(roleCode: string): void {
-    if (!roleCode || this.roleSwitching || roleCode === this.currentRoleCode) {
+    if (!roleCode || this.roleSwitching) {
       return;
     }
     this.roleSelected.emit(roleCode);

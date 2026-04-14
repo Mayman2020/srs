@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Government ERP System"
+    "title": "Smart Correspondence System"
   },
   "languages": {
     "ar": {
@@ -35,10 +35,15 @@
     "empty": "No data",
     "toastOk": "Done",
     "confirm": "Confirm",
+    "cancel": "Cancel",
     "close": "Close",
     "loading": "Loading…",
     "recordReferenceLabel": "Record / reference number",
-    "recordReferencePendingPlaceholder": "The number will be assigned automatically after you save."
+    "recordReferencePendingPlaceholder": "The number will be assigned automatically after you save.",
+    "yes": "Yes",
+    "no": "No",
+    "searchTable": "Search all columns…",
+    "noSearchResults": "No rows match your search."
   },
   "profile": {
     "avatarAlt": "Profile photo",
@@ -189,6 +194,12 @@
     "deptTab": "Departments (internal)",
     "orgTab": "Entities (external / partners)",
     "empty": "No rows.",
+    "thId": "ID",
+    "thParent": "Parent",
+    "thCode": "Code",
+    "thNameAr": "Name (Arabic)",
+    "thNameEn": "Name (English)",
+    "thExternal": "External",
     "treeButton": "Structure tree",
     "backToTable": "Back to table",
     "treePageTitle": "Organization structure tree",
@@ -221,12 +232,23 @@
   },
   "leave": {
     "pageTitle": "Leave requests",
+    "formSubtitle": "Submit a new request and track your recent submissions.",
     "submit": "Submit request",
     "start": "Start date",
     "end": "End date",
     "reason": "Reason",
     "status": "Status",
-    "listMine": "My requests"
+    "listMine": "My requests",
+    "adminSection": "Pending approvals (admin)",
+    "colUser": "Employee",
+    "actions": "Actions",
+    "approve": "Approve",
+    "reject": "Reject",
+    "statusCodes": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    }
   },
   "reports": {
     "pageTitle": "Reports & statistics",
@@ -371,6 +393,7 @@
     "colParentId": "Parent id",
     "colSort": "Sort",
     "colActive": "Active",
+    "colActions": "Actions",
     "save": "Save",
     "create": "Create",
     "cancelEdit": "Cancel edit",
@@ -946,6 +969,9 @@
   },
   "genericSelect": {
     "placeholder": "Choose…"
+  },
+  "multiChoice": {
+    "removeChip": "Remove from selection"
   },
   "admin": {
     "pageTitle": "System administration",

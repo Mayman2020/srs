@@ -78,6 +78,12 @@
   --gov-gold: #d4af37;
   --gov-gold-light: #f5e6d3;
 
+  /* Align with intranet.gov.om UI accents (dialogs, links, notification chrome) */
+  --intranet-accent: #cb2026;
+  --intranet-table-head: #212529;
+  --intranet-table-stripe: rgba(0, 0, 0, 0.03);
+  --intranet-table-border: #dee2e6;
+
   --status-new: #2563eb;
   --status-inprogress: #d97706;
   --status-returned: #dc2626;
@@ -144,6 +150,11 @@
   --gov-light: rgba(52, 211, 153, 0.12);
   --gov-gold: #f0c75e;
   --gov-gold-light: rgba(240, 199, 94, 0.16);
+
+  --intranet-accent: #f87171;
+  --intranet-table-head: #1e293b;
+  --intranet-table-stripe: rgba(255, 255, 255, 0.04);
+  --intranet-table-border: #334155;
 
   --status-new: #60a5fa;
   --status-inprogress: #fbbf24;
@@ -277,19 +288,170 @@ app-root {
 }
 
 .btn-primary,
+button.btn-primary,
 .btn.primary {
-  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 70%, transparent));
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 72%, transparent));
   color: var(--text-on-primary);
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(11, 110, 79, 0.16);
 }
 
-.btn-secondary {
+.btn-secondary,
+button.btn-secondary {
   background: var(--surface-muted);
   color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  font-weight: 700;
 }
 
-.btn-danger {
-  background: color-mix(in srgb, var(--error-color) 90%, var(--surface-elevated));
-  color: var(--text-on-danger);
+.btn-danger,
+button.btn-danger,
+.btn.danger {
+  background: linear-gradient(
+    135deg,
+    var(--error-color),
+    color-mix(in srgb, var(--error-color) 78%, #450a0a)
+  );
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--error-color) 28%, transparent);
+}
+
+/* Table / list: compact primary & danger (open row, edit, delete) */
+.btn.small.primary,
+.btn.compact.primary {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 72%, transparent));
+  color: var(--text-on-primary);
+  box-shadow: 0 10px 22px rgba(11, 110, 79, 0.16);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.btn.small.primary:hover,
+.btn.compact.primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+/* Row icon actions — same family as primary “add” (users page) */
+.actions-modern {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.actions-modern .action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+  color: var(--text-on-primary);
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 72%, transparent));
+  box-shadow: 0 10px 22px rgba(11, 110, 79, 0.16);
+}
+
+.actions-modern .action-btn i {
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+
+.actions-modern .action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.actions-modern .action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.actions-modern .action-btn.delete {
+  background: linear-gradient(
+    135deg,
+    var(--error-color),
+    color-mix(in srgb, var(--error-color) 78%, #450a0a)
+  );
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--error-color) 26%, transparent);
+}
+
+.actions-modern .action-btn.toggle {
+  background: linear-gradient(
+    135deg,
+    var(--warning-color),
+    color-mix(in srgb, var(--warning-color) 72%, #5c3706)
+  );
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--warning-color) 22%, transparent);
+  color: #fff;
+}
+
+/* Row action cell: flex + gap */
+td.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Administration tables: text + icon links → same pill as primary/danger */
+td.actions button.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text-on-primary) !important;
+  background: linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 72%, transparent));
+  box-shadow: 0 10px 22px rgba(11, 110, 79, 0.16);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+td.actions button.link:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+td.actions button.link.danger {
+  background: linear-gradient(
+    135deg,
+    var(--error-color),
+    color-mix(in srgb, var(--error-color) 78%, #450a0a)
+  );
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--error-color) 26%, transparent);
+  color: #ffffff !important;
 }
 
 label {
@@ -360,6 +522,119 @@ button:focus-visible {
   background: color-mix(in srgb, var(--surface-muted) 84%, transparent);
 }
 
+/* Intranet-style panels & data tables (Bootstrap-like) */
+.intranet-panel {
+  background: var(--surface-elevated);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+  padding: 1rem 1.25rem;
+}
+
+.intranet-panel--muted {
+  background: color-mix(in srgb, var(--surface-muted) 55%, var(--surface-elevated));
+}
+
+/* Scroll shell — same chrome as srs-data-table (/users) */
+.srs-dt-scroll,
+.srs-table-shell,
+.intranet-table-wrap {
+  position: relative;
+  overflow-x: auto;
+  border-radius: 8px;
+  padding: 0;
+  background: var(--surface-elevated);
+  border: 1px solid color-mix(in srgb, var(--intranet-table-border) 90%, var(--border-color));
+  box-shadow: var(--shadow-sm);
+}
+
+.intranet-table-wrap {
+  margin: 0;
+}
+
+/* Unified table body (all data tables match srs-data-table) */
+.srs-dt-inner table,
+table.data-table,
+table.intranet-table,
+.table-wrap:not(.no-srs-table) > table,
+.table-scroll:not(.no-srs-table) > table,
+.mini-table-wrap:not(.no-srs-table) table.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background: var(--surface-elevated);
+  table-layout: auto;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.srs-dt-inner thead th,
+table.data-table thead th,
+table.intranet-table thead th,
+.table-wrap:not(.no-srs-table) > table thead th,
+.table-scroll:not(.no-srs-table) > table thead th,
+.mini-table-wrap:not(.no-srs-table) table.mini-table thead th {
+  padding: 0.65rem 0.75rem;
+  text-align: start;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
+  color: #fff;
+  background: var(--intranet-table-head);
+  border: 1px solid color-mix(in srgb, var(--intranet-table-head) 85%, #000);
+  vertical-align: middle;
+}
+
+.srs-dt-inner tbody td,
+table.data-table tbody td,
+table.intranet-table tbody td,
+.table-wrap:not(.no-srs-table) > table tbody td,
+.table-scroll:not(.no-srs-table) > table tbody td,
+.mini-table-wrap:not(.no-srs-table) table.mini-table tbody td {
+  padding: 0.55rem 0.7rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-color);
+  background: var(--surface-elevated);
+  border: 1px solid var(--intranet-table-border);
+  vertical-align: middle;
+  transition: background-color 0.18s ease;
+}
+
+.srs-dt-inner tbody tr:nth-child(even) td,
+table.data-table tbody tr:nth-child(even) td,
+table.intranet-table tbody tr:nth-child(even) td,
+.table-wrap:not(.no-srs-table) > table tbody tr:nth-child(even) td,
+.table-scroll:not(.no-srs-table) > table tbody tr:nth-child(even) td,
+.mini-table-wrap:not(.no-srs-table) table.mini-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--intranet-table-stripe) 100%, var(--surface-elevated));
+}
+
+.srs-dt-inner tbody tr:hover td,
+table.data-table tbody tr:hover td,
+table.intranet-table tbody tr:hover td,
+.table-wrap:not(.no-srs-table) > table tbody tr:hover td,
+.table-scroll:not(.no-srs-table) > table tbody tr:hover td,
+.mini-table-wrap:not(.no-srs-table) table.mini-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--primary-light) 35%, var(--surface-elevated));
+}
+
+.mini-table-wrap:not(.no-srs-table) table.mini-table thead th,
+.mini-table-wrap:not(.no-srs-table) table.mini-table tbody td {
+  padding: 0.5rem 0.55rem;
+  font-size: 12.5px;
+}
+
+[dir='rtl'] .srs-dt-inner thead th,
+[dir='rtl'] .srs-dt-inner th.srs-dt-th-plain,
+[dir='rtl'] table.data-table thead th,
+[dir='rtl'] table.intranet-table thead th,
+[dir='rtl'] .table-wrap:not(.no-srs-table) > table thead th,
+[dir='rtl'] .table-scroll:not(.no-srs-table) > table thead th,
+[dir='rtl'] .mini-table-wrap:not(.no-srs-table) table.mini-table thead th {
+  text-align: right;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -388,6 +663,51 @@ button:focus-visible {
 .badge-info {
   background: color-mix(in srgb, var(--info-color) 18%, transparent);
   color: var(--info-color);
+}
+
+/* Inline code / permission ID chips — stay inside card bounds, theme-aware (system-wide) */
+.srs-code-flag,
+.perm-code-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  box-sizing: border-box;
+  margin: 0;
+  position: static;
+  transform: none;
+  max-width: min(100%, 240px);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 32%, var(--border-color));
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--surface-elevated));
+  color: color-mix(in srgb, var(--primary-color) 88%, var(--text-primary));
+}
+
+.dark-theme .srs-code-flag,
+.dark-theme .perm-code-badge {
+  background: color-mix(in srgb, var(--primary-color) 18%, var(--surface-muted));
+  border-color: color-mix(in srgb, var(--primary-color) 42%, var(--border-color));
+  color: var(--primary-color);
+}
+
+.perm-on .perm-code-badge,
+.srs-code-flag.srs-code-flag--solid {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  border-color: transparent;
+}
+
+.dark-theme .perm-on .perm-code-badge {
+  background: color-mix(in srgb, var(--primary-color) 78%, #020617);
+  color: var(--text-on-primary);
 }
 
 .loading {
@@ -501,15 +821,17 @@ html.dark-theme,
   background: var(--surface-elevated);
 }
 
-.dark-theme .data-table th,
-.dark-theme .data-table td {
-  border-color: var(--border-color) !important;
-  color: var(--text-color) !important;
+.dark-theme table.data-table thead th,
+.dark-theme table.intranet-table thead th {
+  color: #fff !important;
+  background: var(--intranet-table-head) !important;
+  border-color: color-mix(in srgb, var(--intranet-table-head) 85%, #000) !important;
 }
 
-.dark-theme .data-table th {
-  background: color-mix(in srgb, var(--surface-muted) 84%, transparent);
-  color: var(--text-primary) !important;
+.dark-theme table.data-table tbody td,
+.dark-theme table.intranet-table tbody td {
+  border-color: var(--intranet-table-border) !important;
+  color: var(--text-color) !important;
 }
 
 .dark-theme .muted,

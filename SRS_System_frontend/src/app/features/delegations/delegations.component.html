@@ -49,7 +49,15 @@
 
   <div class="card" *ngIf="!loading">
     <h3>{{ 'delegations.listTitle' | t }}</h3>
-    <div class="table-scroll" *ngIf="rows.length">
+    <div class="filters-modern delegations-table-search" *ngIf="rows.length">
+      <input
+        type="search"
+        [(ngModel)]="tableSearch"
+        [attr.placeholder]="'common.searchTable' | t"
+        [attr.aria-label]="'common.searchTable' | t"
+      />
+    </div>
+    <div class="table-scroll srs-table-shell" *ngIf="rows.length">
       <table class="data-table">
         <thead>
           <tr>
@@ -62,7 +70,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let d of rows">
+          <tr *ngFor="let d of filteredRows()">
             <td>{{ delegatorName(d) }}</td>
             <td>{{ delegateName(d) }}</td>
             <td>{{ d.validFrom }}</td>
@@ -73,6 +81,9 @@
                 {{ 'delegations.revoke' | t }}
               </button>
             </td>
+          </tr>
+          <tr *ngIf="filteredRows().length === 0">
+            <td colspan="6" class="empty-cell">{{ 'common.noSearchResults' | t }}</td>
           </tr>
         </tbody>
       </table>

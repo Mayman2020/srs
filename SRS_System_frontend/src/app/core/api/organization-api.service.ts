@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { OrganizationFlatDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class OrganizationApiService {
@@ -12,6 +13,6 @@ export class OrganizationApiService {
   ) {}
 
   list(): Observable<OrganizationFlatDto[]> {
-    return this.http.get<OrganizationFlatDto[]>(`${this.base}/organizations`);
+    return this.http.get<OrganizationFlatDto[]>(apiPath(this.base, AppConstants.API.ORGANIZATIONS));
   }
 }

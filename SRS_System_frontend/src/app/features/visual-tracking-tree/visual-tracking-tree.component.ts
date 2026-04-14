@@ -3,6 +3,7 @@ import { Component, Input, OnChanges, ViewChild, inject } from '@angular/core';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import {
   NgxInteractiveOrgChart,
@@ -136,7 +137,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
    * Restricts the CSS class to codes present in the lookup bundle (safe if admins add rows or fix typos).
    */
   cardStatusClass(code: string | undefined): string {
-    const rows = this.lookupLabels.orderedRows('orgVisualNodeStatus');
+    const rows = this.lookupLabels.orderedRows(LookupCode.OrgVisualNodeStatus);
     const allowed = new Set(rows.map((r) => r.code));
     const fallback = 'pending';
     const c = (code ?? fallback).trim();
@@ -151,7 +152,7 @@ export class VisualTrackingTreeComponent implements OnChanges {
 
   /** Localized label from DB-backed lookup (`org_visual_node_status`). */
   statusLookupLabel(code: string | undefined): string {
-    return this.lookupLabels.label('orgVisualNodeStatus', code);
+    return this.lookupLabels.label(LookupCode.OrgVisualNodeStatus, code);
   }
 
   private mapTxToTree(tx: Transaction, activeIndex: number): OrgNode {

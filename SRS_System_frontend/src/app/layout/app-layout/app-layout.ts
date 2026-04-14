@@ -5,7 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TopbarComponent } from '../topbar/topbar.component';
 import { ChatBubbleComponent } from '../chat-bubble/chat-bubble.component';
-import { SidebarService } from '../../services/sidebar.service';
+import { SidebarService } from '../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-layout',

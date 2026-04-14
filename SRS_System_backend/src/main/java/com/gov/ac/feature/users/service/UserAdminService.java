@@ -2,21 +2,23 @@ package com.gov.ac.feature.users.service;
 
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.NotFoundException;
-import com.gov.ac.domain.org.Department;
-import com.gov.ac.domain.user.AppUser;
-import com.gov.ac.domain.user.Role;
-import com.gov.ac.domain.user.UserRole;
-import com.gov.ac.domain.user.UserRoleId;
+import com.gov.ac.feature.departments.entity.DepartmentEntity;
+import com.gov.ac.feature.users.entity.AppUserEntity;
+import com.gov.ac.feature.roles.entity.RoleEntity;
+import com.gov.ac.feature.users.entity.UserRoleEntity;
+import com.gov.ac.feature.users.entity.UserRoleId;
 import com.gov.ac.feature.lookups.dto.LookupItemDto;
-import com.gov.ac.feature.users.dto.CreateAppUserRequest;
-import com.gov.ac.feature.users.dto.UpdateAppUserRequest;
+import com.gov.ac.feature.roles.mapper.RoleMapper;
+import com.gov.ac.feature.users.dto.CreateAppUserRequestDto;
+import com.gov.ac.feature.users.dto.UpdateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UserDetailDto;
 import com.gov.ac.feature.users.dto.UserListDto;
+import com.gov.ac.feature.users.mapper.UserAdminMapper;
 import com.gov.ac.feature.users.mapper.UserListMapper;
-import com.gov.ac.persistence.AppUserRepository;
-import com.gov.ac.persistence.DepartmentRepository;
-import com.gov.ac.persistence.RoleRepository;
-import com.gov.ac.persistence.UserRoleRepository;
+import com.gov.ac.feature.users.repository.AppUserRepository;
+import com.gov.ac.feature.departments.repository.DepartmentRepository;
+import com.gov.ac.feature.roles.repository.RoleRepository;
+import com.gov.ac.feature.users.repository.UserRoleRepository;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -51,16 +53,13 @@ public class UserAdminService {
   @Transactional(readOnly = true)
   public List<LookupItemDto> listRoles() {
     return roleRepository.findByDeletedAtIsNullOrderBySortOrderAsc().stream()
-        .map(
-            r ->
-                new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
+        .map(RoleMapper::toLookupItem)
         .toList();
   }
 
   @Transactional
   public void assignRole(UUID actorId, UUID targetUserId, Long roleId) {
-    AppUser user =
+    AppUserEntity user =
         appUserRepository
             .findByIdAndDeletedAtIsNull(targetUserId)
             .orElseThrow(() -> new NotFoundException("User not found"));
@@ -69,13 +68,13 @@ public class UserAdminService {
     }
     roleRepository
         .findByIdAndDeletedAtIsNullAndActiveTrue(roleId)
-        .orElseThrow(() -> new NotFoundException("Role not found"));
+        .orElseThrow(() -> new NotFoundException("RoleEntity not found"));
 
     UserRoleId id = new UserRoleId(targetUserId, roleId);
     Instant now = Instant.now();
-    Optional<UserRole> existing = userRoleRepository.findById(id);
+    Optional<UserRoleEntity> existing = userRoleRepository.findById(id);
     if (existing.isPresent()) {
-      UserRole ur = existing.get();
+      UserRoleEntity ur = existing.get();
       if (ur.getValidTo() == null || ur.getValidTo().isAfter(now)) {
         return;
       }
@@ -86,7 +85,7 @@ public class UserAdminService {
       return;
     }
 
-    UserRole ur = new UserRole();
+    UserRoleEntity ur = new UserRoleEntity();
     ur.setId(id);
     ur.setAppUser(appUserRepository.getReferenceById(targetUserId));
     ur.setRole(roleRepository.getReferenceById(roleId));
@@ -99,7 +98,7 @@ public class UserAdminService {
 
   @Transactional
   public void setRoles(UUID actorId, UUID targetUserId, List<Long> roleIds) {
-    AppUser user =
+    AppUserEntity user =
         appUserRepository
             .findByIdAndDeletedAtIsNull(targetUserId)
             .orElseThrow(() -> new NotFoundException("User not found"));
@@ -117,18 +116,18 @@ public class UserAdminService {
       throw new BadRequestException("At least one role must be selected");
     }
 
-    List<Role> validRoles = roleRepository.findByIdInAndDeletedAtIsNullAndActiveTrue(List.copyOf(selectedRoleIds));
-    Set<Long> validRoleIds = validRoles.stream().map(Role::getId).collect(Collectors.toSet());
+    List<RoleEntity> validRoles = roleRepository.findByIdInAndDeletedAtIsNullAndActiveTrue(List.copyOf(selectedRoleIds));
+    Set<Long> validRoleIds = validRoles.stream().map(RoleEntity::getId).collect(Collectors.toSet());
     if (validRoleIds.size() != selectedRoleIds.size()) {
       throw new NotFoundException("One or more roles were not found");
     }
 
     Instant now = Instant.now();
-    List<UserRole> existing = userRoleRepository.findAllByUserId(targetUserId);
-    Map<Long, UserRole> existingByRoleId =
+    List<UserRoleEntity> existing = userRoleRepository.findAllByUserId(targetUserId);
+    Map<Long, UserRoleEntity> existingByRoleId =
         existing.stream().collect(Collectors.toMap(e -> e.getId().getRoleId(), Function.identity()));
 
-    for (UserRole row : existing) {
+    for (UserRoleEntity row : existing) {
       Long roleId = row.getId().getRoleId();
       boolean shouldBeActive = selectedRoleIds.contains(roleId);
       boolean isActive = row.getValidTo() == null || row.getValidTo().isAfter(now);
@@ -147,7 +146,7 @@ public class UserAdminService {
       if (existingByRoleId.containsKey(roleId)) {
         continue;
       }
-      UserRole ur = new UserRole();
+      UserRoleEntity ur = new UserRoleEntity();
       ur.setId(new UserRoleId(targetUserId, roleId));
       ur.setAppUser(user);
       ur.setRole(roleRepository.getReferenceById(roleId));
@@ -161,24 +160,24 @@ public class UserAdminService {
 
   @Transactional(readOnly = true)
   public UserDetailDto getUserDetail(UUID userId) {
-    AppUser u =
+    AppUserEntity u =
         appUserRepository
             .findByIdAndDeletedAtIsNull(userId)
             .orElseThrow(() -> new NotFoundException("User not found"));
-    return toDetailDto(u);
+    return detailResponse(u);
   }
 
   @Transactional
-  public UserDetailDto createUser(UUID actorId, CreateAppUserRequest req) {
+  public UserDetailDto createUser(UUID actorId, CreateAppUserRequestDto req) {
     String username = req.username().trim();
     if (appUserRepository.findByUsernameAndDeletedAtIsNull(username).isPresent()) {
       throw new BadRequestException("Username already exists");
     }
-    Department dept =
+    DepartmentEntity dept =
         departmentRepository
             .findByIdAndDeletedAtIsNull(req.departmentId())
-            .orElseThrow(() -> new NotFoundException("Department not found"));
-    AppUser u = new AppUser();
+            .orElseThrow(() -> new NotFoundException("DepartmentEntity not found"));
+    AppUserEntity u = new AppUserEntity();
     u.setUsername(username);
     u.setPasswordHash(passwordEncoder.encode(req.password()));
     u.setFullNameAr(req.fullNameAr().trim());
@@ -190,19 +189,19 @@ public class UserAdminService {
     u.setCreatedBy(actorId);
     u.setUpdatedBy(actorId);
     appUserRepository.save(u);
-    return toDetailDto(u);
+    return detailResponse(u);
   }
 
   @Transactional
-  public UserDetailDto updateUser(UUID actorId, UUID userId, UpdateAppUserRequest req) {
-    AppUser u =
+  public UserDetailDto updateUser(UUID actorId, UUID userId, UpdateAppUserRequestDto req) {
+    AppUserEntity u =
         appUserRepository
             .findByIdAndDeletedAtIsNull(userId)
             .orElseThrow(() -> new NotFoundException("User not found"));
-    Department dept =
+    DepartmentEntity dept =
         departmentRepository
             .findByIdAndDeletedAtIsNull(req.departmentId())
-            .orElseThrow(() -> new NotFoundException("Department not found"));
+            .orElseThrow(() -> new NotFoundException("DepartmentEntity not found"));
     u.setFullNameAr(req.fullNameAr().trim());
     u.setFullNameEn(req.fullNameEn().trim());
     u.setEmail(req.email().trim().toLowerCase());
@@ -213,12 +212,12 @@ public class UserAdminService {
     }
     u.setUpdatedBy(actorId);
     appUserRepository.save(u);
-    return toDetailDto(u);
+    return detailResponse(u);
   }
 
   @Transactional
   public void deleteUser(UUID actorId, UUID userId) {
-    AppUser u =
+    AppUserEntity u =
         appUserRepository
             .findByIdAndDeletedAtIsNull(userId)
             .orElseThrow(() -> new NotFoundException("User not found"));
@@ -228,18 +227,8 @@ public class UserAdminService {
     appUserRepository.save(u);
   }
 
-  private UserDetailDto toDetailDto(AppUser u) {
-    Department d = u.getDepartment();
-    List<Long> roleIds = userRoleRepository.findActiveRoleIdsByUserId(u.getId());
-    return new UserDetailDto(
-        u.getId(),
-        u.getUsername(),
-        u.getFullNameAr(),
-        u.getFullNameEn(),
-        u.getEmail(),
-        d != null ? d.getCode() : null,
-        d != null ? d.getId() : null,
-        u.getActive(),
-        roleIds);
+  private UserDetailDto detailResponse(AppUserEntity user) {
+    List<Long> roleIds = userRoleRepository.findActiveRoleIdsByUserId(user.getId());
+    return UserAdminMapper.toDetailDto(user, roleIds);
   }
 }

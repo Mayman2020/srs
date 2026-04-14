@@ -1,6 +1,6 @@
 package com.gov.ac.feature.admin.controller;
 
-import com.gov.ac.feature.admin.dto.ReportSystemIssueRequest;
+import com.gov.ac.feature.admin.dto.ReportSystemIssueRequestDto;
 import com.gov.ac.feature.admin.service.SystemIssueAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class SystemIssueReportController {
 
   @PostMapping("/report")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void report(@Valid @RequestBody ReportSystemIssueRequest body) {
+  public void report(@Valid @RequestBody ReportSystemIssueRequestDto body) {
     systemIssueAdminService.reportClientIssue(body);
   }
 }

@@ -6,6 +6,7 @@ import com.gov.ac.feature.lookups.service.LookupService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,5 +26,17 @@ public class LookupController {
   @GetMapping("/priority")
   public List<LookupItemDto> priorityLookup() {
     return lookupService.priorityLookup();
+  }
+
+  /** Generic lookup endpoint, aligned with lookup_catalog.lookup_code. */
+  @GetMapping("/{lookupCode}")
+  public List<LookupItemDto> byLookupCode(@PathVariable String lookupCode) {
+    return lookupService.byLookupCode(lookupCode);
+  }
+
+  /** Generic catalog endpoint: returns all children of the given lookup_code. */
+  @GetMapping("/catalog/{parentCode}")
+  public List<LookupItemDto> byCatalogCode(@PathVariable String parentCode) {
+    return lookupService.byParentCode(parentCode);
   }
 }

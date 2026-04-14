@@ -11,7 +11,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { UiFormatService } from '../../../core/i18n/ui-format.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ThemeService } from '../../../core/services/theme.service';
-import { SidebarService } from '../../../services/sidebar.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 import { ErpUserProfileStore } from '../../erp/erp-user-profile.store';
 import {
   HeaderComponent,
@@ -38,7 +38,6 @@ import {
       [isDark]="theme.isDark"
       [submenuXPosition]="submenuXPosition"
       [roleOptions]="roleOptions"
-      [currentRoleCode]="profile().currentRole"
       [roleSwitching]="switchingRole"
       (menuToggle)="toggleSidebar()"
       (notificationsToggle)="toggleNotifications()"
@@ -113,12 +112,14 @@ export class HeaderContainerComponent {
     return this.resolveRoleLabel(currentRole);
   }
 
+  /** Roles the user can switch to (excludes the active role so it does not appear in the menu). */
   get roleOptions(): HeaderRoleItem[] {
     const currentRole = this.profile().currentRole?.trim() ?? '';
     const fallback = currentRole ? [currentRole] : [];
     const codes = [...this.profile().roles, ...fallback].filter((code) => !!code?.trim());
     const uniqueCodes = [...new Set(codes)];
-    return uniqueCodes.map((code) => ({
+    const switchable = uniqueCodes.filter((code) => code !== currentRole);
+    return switchable.map((code) => ({
       code,
       label: this.resolveRoleLabel(code)
     }));

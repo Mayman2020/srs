@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { AuthorityDelegationDto } from './api-types';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class AuthorityDelegationApiService {
@@ -12,7 +13,9 @@ export class AuthorityDelegationApiService {
   ) {}
 
   list(): Observable<AuthorityDelegationDto[]> {
-    return this.http.get<AuthorityDelegationDto[]>(`${this.base}/authority-delegations`);
+    return this.http.get<AuthorityDelegationDto[]>(
+      apiPath(this.base, AppConstants.API.AUTHORITY_DELEGATIONS)
+    );
   }
 
   create(body: {
@@ -24,10 +27,15 @@ export class AuthorityDelegationApiService {
     canSignOnBehalf?: boolean;
     notes?: string | null;
   }): Observable<AuthorityDelegationDto> {
-    return this.http.post<AuthorityDelegationDto>(`${this.base}/authority-delegations`, body);
+    return this.http.post<AuthorityDelegationDto>(
+      apiPath(this.base, AppConstants.API.AUTHORITY_DELEGATIONS),
+      body
+    );
   }
 
   revoke(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/authority-delegations/${id}`);
+    return this.http.delete<void>(
+      apiPathWithId(this.base, AppConstants.API.AUTHORITY_DELEGATIONS, id)
+    );
   }
 }

@@ -1,6 +1,6 @@
 package com.gov.ac.common.audit;
 
-import com.gov.ac.persistence.AppUserRepository;
+import com.gov.ac.feature.users.repository.AppUserRepository;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;

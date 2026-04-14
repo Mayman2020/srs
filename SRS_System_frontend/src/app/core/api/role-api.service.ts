@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { LookupItemDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class RoleApiService {
@@ -12,6 +13,6 @@ export class RoleApiService {
   ) {}
 
   list(): Observable<LookupItemDto[]> {
-    return this.http.get<LookupItemDto[]>(`${this.base}/roles`);
+    return this.http.get<LookupItemDto[]>(apiPath(this.base, AppConstants.API.ROLES));
   }
 }

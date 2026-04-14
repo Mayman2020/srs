@@ -151,8 +151,8 @@
   <div class="title">
     <h3>{{ 'dashboard.recentTitle' | t }}</h3>
   </div>
-  <div class="table-wrap">
-    <table>
+  <div class="table-wrap srs-table-shell">
+    <table class="data-table">
       <thead>
         <tr>
           <th>{{ 'dashboard.thRef' | t }}</th>
@@ -175,7 +175,7 @@
             </span>
           </td>
           <td>
-            <button type="button" class="btn" (click)="openTransaction(tx.id)">
+            <button type="button" class="btn small primary" (click)="openTransaction(tx.id)">
               {{ 'common.open' | t }}
             </button>
           </td>

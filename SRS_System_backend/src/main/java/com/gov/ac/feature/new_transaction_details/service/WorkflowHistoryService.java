@@ -2,7 +2,7 @@ package com.gov.ac.feature.new_transaction_details.service;
 
 import com.gov.ac.feature.new_transaction_details.dto.WorkflowHistoryEntryDto;
 import com.gov.ac.feature.new_transaction_details.mapper.WorkflowHistoryMapper;
-import com.gov.ac.persistence.WorkflowHistoryRepository;
+import com.gov.ac.feature.workflow.execution.repository.WorkflowHistoryRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

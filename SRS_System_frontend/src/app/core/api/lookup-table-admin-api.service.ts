@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { LookupCatalogDto, LookupRowAdminDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 export interface LookupUpsertBody {
   code: string;
@@ -27,7 +28,7 @@ export class LookupTableAdminApiService {
     private http: HttpClient,
     @Inject(API_BASE_URL) base: string
   ) {
-    this.root = `${base}/admin/lookup-tables`;
+    this.root = apiPath(base, AppConstants.API.LOOKUP_TABLE_ADMIN);
   }
 
   catalog(): Observable<LookupCatalogDto[]> {

@@ -4,7 +4,6 @@
       class="toast toast--{{ item.type }}"
       [@toastMotion]
       [style.--toast-duration]="item.durationMs + 'ms'">
-      <div class="toast__rail"></div>
       <span class="toast__icon material-icons" aria-hidden="true">{{ iconFor(item.type) }}</span>
       <div class="toast__content">
         <div class="toast__title">{{ ('notification.types.' + item.type) | t }}</div>

@@ -1,17 +1,17 @@
 package com.gov.ac.feature.admin.controller;
 
 import com.gov.ac.feature.admin.dto.PermissionDto;
-import com.gov.ac.feature.admin.dto.ResolveSystemIssueRequest;
-import com.gov.ac.feature.admin.dto.RolePermissionIdsRequest;
+import com.gov.ac.feature.admin.dto.ResolveSystemIssueRequestDto;
+import com.gov.ac.feature.admin.dto.RolePermissionIdsRequestDto;
 import com.gov.ac.feature.admin.dto.SystemIssueDto;
 import com.gov.ac.feature.admin.dto.UiScreenDto;
-import com.gov.ac.feature.admin.dto.UpsertPermissionRequest;
-import com.gov.ac.feature.admin.dto.UpsertUiScreenRequest;
+import com.gov.ac.feature.admin.dto.UpsertPermissionRequestDto;
+import com.gov.ac.feature.admin.dto.UpsertUiScreenRequestDto;
 import com.gov.ac.feature.admin.service.AdminConsoleService;
 import com.gov.ac.feature.admin.service.SystemIssueAdminService;
-import com.gov.ac.feature.workflow.ServiceWorkflowRouteService;
-import com.gov.ac.feature.workflow.dto.ServiceWorkflowRouteDto;
-import com.gov.ac.feature.workflow.dto.UpsertServiceWorkflowRouteRequest;
+import com.gov.ac.feature.workflow.routes.dto.ServiceWorkflowRouteDto;
+import com.gov.ac.feature.workflow.routes.dto.UpsertServiceWorkflowRouteRequestDto;
+import com.gov.ac.feature.workflow.routes.service.ServiceWorkflowRouteService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,13 +42,13 @@ public class AdminConsoleController {
   }
 
   @PostMapping("/permissions")
-  public PermissionDto createPermission(@Valid @RequestBody UpsertPermissionRequest body) {
+  public PermissionDto createPermission(@Valid @RequestBody UpsertPermissionRequestDto body) {
     return adminConsoleService.createPermission(body);
   }
 
   @PutMapping("/permissions/{id}")
   public PermissionDto updatePermission(
-      @PathVariable Long id, @Valid @RequestBody UpsertPermissionRequest body) {
+      @PathVariable Long id, @Valid @RequestBody UpsertPermissionRequestDto body) {
     return adminConsoleService.updatePermission(id, body);
   }
 
@@ -64,7 +64,7 @@ public class AdminConsoleController {
 
   @PutMapping("/roles/{roleId}/permissions")
   public void replaceRolePermissions(
-      @PathVariable Long roleId, @Valid @RequestBody RolePermissionIdsRequest body) {
+      @PathVariable Long roleId, @Valid @RequestBody RolePermissionIdsRequestDto body) {
     adminConsoleService.replaceRolePermissions(roleId, body.permissionIds());
   }
 
@@ -74,13 +74,13 @@ public class AdminConsoleController {
   }
 
   @PostMapping("/ui-screens")
-  public UiScreenDto createUiScreen(@Valid @RequestBody UpsertUiScreenRequest body) {
+  public UiScreenDto createUiScreen(@Valid @RequestBody UpsertUiScreenRequestDto body) {
     return adminConsoleService.createUiScreen(body);
   }
 
   @PutMapping("/ui-screens/{id}")
   public UiScreenDto updateUiScreen(
-      @PathVariable Long id, @Valid @RequestBody UpsertUiScreenRequest body) {
+      @PathVariable Long id, @Valid @RequestBody UpsertUiScreenRequestDto body) {
     return adminConsoleService.updateUiScreen(id, body);
   }
 
@@ -96,8 +96,8 @@ public class AdminConsoleController {
 
   @PatchMapping("/system-issues/{id}/resolve")
   public SystemIssueDto resolveSystemIssue(
-      @PathVariable Long id, @RequestBody(required = false) ResolveSystemIssueRequest body) {
-    return systemIssueAdminService.resolve(id, body != null ? body : new ResolveSystemIssueRequest(null));
+      @PathVariable Long id, @RequestBody(required = false) ResolveSystemIssueRequestDto body) {
+    return systemIssueAdminService.resolve(id, body != null ? body : new ResolveSystemIssueRequestDto(null));
   }
 
   @GetMapping("/workflow-routes")
@@ -107,13 +107,13 @@ public class AdminConsoleController {
 
   @PostMapping("/workflow-routes")
   public ServiceWorkflowRouteDto createWorkflowRoute(
-      @Valid @RequestBody UpsertServiceWorkflowRouteRequest body) {
+      @Valid @RequestBody UpsertServiceWorkflowRouteRequestDto body) {
     return serviceWorkflowRouteService.create(body);
   }
 
   @PutMapping("/workflow-routes/{id}")
   public ServiceWorkflowRouteDto updateWorkflowRoute(
-      @PathVariable long id, @Valid @RequestBody UpsertServiceWorkflowRouteRequest body) {
+      @PathVariable long id, @Valid @RequestBody UpsertServiceWorkflowRouteRequestDto body) {
     return serviceWorkflowRouteService.update(id, body);
   }
 

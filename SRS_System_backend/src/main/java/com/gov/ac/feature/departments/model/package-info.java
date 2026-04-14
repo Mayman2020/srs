@@ -1,2 +1,2 @@
-/** Departments are persisted under {@code com.gov.ac.domain.org}; API types in {@code dto}. */
+/** Departments own their persisted entity under {@code entity}; API types live in {@code dto}. */
 package com.gov.ac.feature.departments.model;

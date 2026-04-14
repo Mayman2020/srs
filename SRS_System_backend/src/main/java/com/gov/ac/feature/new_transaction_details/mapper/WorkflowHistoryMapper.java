@@ -1,15 +1,15 @@
 package com.gov.ac.feature.new_transaction_details.mapper;
 
-import com.gov.ac.domain.user.AppUser;
-import com.gov.ac.domain.workflow.WorkflowHistory;
+import com.gov.ac.feature.users.entity.AppUserEntity;
+import com.gov.ac.feature.workflow.execution.entity.WorkflowHistoryEntity;
 import com.gov.ac.feature.new_transaction_details.dto.WorkflowHistoryEntryDto;
 
 public final class WorkflowHistoryMapper {
 
   private WorkflowHistoryMapper() {}
 
-  public static WorkflowHistoryEntryDto toEntry(WorkflowHistory h) {
-    AppUser actor = h.getActor();
+  public static WorkflowHistoryEntryDto toEntry(WorkflowHistoryEntity h) {
+    AppUserEntity actor = h.getActor();
     return new WorkflowHistoryEntryDto(
         h.getId(),
         h.getCorrespondence().getId(),

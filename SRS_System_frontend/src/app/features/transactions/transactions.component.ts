@@ -5,15 +5,15 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 
-import { Transaction } from '../../models/transaction.model';
-import { TransactionService } from '../../services/transaction.service';
+import { Transaction } from '../../core/models/transaction.model';
+import { TransactionService } from '../../core/services/transaction.service';
 import { CreateTransactionButton } from '../create-transaction/create-transaction-button/create-transaction-button';
 import { DashboardApiService } from '../../core/api/dashboard-api.service';
-import { LookupService } from '../../core/api/lookup.service';
 import { LookupItemDto } from '../../core/api/api-types';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
 import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
@@ -72,7 +72,6 @@ export class TransactionsComponent implements OnInit {
   constructor(
     private service: TransactionService,
     private dashboardApi: DashboardApiService,
-    private lookupService: LookupService,
     private lookupLabels: LookupLabelsService,
     public router: Router,
     private readonly cdr: ChangeDetectorRef
@@ -85,23 +84,23 @@ export class TransactionsComponent implements OnInit {
       source: forkJoin({
         list: this.service.listPage(),
         dash: this.dashboardApi.getDashboard(),
-        lookups: this.lookupService.getBundle()
+        correspondenceTypes: this.lookupLabels.loadTable(LookupCode.CorrespondenceType),
+        correspondenceStatuses: this.lookupLabels.loadTable(LookupCode.CorrespondenceStatus)
       }),
-      next: ({ list, dash, lookups }) => {
+      next: ({ list, dash, correspondenceTypes, correspondenceStatuses }) => {
         this.loadError = false;
-        this.lookupLabels.hydrateFromBundle(lookups);
         this.all = list;
         this.dashTotal = dash.totalCorrespondences;
-        const inSet = this.typeCodesFlagged(lookups.correspondenceTypes ?? [], 'inbound');
-        const outSet = this.typeCodesFlagged(lookups.correspondenceTypes ?? [], 'outbound');
+        const inSet = this.typeCodesFlagged(correspondenceTypes ?? [], 'inbound');
+        const outSet = this.typeCodesFlagged(correspondenceTypes ?? [], 'outbound');
         const inbound = list.filter((t) => inSet.has((t.typeCode ?? '').toUpperCase())).length;
         const outbound = list.filter((t) => outSet.has((t.typeCode ?? '').toUpperCase())).length;
         this.dashInbound = inbound;
         this.dashOutbound = outbound;
         this.dashInProgress = dash.kpiPipelineCount ?? 0;
         this.dashCompleted = dash.kpiSlaDoneCount ?? 0;
-        this.correspondenceTypes = lookups.correspondenceTypes;
-        this.correspondenceStatuses = lookups.correspondenceStatuses;
+        this.correspondenceTypes = correspondenceTypes;
+        this.correspondenceStatuses = correspondenceStatuses;
         this.applyFilters();
       },
       error: () => {

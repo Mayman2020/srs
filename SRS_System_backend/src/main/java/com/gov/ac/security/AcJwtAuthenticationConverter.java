@@ -1,6 +1,6 @@
 package com.gov.ac.security;
 
-import com.gov.ac.persistence.RoleRepository;
+import com.gov.ac.feature.roles.repository.RoleRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

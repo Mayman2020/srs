@@ -1,10 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
-  ElementRef,
-  HostListener,
-  OnInit,
-  ViewChild
+  OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,13 +28,26 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { CapabilitiesService } from '../../core/auth/capabilities.service';
+import {
+  MultiChoiceOption,
+  MultiChoiceTableComponent
+} from '../../shared/components/multi-choice-table/multi-choice-table.component';
+import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 
 export type AdminTab = 'users' | 'permissions' | 'screens' | 'roles' | 'issues';
 
 @Component({
   selector: 'app-administration',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, LatinDigitsPipe, ErpAutoReferenceFieldComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    LatinDigitsPipe,
+    ErpAutoReferenceFieldComponent,
+    MultiChoiceTableComponent,
+    SrsDataTableComponent
+  ],
   templateUrl: './administration.component.html',
   styleUrl: './administration.component.scss'
 })
@@ -45,6 +55,9 @@ export class AdministrationComponent implements OnInit {
   activeTab: AdminTab = 'users';
 
   users: UserListDto[] = [];
+  filteredUsers: UserListDto[] = [];
+  searchQuery = '';
+  filterStatus: 'all' | 'active' | 'suspended' = 'all';
   departments: DepartmentFlatDto[] = [];
   rolesLookup: LookupItemDto[] = [];
 
@@ -70,10 +83,6 @@ export class AdministrationComponent implements OnInit {
   } = this.emptyUserForm();
   assignRoleIds: number[] = [];
   assignTargetUserId: string | null = null;
-  /** Multi-select roles: dropdown open state */
-  assignRolesDropdownOpen = false;
-
-  @ViewChild('assignRolesDropdownHost') assignRolesDropdownHost?: ElementRef<HTMLElement>;
 
   permModal: 'add' | 'edit' | null = null;
   permForm = this.emptyPermForm();
@@ -153,17 +162,31 @@ export class AdministrationComponent implements OnInit {
     } else if (this.activeTab === 'roles') {
       subscribePageLoad({
         cdr: this.cdr,
-        source: this.adminApi.listPermissions(),
-        next: (p) => {
-          this.permissions = p ?? [];
-          if (!this.matrixRoleId && this.rolesLookup.length) {
-            this.matrixRoleId = this.rolesLookup[0].id;
+        source: forkJoin({
+          permissions: this.adminApi.listPermissions(),
+          roles: this.roleApi.list()
+        }),
+        next: ({ permissions, roles }) => {
+          this.permissions = permissions ?? [];
+          this.rolesLookup = roles ?? [];
+          if (this.rolesLookup.length) {
+            const has =
+              this.matrixRoleId != null &&
+              this.rolesLookup.some((r) => r.id === this.matrixRoleId);
+            if (this.matrixRoleId == null || !has) {
+              this.matrixRoleId = this.rolesLookup[0].id;
+            }
+          } else {
+            this.matrixRoleId = null;
           }
           this.loadMatrix();
         },
-        error: () => {
+        error: (err) => {
           this.permissions = [];
+          this.rolesLookup = [];
           this.matrixChecks = [];
+          this.matrixRoleId = null;
+          this.setLoadError(err);
         }
       });
     } else if (this.activeTab === 'issues') {
@@ -177,12 +200,52 @@ export class AdministrationComponent implements OnInit {
       setLoading: (value) => (this.loading = value),
       source: this.usersApi.list(0, 500),
       next: (p) => {
+        this.errorMsg = '';
         this.users = p.content ?? [];
+        this.applyFilters();
       },
-      error: () => {
+      error: (err) => {
         this.users = [];
+        this.filteredUsers = [];
+        this.setLoadError(err);
       }
     });
+  }
+
+  displayName(u: UserListDto): string {
+    return u.fullNameAr?.trim() || u.fullNameEn?.trim() || u.username;
+  }
+
+  applyFilters(): void {
+    let results = [...this.users];
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
+      results = results.filter(
+        (u) =>
+          this.displayName(u).toLowerCase().includes(q) ||
+          u.username.toLowerCase().includes(q) ||
+          (u.email ?? '').toLowerCase().includes(q) ||
+          (u.departmentCode ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (this.filterStatus === 'active') {
+      results = results.filter((u) => u.active);
+    } else if (this.filterStatus === 'suspended') {
+      results = results.filter((u) => !u.active);
+    }
+    this.filteredUsers = results;
+  }
+
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+
+  onFilterChange(): void {
+    this.applyFilters();
+  }
+
+  statusLabel(active: boolean): string {
+    return this.i18n.instant(active ? 'users.statusActive' : 'users.statusSuspended');
   }
 
   loadPermissions(): void {
@@ -196,9 +259,10 @@ export class AdministrationComponent implements OnInit {
         this.permissions = perms ?? [];
         this.screens = screens ?? [];
       },
-      error: () => {
+      error: (err) => {
         this.permissions = [];
         this.screens = [];
+        this.setLoadError(err);
       }
     });
   }
@@ -214,9 +278,10 @@ export class AdministrationComponent implements OnInit {
         this.screens = screens ?? [];
         this.permissions = permissions ?? [];
       },
-      error: () => {
+      error: (err) => {
         this.screens = [];
         this.permissions = [];
+        this.setLoadError(err);
       }
     });
   }
@@ -229,8 +294,9 @@ export class AdministrationComponent implements OnInit {
       next: (r) => {
         this.issues = r ?? [];
       },
-      error: () => {
+      error: (err) => {
         this.issues = [];
+        this.setLoadError(err);
       }
     });
   }
@@ -253,8 +319,9 @@ export class AdministrationComponent implements OnInit {
           checked: set.has(p.id)
         }));
       },
-      error: () => {
+      error: (err) => {
         this.matrixChecks = [];
+        this.setLoadError(err);
       }
     });
   }
@@ -315,7 +382,6 @@ export class AdministrationComponent implements OnInit {
   openAssignRole(u: UserListDto): void {
     this.assignTargetUserId = u.id;
     this.assignRoleIds = [];
-    this.assignRolesDropdownOpen = false;
     this.userModal = 'assign';
     this.usersApi.getOne(u.id).subscribe({
       next: (d) => {
@@ -379,7 +445,7 @@ export class AdministrationComponent implements OnInit {
     }
   }
 
-  confirmDeleteUser(u: UserListDto): void {
+  deleteUser(u: UserListDto): void {
     if (!confirm(this.i18n.instant('admin.confirmDeleteUser'))) {
       return;
     }
@@ -390,6 +456,37 @@ export class AdministrationComponent implements OnInit {
       },
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
         this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
+      }
+    });
+  }
+
+  toggleUserStatus(u: UserListDto): void {
+    this.usersApi.getOne(u.id).subscribe({
+      next: (d) => {
+        if (d.departmentId == null) {
+          this.errorMsg = this.i18n.instant('admin.validationUser');
+          return;
+        }
+        this.usersApi
+          .update(u.id, {
+            fullNameAr: d.fullNameAr,
+            fullNameEn: d.fullNameEn,
+            email: d.email,
+            departmentId: d.departmentId,
+            active: !d.active
+          })
+          .subscribe({
+            next: () => {
+              this.loadUsers();
+              this.toastOk('admin.userUpdated');
+            },
+            error: (e: HttpErrorResponse & { userMessage?: string }) => {
+              this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
+            }
+          });
+      },
+      error: (e: HttpErrorResponse & { userMessage?: string }) => {
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
       }
     });
   }
@@ -416,47 +513,19 @@ export class AdministrationComponent implements OnInit {
     this.userModal = null;
     this.assignTargetUserId = null;
     this.assignRoleIds = [];
-    this.assignRolesDropdownOpen = false;
   }
 
-  toggleAssignRolesDropdown(event: MouseEvent): void {
-    event.stopPropagation();
-    this.assignRolesDropdownOpen = !this.assignRolesDropdownOpen;
+  get roleMultiOptions(): MultiChoiceOption[] {
+    return this.rolesLookup.map((role) => ({
+      id: role.id,
+      label: this.labelRoleCard(role),
+      code: role.code,
+      subtitle: role.nameEn?.trim() && role.nameEn !== this.labelRoleCard(role) ? role.nameEn : null
+    }));
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClickCloseAssignRoles(event: MouseEvent): void {
-    if (this.userModal !== 'assign' || !this.assignRolesDropdownOpen) {
-      return;
-    }
-    const host = this.assignRolesDropdownHost?.nativeElement;
-    if (!host) {
-      return;
-    }
-    if (host.contains(event.target as Node)) {
-      return;
-    }
-    this.assignRolesDropdownOpen = false;
-  }
-
-  isRoleAssigned(roleId: number): boolean {
-    return this.assignRoleIds.includes(roleId);
-  }
-
-  onRoleAssignmentToggle(roleId: number, event: Event): void {
-    const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
-    if (checked) {
-      if (!this.assignRoleIds.includes(roleId)) {
-        this.assignRoleIds = [...this.assignRoleIds, roleId];
-      }
-      return;
-    }
-    this.assignRoleIds = this.assignRoleIds.filter((id) => id !== roleId);
-  }
-
-  roleLabelById(roleId: number): string {
-    const r = this.rolesLookup.find((x) => x.id === roleId);
-    return r ? this.labelRoleCard(r) : `#${roleId}`;
+  onAssignRoleIdsChange(ids: readonly (number | string)[]): void {
+    this.assignRoleIds = this.normalizeRoleIds(ids.map((id) => Number(id)));
   }
 
   private normalizeRoleIds(roleIds: readonly number[] | null | undefined): number[] {
@@ -715,5 +784,22 @@ export class AdministrationComponent implements OnInit {
     this.errorMsg = '';
     this.successMsg = '';
     this.notification.success(key);
+  }
+
+  private setLoadError(err: unknown): void {
+    const e = err as HttpErrorResponse & { userMessage?: string };
+    if (e.userMessage) {
+      this.errorMsg = e.userMessage;
+      return;
+    }
+    if (e.status === 403) {
+      this.errorMsg = this.i18n.instant('errors.forbidden');
+      return;
+    }
+    if (e.status === 0) {
+      this.errorMsg = this.i18n.instant('errors.network');
+      return;
+    }
+    this.errorMsg = this.i18n.instant('errors.generic');
   }
 }

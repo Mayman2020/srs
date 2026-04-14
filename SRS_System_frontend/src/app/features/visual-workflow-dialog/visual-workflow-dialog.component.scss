@@ -9,9 +9,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-on-primary) 18%, transparent);
-  background: var(--menu-bg);
-  color: var(--text-on-primary);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  color: var(--text-color);
 }
 
 .vwd-title {
@@ -45,11 +45,11 @@
 }
 
 .vwd-tools button {
-  color: var(--text-on-primary);
+  color: var(--text-muted);
 }
 
 .vwd-tools button:hover {
-  background: color-mix(in srgb, var(--text-on-primary) 16%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 100%, transparent);
 }
 
 .dialog-cancel-btn {

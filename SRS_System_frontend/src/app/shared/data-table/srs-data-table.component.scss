@@ -1,4 +1,4 @@
-/* Scoped by .srs-dt-root only (ViewEncapsulation.None). */
+/* Shell + cell styles live in src/styles.css (unified with /users). */
 .srs-dt-host {
   display: block;
 }
@@ -27,24 +27,14 @@
   color: var(--text-color);
 }
 
-.srs-dt-scroll {
-  position: relative;
-  overflow-x: auto;
-  border-radius: 14px;
-  padding: 4px;
-  background: color-mix(in srgb, var(--surface-muted) 72%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-elevated) 65%, transparent);
-}
-
 .srs-dt-scroll--busy .srs-dt-inner {
   pointer-events: none;
 }
 
 .srs-dt-overlay {
   position: absolute;
-  inset: 4px;
-  border-radius: 12px;
+  inset: 0;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--surface-elevated) 72%, transparent);
   backdrop-filter: blur(1px);
   z-index: 3;
@@ -80,46 +70,6 @@
   pointer-events: none;
 }
 
-.srs-dt-inner table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 6px;
-  background: transparent;
-  table-layout: auto;
-}
-
-.srs-dt-inner thead th {
-  padding: 12px 14px;
-  text-align: start;
-  font-weight: 600;
-  font-size: 13px;
-  line-height: 1.3;
-  color: var(--text-primary);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-light) 52%, var(--surface-elevated)) 0%, var(--surface-elevated) 100%);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, var(--border-color));
-  border-radius: 10px;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--bg-color) 65%, transparent);
-  vertical-align: middle;
-}
-
-.srs-dt-inner tbody td {
-  padding: 12px 14px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--text-color);
-  background: var(--surface-elevated);
-  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
-  border-radius: 10px;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--bg-color) 70%, transparent);
-  vertical-align: middle;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
-}
-
-.srs-dt-inner tbody tr:hover td {
-  border-color: color-mix(in srgb, var(--primary-color) 40%, var(--border-color));
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary-color) 18%, transparent);
-}
-
 .srs-dt-inner tbody td.empty-cell,
 .srs-dt-inner tbody td.srs-dt-empty {
   text-align: center;
@@ -128,13 +78,8 @@
 }
 
 .srs-dt-inner th.srs-dt-th-plain {
-  padding: 12px 14px;
+  padding: 0.65rem 0.75rem;
   text-align: start;
-}
-
-[dir='rtl'] .srs-dt-inner thead th,
-[dir='rtl'] .srs-dt-inner th.srs-dt-th-plain {
-  text-align: right;
 }
 
 [dir='rtl'] .srs-sort-header {

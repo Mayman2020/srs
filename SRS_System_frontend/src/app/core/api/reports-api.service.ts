@@ -7,6 +7,7 @@ import {
   DepartmentSlaRowDto,
   ReportMonthlyPointDto
 } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class ReportsApiService {
@@ -16,29 +17,31 @@ export class ReportsApiService {
   ) {}
 
   statusDistribution(): Observable<DashboardBucketDto[]> {
-    return this.http.get<DashboardBucketDto[]>(`${this.base}/reports/status-distribution`);
+    return this.http.get<DashboardBucketDto[]>(`${this.reportsUrl}/status-distribution`);
   }
 
   priorityDistribution(): Observable<DashboardBucketDto[]> {
-    return this.http.get<DashboardBucketDto[]>(`${this.base}/reports/priority-distribution`);
+    return this.http.get<DashboardBucketDto[]>(`${this.reportsUrl}/priority-distribution`);
   }
 
   monthlyTrend(from?: string, to?: string): Observable<ReportMonthlyPointDto[]> {
     let p = new HttpParams();
     if (from) p = p.set('from', from);
     if (to) p = p.set('to', to);
-    return this.http.get<ReportMonthlyPointDto[]>(`${this.base}/reports/monthly-trend`, {
+    return this.http.get<ReportMonthlyPointDto[]>(`${this.reportsUrl}/monthly-trend`, {
       params: p
     });
   }
 
   departmentSlaHeatmap(): Observable<DepartmentSlaRowDto[]> {
-    return this.http.get<DepartmentSlaRowDto[]>(
-      `${this.base}/reports/department-sla-heatmap`
-    );
+    return this.http.get<DepartmentSlaRowDto[]>(`${this.reportsUrl}/department-sla-heatmap`);
   }
 
   exportExcelBlob(): Observable<Blob> {
-    return this.http.get(`${this.base}/reports/export/excel`, { responseType: 'blob' });
+    return this.http.get(`${this.reportsUrl}/export/excel`, { responseType: 'blob' });
+  }
+
+  private get reportsUrl(): string {
+    return apiPath(this.base, AppConstants.API.REPORTS);
   }
 }

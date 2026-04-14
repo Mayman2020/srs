@@ -1,0 +1,78 @@
+<div class="multi-choice">
+  <label class="multi-choice__label" *ngIf="labelKey">
+    {{ labelKey | t }}
+    <span class="multi-choice__required" *ngIf="required">*</span>
+  </label>
+
+  <div class="multi-choice__picker" [class.is-open]="open" [class.is-disabled]="disabled">
+    <div class="multi-choice__search">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input
+        type="text"
+        [(ngModel)]="query"
+        (focus)="open = true"
+        (click)="open = true"
+        [disabled]="disabled"
+        [attr.placeholder]="placeholderKey | t" />
+      <button
+        type="button"
+        class="multi-choice__clear"
+        *ngIf="query"
+        (click)="clearQuery()"
+        [disabled]="disabled"
+        aria-label="clear">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="multi-choice__panel" *ngIf="open && !disabled" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="multi-choice__option"
+        *ngFor="let option of filteredOptions; trackBy: trackById"
+        (click)="add(option)">
+        <span class="multi-choice__option-main">{{ option.label }}</span>
+        <small *ngIf="option.subtitle || option.code">
+          {{ option.subtitle || option.code }}
+        </small>
+      </button>
+
+      <p class="multi-choice__empty" *ngIf="filteredOptions.length === 0">
+        {{ emptyKey | t }}
+      </p>
+    </div>
+  </div>
+
+  <div class="multi-choice__selected" *ngIf="selectedOptions.length; else selectedEmpty">
+    <div class="multi-choice__selected-caption">
+      <span class="multi-choice__selected-title">{{ selectedTitleKey | t }}</span>
+      <span class="multi-choice__selected-count" aria-hidden="true">{{ selectedOptions.length }}</span>
+    </div>
+
+    <div class="multi-choice__chips" role="list">
+      <span
+        class="multi-choice__chip"
+        role="listitem"
+        *ngFor="let option of selectedOptions; trackBy: trackById">
+        <span class="multi-choice__chip-text">
+          <span class="multi-choice__chip-label">{{ option.label }}</span>
+          <small *ngIf="option.subtitle || (showCode && option.code)" class="multi-choice__chip-sub">
+            {{ option.subtitle || option.code }}
+          </small>
+        </span>
+        <button
+          type="button"
+          class="multi-choice__chip-remove"
+          (click)="remove(option.id)"
+          [disabled]="disabled"
+          [attr.aria-label]="'multiChoice.removeChip' | t">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </span>
+    </div>
+  </div>
+
+  <ng-template #selectedEmpty>
+    <p class="multi-choice__selected-empty">{{ emptyKey | t }}</p>
+  </ng-template>
+</div>

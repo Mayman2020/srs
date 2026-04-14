@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -20,13 +20,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TransactionService } from '../../../services/transaction.service';
-import { LookupService } from '../../../core/api/lookup.service';
+import { TransactionService } from '../../../core/services/transaction.service';
 import { AttachmentApiService } from '../../../core/api/attachment-api.service';
 import { DepartmentApiService } from '../../../core/api/department-api.service';
 import {
   CorrespondenceAttachmentFormDto,
-  CorrespondenceCreateRequest,
+  CorrespondenceCreateRequestDto,
+  DepartmentFlatDto,
   LetterTemplateDto,
   ServiceWorkflowRouteDto
 } from '../../../core/api/api-types';
@@ -41,11 +41,15 @@ import { UiFormatService } from '../../../core/i18n/ui-format.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
+import { LookupCode } from '../../../core/lookup/lookup-code';
 import { NotificationService } from '../../../core/services/notification.service';
-import { GenericSelectComponent } from '../../../component/generic-select/generic-select.component';
+import { GenericSelectComponent } from '../../../shared/components/generic-select/generic-select.component';
 import { ErpAutoReferenceFieldComponent } from '../../../shared/erp/erp-auto-reference-field.component';
-import { DepartmentTreeDialogComponent } from '../department-tree-dialog/department-tree-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import {
+  MultiChoiceId,
+  MultiChoiceOption,
+  MultiChoiceTableComponent
+} from '../../../shared/components/multi-choice-table/multi-choice-table.component';
 import JsBarcode from 'jsbarcode';
 
 type LetterTemplateItem = {
@@ -73,7 +77,8 @@ type LetterTemplateItem = {
     GenericSelectComponent,
     TranslatePipe,
     LookupTranslatePipe,
-    ErpAutoReferenceFieldComponent
+    ErpAutoReferenceFieldComponent,
+    MultiChoiceTableComponent
   ],
   templateUrl: './create-transaction-component.html',
   styleUrls: ['./create-transaction-component.css']
@@ -104,6 +109,7 @@ export class CreateTransactionComponent implements OnInit {
   supplyMode = false;
 
   workflowRoutes: ServiceWorkflowRouteDto[] = [];
+  departmentOptions: MultiChoiceOption[] = [];
 
   private deptLabels = new Map<number, string>();
 
@@ -117,7 +123,10 @@ export class CreateTransactionComponent implements OnInit {
     this.letterTemplates = this.buildLocalLetterTemplates();
 
     forkJoin({
-      bundle: this.lookupService.getBundle(),
+      correspondenceTypes: this.lookupLabels.loadTable(LookupCode.CorrespondenceType),
+      confidentialities: this.lookupLabels.loadTable(LookupCode.Confidentiality),
+      priorities: this.lookupLabels.loadTable(LookupCode.Priority),
+      classifications: this.lookupLabels.loadTable(LookupCode.Classification),
       templates: this.letterTemplateApi.list().pipe(
         catchError((err: unknown) => {
           console.error('[CreateTransaction] letter templates load failed', err);
@@ -125,12 +134,11 @@ export class CreateTransactionComponent implements OnInit {
         })
       ),
     }).subscribe({
-      next: ({ bundle, templates }) => {
-        this.lookupLabels.hydrateFromBundle(bundle);
-        this.transactionTypes = bundle.correspondenceTypes.map((t) => ({ key: t.code }));
-        this.secrecyLevels = bundle.confidentialities.map((c) => ({ key: c.code }));
-        this.priorityLevels = bundle.priorities.map((p) => ({ key: p.code }));
-        this.classificationLevels = (bundle.classifications ?? []).map((c) => ({ key: c.code }));
+      next: ({ correspondenceTypes, confidentialities, priorities, classifications, templates }) => {
+        this.transactionTypes = correspondenceTypes.map((t) => ({ key: t.code }));
+        this.secrecyLevels = confidentialities.map((c) => ({ key: c.code }));
+        this.priorityLevels = priorities.map((p) => ({ key: p.code }));
+        this.classificationLevels = (classifications ?? []).map((c) => ({ key: c.code }));
         this.applyLetterTemplatesFromApi(templates ?? []);
         const tc = this.basicForm.get('type')?.value;
         if (tc) {
@@ -159,14 +167,21 @@ export class CreateTransactionComponent implements OnInit {
 
     this.departmentApi.list().subscribe({
       next: (rows) => {
-        const lang = this.i18n.currentLang();
         this.deptLabels.clear();
         for (const r of rows ?? []) {
-          const label = lang === 'en' ? r.nameEn : r.nameAr;
+          const label = this.departmentDisplayName(r);
           this.deptLabels.set(r.id, label);
         }
+        this.departmentOptions = (rows ?? []).map((row) => ({
+          id: row.id,
+          label: this.departmentDisplayName(row),
+          code: row.code
+        }));
       },
-      error: () => this.deptLabels.clear()
+      error: () => {
+        this.deptLabels.clear();
+        this.departmentOptions = [];
+      }
     });
   }
 
@@ -289,10 +304,7 @@ export class CreateTransactionComponent implements OnInit {
     private departmentApi: DepartmentApiService,
     private route: ActivatedRoute,
     private router: Router,
-    private dialog: MatDialog,
-    private zone: NgZone,
     private cdr: ChangeDetectorRef,
-    private lookupService: LookupService,
     private letterTemplateApi: LetterTemplateApiService,
     private workflowRouteApi: WorkflowRouteApiService,
     private i18n: I18nService,
@@ -644,6 +656,26 @@ export class CreateTransactionComponent implements OnInit {
     return this.deptLabels.get(id) ?? String(id);
   }
 
+  get toDepartmentIds(): number[] {
+    return ((this.toArray.value ?? []) as number[]).filter((id) => Number.isFinite(Number(id)));
+  }
+
+  get ccDepartmentIds(): number[] {
+    return ((this.ccArray.value ?? []) as number[]).filter((id) => Number.isFinite(Number(id)));
+  }
+
+  setDepartmentSelection(type: 'to' | 'cc', ids: readonly MultiChoiceId[]): void {
+    const unique = [...new Set(ids.map((id) => Number(id)).filter((id) => Number.isFinite(id)))];
+    const target = type === 'to' ? this.toArray : this.ccArray;
+    target.clear();
+    unique.forEach((id) => target.push(this.fb.control(id, { nonNullable: true })));
+    this.cdr.markForCheck();
+  }
+
+  private departmentDisplayName(row: DepartmentFlatDto): string {
+    return this.i18n.currentLang() === 'en' ? row.nameEn : row.nameAr;
+  }
+
   addTo(_value: string): void {
     /* selection via dialog only */
   }
@@ -710,7 +742,7 @@ export class CreateTransactionComponent implements OnInit {
           .toString()
           .trim();
 
-        const body: CorrespondenceCreateRequest = {
+        const body: CorrespondenceCreateRequestDto = {
           correspondenceTypeCode: this.basicForm.value.type,
           priorityCode: this.basicForm.value.priority,
           confidentialityCode: this.basicForm.value.secrecy,
@@ -821,35 +853,6 @@ export class CreateTransactionComponent implements OnInit {
   priorityLevels: { key: string }[] = [];
 
   classificationLevels: { key: string }[] = [];
-
-
-  openDepartmentDialog(type: 'to' | 'cc') {
-    const currentValues = (type === 'to' ? this.toArray.value : this.ccArray.value) as number[];
-
-    const dialogRef = this.dialog.open(DepartmentTreeDialogComponent, {
-      width: '800px',
-      data: currentValues ?? []
-    });
-
-    dialogRef.afterClosed().subscribe((result: number[] | undefined) => {
-      if (!result || !result.length) return;
-
-      this.zone.run(() => {
-        const unique = [...new Set(result)];
-
-        if (type === 'to') {
-          this.toArray.clear();
-          unique.forEach((id) => this.toArray.push(this.fb.control(id, { nonNullable: true })));
-        } else {
-          this.ccArray.clear();
-          unique.forEach((id) => this.ccArray.push(this.fb.control(id, { nonNullable: true })));
-        }
-        this.cdr.markForCheck();
-      });
-    });
-  }
-
-
 
   trackByIndex(index: number) {
     return index;

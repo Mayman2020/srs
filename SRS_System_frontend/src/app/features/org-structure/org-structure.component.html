@@ -1,5 +1,12 @@
 <div class="org-page">
-  <h1>{{ 'orgStructure.pageTitle' | t }}</h1>
+  <div class="page-header-container org-page__head">
+    <div class="page-header">
+      <div>
+        <h2>{{ 'orgStructure.pageTitle' | t }}</h2>
+      </div>
+    </div>
+  </div>
+
   <div class="tabs">
     <button type="button" [class.active]="tab === 'dept'" (click)="tab = 'dept'">
       {{ 'orgStructure.deptTab' | t }}
@@ -9,57 +16,111 @@
     </button>
   </div>
 
-  <div class="panel" *ngIf="tab === 'dept'">
+  <p *ngIf="loading" class="muted org-page__loading">{{ 'common.loading' | t }}</p>
+
+  <div class="panel" *ngIf="!loading && tab === 'dept'">
     <div class="panel-actions">
       <a class="tree-link-btn" [routerLink]="['/org-structure/tree']">
         {{ 'orgStructure.treeButton' | t }}
       </a>
     </div>
 
-    <table class="data-table" *ngIf="departments.length">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Parent</th>
-          <th>Code</th>
-          <th>Name (AR)</th>
-          <th>Name (EN)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let d of treeRowsDept()">
-          <td>{{ d.id }}</td>
-          <td>{{ d.parentId ?? ('common.dash' | t) }}</td>
-          <td><code>{{ d.code }}</code></td>
-          <td>{{ d.nameAr }}</td>
-          <td>{{ d.nameEn }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <p *ngIf="!departments.length && !loading" class="muted">{{ 'orgStructure.empty' | t }}</p>
+    <ng-container *ngIf="departments.length">
+      <div class="filters-modern org-page__search">
+        <input
+          type="search"
+          [(ngModel)]="searchDept"
+          [attr.placeholder]="'common.searchTable' | t"
+          [attr.aria-label]="'common.searchTable' | t"
+        />
+      </div>
+
+      <srs-data-table
+        [loading]="false"
+        [showPagination]="false"
+        [skeletonRows]="6"
+        [skeletonColumns]="5"
+        [skeletonAriaLabel]="'common.loading' | t"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'orgStructure.thId' | t }}</th>
+              <th>{{ 'orgStructure.thParent' | t }}</th>
+              <th>{{ 'orgStructure.thCode' | t }}</th>
+              <th>{{ 'orgStructure.thNameAr' | t }}</th>
+              <th>{{ 'orgStructure.thNameEn' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of filteredDepartments()">
+              <td>{{ d.id }}</td>
+              <td>{{ d.parentId ?? ('common.dash' | t) }}</td>
+              <td><code>{{ d.code }}</code></td>
+              <td>{{ d.nameAr }}</td>
+              <td>{{ d.nameEn }}</td>
+            </tr>
+            <tr *ngIf="filteredDepartments().length === 0">
+              <td colspan="5" class="empty-cell">{{ 'common.noSearchResults' | t }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </srs-data-table>
+    </ng-container>
+
+    <p *ngIf="!departments.length" class="muted panel__empty">{{ 'orgStructure.empty' | t }}</p>
   </div>
 
-  <div class="panel" *ngIf="tab === 'org'">
-    <table class="data-table" *ngIf="organizations.length">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Parent</th>
-          <th>Code</th>
-          <th>Name (AR)</th>
-          <th>External</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let o of organizations">
-          <td>{{ o.id }}</td>
-          <td>{{ o.parentId ?? ('common.dash' | t) }}</td>
-          <td><code>{{ o.code || ('common.dash' | t) }}</code></td>
-          <td>{{ o.nameAr }}</td>
-          <td>{{ o.external ? 'Y' : 'N' }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <p *ngIf="!organizations.length && !loading" class="muted">{{ 'orgStructure.empty' | t }}</p>
+  <div class="panel" *ngIf="!loading && tab === 'org'">
+    <ng-container *ngIf="organizations.length">
+      <div class="filters-modern org-page__search">
+        <input
+          type="search"
+          [(ngModel)]="searchOrg"
+          [attr.placeholder]="'common.searchTable' | t"
+          [attr.aria-label]="'common.searchTable' | t"
+        />
+      </div>
+
+      <srs-data-table
+        [loading]="false"
+        [showPagination]="false"
+        [skeletonRows]="6"
+        [skeletonColumns]="6"
+        [skeletonAriaLabel]="'common.loading' | t"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'orgStructure.thId' | t }}</th>
+              <th>{{ 'orgStructure.thParent' | t }}</th>
+              <th>{{ 'orgStructure.thCode' | t }}</th>
+              <th>{{ 'orgStructure.thNameAr' | t }}</th>
+              <th>{{ 'orgStructure.thNameEn' | t }}</th>
+              <th>{{ 'orgStructure.thExternal' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let o of filteredOrganizations()">
+              <td>{{ o.id }}</td>
+              <td>{{ o.parentId ?? ('common.dash' | t) }}</td>
+              <td><code>{{ o.code || ('common.dash' | t) }}</code></td>
+              <td>{{ o.nameAr }}</td>
+              <td>{{ o.nameEn }}</td>
+              <td>
+                <span class="type-badge" [class.in]="o.external" [class.out]="!o.external">
+                  {{ o.external ? ('common.yes' | t) : ('common.no' | t) }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="filteredOrganizations().length === 0">
+              <td colspan="6" class="empty-cell">{{ 'common.noSearchResults' | t }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </srs-data-table>
+    </ng-container>
+
+    <p *ngIf="!organizations.length" class="muted panel__empty">{{ 'orgStructure.empty' | t }}</p>
   </div>
 </div>

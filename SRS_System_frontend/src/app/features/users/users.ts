@@ -17,12 +17,24 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import {
+  MultiChoiceOption,
+  MultiChoiceTableComponent
+} from '../../shared/components/multi-choice-table/multi-choice-table.component';
 
 /** Standalone users page (original app layout) backed by `/api/v1/users`. */
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, ErpAutoReferenceFieldComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslatePipe,
+    ErpAutoReferenceFieldComponent,
+    SrsDataTableComponent,
+    MultiChoiceTableComponent
+  ],
   templateUrl: './users.html',
   styleUrl: './users.scss'
 })
@@ -310,19 +322,17 @@ export class UsersComponent implements OnInit {
     });
   }
 
-  isRoleAssigned(roleId: number): boolean {
-    return this.assignRoleIds.includes(roleId);
+  get roleMultiOptions(): MultiChoiceOption[] {
+    return this.rolesLookup.map((role) => ({
+      id: role.id,
+      label: this.labelRoleCard(role),
+      code: role.code,
+      subtitle: role.nameEn?.trim() && role.nameEn !== this.labelRoleCard(role) ? role.nameEn : null
+    }));
   }
 
-  onRoleAssignmentToggle(roleId: number, event: Event): void {
-    const checked = (event.target as HTMLInputElement | null)?.checked ?? false;
-    if (checked) {
-      if (!this.assignRoleIds.includes(roleId)) {
-        this.assignRoleIds = [...this.assignRoleIds, roleId];
-      }
-      return;
-    }
-    this.assignRoleIds = this.assignRoleIds.filter((id) => id !== roleId);
+  onAssignRoleIdsChange(ids: readonly (number | string)[]): void {
+    this.assignRoleIds = this.normalizeRoleIds(ids.map((id) => Number(id)));
   }
 
   private emptyUserForm() {

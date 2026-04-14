@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { LetterTemplateDto } from './api-types';
+import { AppConstants, apiPath } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class LetterTemplateApiService {
@@ -12,6 +13,8 @@ export class LetterTemplateApiService {
   ) {}
 
   list(): Observable<LetterTemplateDto[]> {
-    return this.http.get<LetterTemplateDto[]>(`${this.base}/letter-templates`);
+    return this.http.get<LetterTemplateDto[]>(
+      apiPath(this.base, AppConstants.API.LETTER_TEMPLATES)
+    );
   }
 }

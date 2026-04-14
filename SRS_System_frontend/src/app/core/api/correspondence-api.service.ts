@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import {
   CorrespondenceAttachmentFormDto,
-  CorrespondenceCreateRequest,
-  CorrespondenceCreatedResponse,
-  CorrespondenceDetailResponse,
+  CorrespondenceCreateRequestDto,
+  CorrespondenceCreatedResponseDto,
+  CorrespondenceDetailResponseDto,
   CorrespondenceCommentDetailDto,
   CorrespondenceAttachmentDetailDto,
   CorrespondenceListItemDto,
@@ -16,6 +16,7 @@ import {
   SpringPage,
   WorkflowHistoryEntryDto
 } from './api-types';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 export interface CorrespondenceListParams {
   page?: number;
@@ -46,24 +47,24 @@ export class CorrespondenceApiService {
     if (p.createdTo) params = params.set('createdTo', p.createdTo);
     const sort = p.sort?.length ? p.sort : ['createdAt,desc'];
     sort.forEach((s) => (params = params.append('sort', s)));
-    return this.http.get<SpringPage<CorrespondenceListItemDto>>(`${this.base}/correspondence`, {
+    return this.http.get<SpringPage<CorrespondenceListItemDto>>(this.correspondenceUrl, {
       params
     });
   }
 
-  getById(id: string): Observable<CorrespondenceDetailResponse> {
-    return this.http.get<CorrespondenceDetailResponse>(`${this.base}/correspondence/${id}`);
+  getById(id: string): Observable<CorrespondenceDetailResponseDto> {
+    return this.http.get<CorrespondenceDetailResponseDto>(this.correspondenceItemUrl(id));
   }
 
-  create(body: CorrespondenceCreateRequest): Observable<CorrespondenceCreatedResponse> {
-    return this.http.post<CorrespondenceCreatedResponse>(`${this.base}/correspondence`, body);
+  create(body: CorrespondenceCreateRequestDto): Observable<CorrespondenceCreatedResponseDto> {
+    return this.http.post<CorrespondenceCreatedResponseDto>(this.correspondenceUrl, body);
   }
 
   workflowAction(
     id: string,
     body: { action?: string | null; comment?: string | null } = {}
   ): Observable<void> {
-    return this.http.post<void>(`${this.base}/correspondence/${id}/actions`, body);
+    return this.http.post<void>(`${this.correspondenceItemUrl(id)}/actions`, body);
   }
 
   addComment(
@@ -71,19 +72,19 @@ export class CorrespondenceApiService {
     body: { body: string; parentCommentId?: number | null }
   ): Observable<CorrespondenceCommentDetailDto> {
     return this.http.post<CorrespondenceCommentDetailDto>(
-      `${this.base}/correspondence/${correspondenceId}/comments`,
+      `${this.correspondenceItemUrl(correspondenceId)}/comments`,
       body
     );
   }
 
   getWorkflowHistory(correspondenceId: string): Observable<WorkflowHistoryEntryDto[]> {
     return this.http.get<WorkflowHistoryEntryDto[]>(
-      `${this.base}/correspondence/${correspondenceId}/workflow-history`
+      `${this.correspondenceItemUrl(correspondenceId)}/workflow-history`
     );
   }
 
   cancel(id: string, body: { reason?: string | null } = {}): Observable<void> {
-    return this.http.post<void>(`${this.base}/correspondence/${id}/cancel`, body);
+    return this.http.post<void>(`${this.correspondenceItemUrl(id)}/cancel`, body);
   }
 
   addAttachment(
@@ -91,22 +92,22 @@ export class CorrespondenceApiService {
     payload: CorrespondenceAttachmentFormDto
   ): Observable<CorrespondenceAttachmentDetailDto> {
     return this.http.post<CorrespondenceAttachmentDetailDto>(
-      `${this.base}/correspondence/${id}/attachments`,
+      `${this.correspondenceItemUrl(id)}/attachments`,
       payload
     );
   }
 
   saveDraft(id: string, bodyHtml: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/correspondence/${id}/draft`, { bodyHtml });
+    return this.http.post<void>(`${this.correspondenceItemUrl(id)}/draft`, { bodyHtml });
   }
 
   sendReply(id: string, bodyHtml: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/correspondence/${id}/reply`, { bodyHtml });
+    return this.http.post<void>(`${this.correspondenceItemUrl(id)}/reply`, { bodyHtml });
   }
 
   listLinks(correspondenceId: string): Observable<CorrespondenceLinkListItemDto[]> {
     return this.http.get<CorrespondenceLinkListItemDto[]>(
-      `${this.base}/correspondence/${correspondenceId}/links`
+      `${this.correspondenceItemUrl(correspondenceId)}/links`
     );
   }
 
@@ -115,18 +116,20 @@ export class CorrespondenceApiService {
     body: { linkedCorrespondenceId: string; linkKind?: string | null; notes?: string | null }
   ): Observable<CorrespondenceLinkListItemDto> {
     return this.http.post<CorrespondenceLinkListItemDto>(
-      `${this.base}/correspondence/${correspondenceId}/links`,
+      `${this.correspondenceItemUrl(correspondenceId)}/links`,
       body
     );
   }
 
   deleteLink(correspondenceId: string, linkId: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/correspondence/${correspondenceId}/links/${linkId}`);
+    return this.http.delete<void>(
+      `${this.correspondenceItemUrl(correspondenceId)}/links/${encodeURIComponent(String(linkId))}`
+    );
   }
 
   listNonarchived(correspondenceId: string): Observable<CorrespondenceNonarchivedItemDto[]> {
     return this.http.get<CorrespondenceNonarchivedItemDto[]>(
-      `${this.base}/correspondence/${correspondenceId}/nonarchived-items`
+      `${this.correspondenceItemUrl(correspondenceId)}/nonarchived-items`
     );
   }
 
@@ -135,7 +138,7 @@ export class CorrespondenceApiService {
     body: { itemType: string; descriptionText?: string | null; quantity: number; sortOrder: number }
   ): Observable<CorrespondenceNonarchivedItemDto> {
     return this.http.post<CorrespondenceNonarchivedItemDto>(
-      `${this.base}/correspondence/${correspondenceId}/nonarchived-items`,
+      `${this.correspondenceItemUrl(correspondenceId)}/nonarchived-items`,
       body
     );
   }
@@ -146,20 +149,20 @@ export class CorrespondenceApiService {
     body: { itemType: string; descriptionText?: string | null; quantity: number; sortOrder: number }
   ): Observable<CorrespondenceNonarchivedItemDto> {
     return this.http.put<CorrespondenceNonarchivedItemDto>(
-      `${this.base}/correspondence/${correspondenceId}/nonarchived-items/${itemId}`,
+      `${this.correspondenceItemUrl(correspondenceId)}/nonarchived-items/${encodeURIComponent(String(itemId))}`,
       body
     );
   }
 
   deleteNonarchived(correspondenceId: string, itemId: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.base}/correspondence/${correspondenceId}/nonarchived-items/${itemId}`
+      `${this.correspondenceItemUrl(correspondenceId)}/nonarchived-items/${encodeURIComponent(String(itemId))}`
     );
   }
 
   listAttachmentIndexEntries(attachmentId: number): Observable<AttachmentIndexEntryDto[]> {
     return this.http.get<AttachmentIndexEntryDto[]>(
-      `${this.base}/attachments/${attachmentId}/index-entries`
+      `${this.attachmentItemUrl(attachmentId)}/index-entries`
     );
   }
 
@@ -168,7 +171,7 @@ export class CorrespondenceApiService {
     body: { pageFrom?: number | null; pageTo?: number | null; subjectText?: string | null; sortOrder: number }
   ): Observable<AttachmentIndexEntryDto> {
     return this.http.post<AttachmentIndexEntryDto>(
-      `${this.base}/attachments/${attachmentId}/index-entries`,
+      `${this.attachmentItemUrl(attachmentId)}/index-entries`,
       body
     );
   }
@@ -179,14 +182,26 @@ export class CorrespondenceApiService {
     body: { pageFrom?: number | null; pageTo?: number | null; subjectText?: string | null; sortOrder: number }
   ): Observable<AttachmentIndexEntryDto> {
     return this.http.put<AttachmentIndexEntryDto>(
-      `${this.base}/attachments/${attachmentId}/index-entries/${entryId}`,
+      `${this.attachmentItemUrl(attachmentId)}/index-entries/${encodeURIComponent(String(entryId))}`,
       body
     );
   }
 
   deleteAttachmentIndexEntry(attachmentId: number, entryId: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.base}/attachments/${attachmentId}/index-entries/${entryId}`
+      `${this.attachmentItemUrl(attachmentId)}/index-entries/${encodeURIComponent(String(entryId))}`
     );
+  }
+
+  private get correspondenceUrl(): string {
+    return apiPath(this.base, AppConstants.API.CORRESPONDENCE);
+  }
+
+  private correspondenceItemUrl(id: string): string {
+    return apiPathWithId(this.base, AppConstants.API.CORRESPONDENCE, id);
+  }
+
+  private attachmentItemUrl(id: number): string {
+    return apiPathWithId(this.base, AppConstants.API.ATTACHMENTS, id);
   }
 }

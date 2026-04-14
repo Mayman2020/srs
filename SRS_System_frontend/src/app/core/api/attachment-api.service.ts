@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
 import { AttachmentUploadResponseDto } from './api-types';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
 export class AttachmentApiService {
@@ -18,16 +19,22 @@ export class AttachmentApiService {
     if (fileCode != null && fileCode !== '') {
       params = params.set('fileCode', fileCode);
     }
-    return this.http.post<AttachmentUploadResponseDto>(`${this.base}/attachments/upload`, fd, {
+    return this.http.post<AttachmentUploadResponseDto>(
+      `${apiPath(this.base, AppConstants.API.ATTACHMENTS)}/upload`,
+      fd,
+      {
       params
-    });
+      }
+    );
   }
 
   downloadUrl(attachmentId: number): string {
-    return `${this.base}/attachments/${attachmentId}/download`;
+    return `${apiPathWithId(this.base, AppConstants.API.ATTACHMENTS, attachmentId)}/download`;
   }
 
   delete(attachmentId: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/attachments/${attachmentId}`);
+    return this.http.delete<void>(
+      apiPathWithId(this.base, AppConstants.API.ATTACHMENTS, attachmentId)
+    );
   }
 }

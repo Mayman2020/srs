@@ -1,7 +1,7 @@
 package com.gov.ac.feature.roles.controller;
 
-import com.gov.ac.feature.lookups.dto.LookupItemDto;
-import com.gov.ac.feature.users.service.UserAdminService;
+import com.gov.ac.feature.roles.dto.RoleOptionDto;
+import com.gov.ac.feature.roles.service.RoleService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("@effectivePermission.has(authentication, 'role.manage')")
 public class RoleController {
 
-  private final UserAdminService userAdminService;
+  private final RoleService roleService;
 
   @GetMapping
-  public List<LookupItemDto> list() {
-    return userAdminService.listRoles();
+  public List<RoleOptionDto> list() {
+    return roleService.listActiveOptions();
   }
 }

@@ -16,15 +16,15 @@
   gap: 10px;
   margin: 0;
   padding: 12px var(--erp-dialog-pad);
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--text-on-primary);
-  background: var(--menu-bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--text-on-primary) 18%, transparent);
+  color: var(--text-color);
+  background: var(--surface-elevated);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .erp-dialog__header-icon {
-  color: var(--gov-gold);
+  color: var(--intranet-accent, #cb2026);
   flex-shrink: 0;
 }
 
@@ -39,12 +39,12 @@
 }
 
 .erp-dialog__close {
-  color: var(--text-on-primary);
-  opacity: 0.92;
+  color: var(--text-muted);
+  opacity: 0.95;
 }
 
 .erp-dialog__close:hover {
-  background: color-mix(in srgb, var(--text-on-primary) 16%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 100%, transparent);
   opacity: 1;
 }
 
@@ -54,6 +54,7 @@
   font-size: 0.9375rem;
   line-height: 1.55;
   color: var(--text-muted);
+  background: var(--surface-elevated);
 }
 
 .erp-dialog__actions {

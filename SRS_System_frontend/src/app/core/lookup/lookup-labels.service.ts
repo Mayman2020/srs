@@ -3,9 +3,10 @@ import { Observable, map, tap } from 'rxjs';
 import { LookupBundleDto, LookupItemDto } from '../api/api-types';
 import { LookupService } from '../api/lookup.service';
 import { I18nService } from '../i18n/i18n.service';
+import { LookupCode, LookupTableKey, lookupTableKey } from './lookup-code';
 
 /**
- * Resolves lookup `code` → display text from `/api/v1/lookups` (`name_ar` / `name_en`).
+ * Resolves lookup `code` to display text from the shared lookup API.
  * Business/domain labels must use this service (or API fields), not i18n JSON.
  */
 @Injectable({ providedIn: 'root' })
@@ -27,24 +28,34 @@ export class LookupLabelsService {
     );
   }
 
+  /** Load one lookup table through `GET /api/v1/lookups/{lookupCode}`. */
+  loadTable(lookupCode: LookupCode): Observable<LookupItemDto[]> {
+    return this.lookupApi.getByCode(lookupCode).pipe(
+      tap((rows) => this.setTable(lookupTableKey(lookupCode), rows ?? []))
+    );
+  }
+
   private setTable(table: string, rows: LookupItemDto[]): void {
     this.byTable.set(table, new Map(rows.map((r) => [r.code, r])));
   }
 
   /** Populate label maps from a bundle (e.g. right after login or with create-transaction lookups). */
   hydrateFromBundle(b: LookupBundleDto): void {
-    this.setTable('correspondenceType', b.correspondenceTypes);
-    this.setTable('correspondenceStatus', b.correspondenceStatuses);
-    this.setTable('priority', b.priorities);
-    this.setTable('confidentiality', b.confidentialities);
-    this.setTable('classification', b.classifications ?? []);
-    this.setTable('workflowActionType', b.workflowActionTypes);
-    this.setTable('workflowHistoryEventType', b.workflowHistoryEventTypes ?? []);
-    this.setTable('orgVisualNodeStatus', b.orgVisualNodeStatuses ?? []);
+    this.setTable(lookupTableKey(LookupCode.CorrespondenceType), b.correspondenceTypes);
+    this.setTable(lookupTableKey(LookupCode.CorrespondenceStatus), b.correspondenceStatuses);
+    this.setTable(lookupTableKey(LookupCode.Priority), b.priorities);
+    this.setTable(lookupTableKey(LookupCode.Confidentiality), b.confidentialities);
+    this.setTable(lookupTableKey(LookupCode.Classification), b.classifications ?? []);
+    this.setTable(lookupTableKey(LookupCode.WorkflowActionType), b.workflowActionTypes);
+    this.setTable(
+      lookupTableKey(LookupCode.WorkflowHistoryEventType),
+      b.workflowHistoryEventTypes ?? []
+    );
+    this.setTable(lookupTableKey(LookupCode.OrgVisualNodeStatus), b.orgVisualNodeStatuses ?? []);
   }
 
-  orderedRows(table: string): LookupItemDto[] {
-    const m = this.byTable.get(table);
+  orderedRows(table: LookupCode | LookupTableKey | string): LookupItemDto[] {
+    const m = this.byTable.get(lookupTableKey(table));
     if (!m) return [];
     return [...m.values()].sort((a, b) => a.sortOrder - b.sortOrder);
   }
@@ -53,11 +64,11 @@ export class LookupLabelsService {
     return this.i18n.currentLang() === 'en' ? row.nameEn : row.nameAr;
   }
 
-  label(table: string, code: string | null | undefined): string {
+  label(table: LookupCode | LookupTableKey | string, code: string | null | undefined): string {
     if (code == null || code === '') {
       return '\u2014';
     }
-    const row = this.byTable.get(table)?.get(code);
+    const row = this.byTable.get(lookupTableKey(table))?.get(code);
     if (!row) {
       return code;
     }

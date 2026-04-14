@@ -93,7 +93,7 @@
   flex-shrink: 0;
 }
 
-/* Nav: fill remaining space; scroll only if needed — scrollbar hidden */
+/* Nav: scroll with a thin visible track (intranet-style readability) */
 .nav {
   display: flex;
   flex-direction: column;
@@ -102,15 +102,23 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
   padding-bottom: 4px;
 }
 
 .nav::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  width: 6px;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.32);
+  border-radius: 4px;
+}
+
+.nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
 }
 
 .nav .item {

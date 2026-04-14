@@ -1,13 +1,14 @@
 package com.gov.ac.feature.admin.service;
 
 import com.gov.ac.common.api.NotFoundException;
-import com.gov.ac.domain.admin.SystemIssue;
-import com.gov.ac.domain.user.AppUser;
-import com.gov.ac.feature.admin.dto.ReportSystemIssueRequest;
-import com.gov.ac.feature.admin.dto.ResolveSystemIssueRequest;
+import com.gov.ac.feature.admin.entity.SystemIssueEntity;
+import com.gov.ac.feature.users.entity.AppUserEntity;
+import com.gov.ac.feature.admin.dto.ReportSystemIssueRequestDto;
+import com.gov.ac.feature.admin.dto.ResolveSystemIssueRequestDto;
 import com.gov.ac.feature.admin.dto.SystemIssueDto;
-import com.gov.ac.persistence.AppUserRepository;
-import com.gov.ac.persistence.SystemIssueRepository;
+import com.gov.ac.feature.admin.mapper.SystemIssueMapper;
+import com.gov.ac.feature.users.repository.AppUserRepository;
+import com.gov.ac.feature.admin.repository.SystemIssueRepository;
 import com.gov.ac.security.SecurityUtils;
 import java.time.Instant;
 import java.util.List;
@@ -26,8 +27,8 @@ public class SystemIssueAdminService {
   private final AppUserRepository appUserRepository;
 
   @Transactional
-  public void reportClientIssue(ReportSystemIssueRequest req) {
-    SystemIssue issue = new SystemIssue();
+  public void reportClientIssue(ReportSystemIssueRequestDto req) {
+    SystemIssueEntity issue = new SystemIssueEntity();
     issue.setSource("CLIENT");
     issue.setSeverity(normalizeSeverity(req.severity()));
     issue.setMessage(req.message().trim());
@@ -44,22 +45,22 @@ public class SystemIssueAdminService {
   @Transactional(readOnly = true)
   public List<SystemIssueDto> listRecent() {
     return systemIssueRepository.findTop200ByOrderByCreatedAtDesc().stream()
-        .map(SystemIssueAdminService::toDto)
+        .map(SystemIssueMapper::toDto)
         .toList();
   }
 
   @Transactional
-  public SystemIssueDto resolve(Long id, ResolveSystemIssueRequest req) {
-    SystemIssue issue =
+  public SystemIssueDto resolve(Long id, ResolveSystemIssueRequestDto req) {
+    SystemIssueEntity issue =
         systemIssueRepository.findById(id).orElseThrow(() -> new NotFoundException("Issue not found"));
     if (issue.getResolvedAt() != null) {
-      return toDto(issue);
+      return SystemIssueMapper.toDto(issue);
     }
     UUID actor = SecurityUtils.requireCurrentUserId();
     issue.setResolvedAt(Instant.now());
     issue.setResolvedBy(actor);
     issue.setResolutionNote(trimToNull(req.resolutionNote()));
-    return toDto(systemIssueRepository.save(issue));
+    return SystemIssueMapper.toDto(systemIssueRepository.save(issue));
   }
 
   private static UUID tryCurrentUserId() {
@@ -72,23 +73,6 @@ public class SystemIssueAdminService {
       return u;
     }
     return null;
-  }
-
-  private static SystemIssueDto toDto(SystemIssue i) {
-    AppUser u = i.getUser();
-    return new SystemIssueDto(
-        i.getId(),
-        i.getSource(),
-        i.getSeverity(),
-        i.getMessage(),
-        i.getDetail(),
-        i.getPageUrl(),
-        u != null ? u.getId() : null,
-        i.getHttpStatus(),
-        i.getCreatedAt(),
-        i.getResolvedAt(),
-        i.getResolvedBy(),
-        i.getResolutionNote());
   }
 
   private static String normalizeSeverity(String s) {

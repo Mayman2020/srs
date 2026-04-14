@@ -20,13 +20,13 @@ import { catchError } from 'rxjs/operators';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { MatIcon } from '@angular/material/icon';
 import { DashboardApiService } from '../../core/api/dashboard-api.service';
-import { LookupService } from '../../core/api/lookup.service';
 import { DashboardBucketDto, DashboardResponseDto } from '../../core/api/api-types';
-import { TransactionService } from '../../services/transaction.service';
+import { TransactionService } from '../../core/services/transaction.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import { ThemeService } from '../../core/services/theme.service';
 import { UiFormatService } from '../../core/i18n/ui-format.service';
 
@@ -73,7 +73,6 @@ export class DashboardComponent implements OnInit {
   constructor(
     public router: Router,
     private dashboardApi: DashboardApiService,
-    private lookupApi: LookupService,
     private lookupLabels: LookupLabelsService,
     private transactionService: TransactionService,
     private i18n: I18nService,
@@ -114,12 +113,14 @@ export class DashboardComponent implements OnInit {
       source: forkJoin({
         dash: this.dashboardApi.getDashboard(),
         recent: this.transactionService.listPage({ page: 0, size: 50 }),
-        bundle: this.lookupApi.getBundle().pipe(catchError(() => of(null)))
+        correspondenceTypes: this.lookupLabels
+          .loadTable(LookupCode.CorrespondenceType)
+          .pipe(catchError(() => of([]))),
+        correspondenceStatuses: this.lookupLabels
+          .loadTable(LookupCode.CorrespondenceStatus)
+          .pipe(catchError(() => of([])))
       }),
-      next: ({ dash, recent, bundle }) => {
-        if (bundle) {
-          this.lookupLabels.hydrateFromBundle(bundle);
-        }
+      next: ({ dash, recent }) => {
         this.dash = dash;
         this.total = dash.totalCorrespondences;
         this.overdueCount = dash.overdueCount;

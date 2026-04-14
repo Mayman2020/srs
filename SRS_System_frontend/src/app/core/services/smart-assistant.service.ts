@@ -6,7 +6,7 @@ import { ReportsApiService } from '../api/reports-api.service';
 import { UiFormatService } from '../i18n/ui-format.service';
 import { I18nService } from '../i18n/i18n.service';
 import { SmartAssistantAction, SmartAssistantReply } from '../models/smart-assistant.model';
-import { TransactionService } from '../../services/transaction.service';
+import { TransactionService } from './transaction.service';
 
 @Injectable({ providedIn: 'root' })
 export class SmartAssistantService {

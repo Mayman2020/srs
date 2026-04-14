@@ -64,7 +64,6 @@
   color: var(--text-main);
 }
 
-.toolbar-brand__eyebrow,
 .toolbar-brand__title,
 .user-name,
 .user-role {
@@ -73,15 +72,9 @@
   white-space: nowrap;
 }
 
-.toolbar-brand__eyebrow {
-  color: var(--text-muted);
-  font-size: 0.73rem;
-  font-weight: 700;
-}
-
 .toolbar-brand__title {
   color: var(--text-color);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
 }
 
@@ -332,8 +325,8 @@ html[dir='rtl'] .toolbar-main {
   width: min(26rem, calc(100vw - 2rem));
   background: var(--surface-elevated);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow-lg);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
   overflow: hidden;
 }
 
@@ -342,26 +335,28 @@ html[dir='rtl'] .toolbar-main {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   border-bottom: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--surface-muted) 38%, var(--surface-elevated));
 }
 
 .header-shell__panel-header h2 {
   margin: 0;
-  font-size: 0.9375rem;
-  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--intranet-accent, #cb2026);
 }
 
 .header-shell__panel-header p {
   margin: 0.25rem 0 0;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
 }
 
 .header-shell__link-button {
   border: 0;
   background: transparent;
-  color: var(--primary-color);
+  color: var(--intranet-accent, #cb2026);
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -374,7 +369,19 @@ html[dir='rtl'] .toolbar-main {
 
 .header-shell__notification-list {
   max-height: 22rem;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-muted) 45%, transparent) transparent;
+}
+
+.header-shell__notification-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.header-shell__notification-list::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-muted) 45%, transparent);
+  border-radius: 4px;
 }
 
 .header-shell__notification-item {
@@ -382,9 +389,9 @@ html[dir='rtl'] .toolbar-main {
   grid-template-columns: auto 1fr;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   border: 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
   background: transparent;
   text-align: start;
   cursor: pointer;
@@ -392,11 +399,11 @@ html[dir='rtl'] .toolbar-main {
 }
 
 .header-shell__notification-item:hover {
-  background: var(--surface-muted);
+  background: color-mix(in srgb, var(--surface-muted) 100%, transparent);
 }
 
 .header-shell__notification-item.is-unread {
-  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-elevated));
+  background: color-mix(in srgb, var(--intranet-accent, #cb2026) 6%, var(--surface-elevated));
 }
 
 .header-shell__notification-dot {
@@ -404,7 +411,7 @@ html[dir='rtl'] .toolbar-main {
   height: 0.5rem;
   margin-block-start: 0.45rem;
   border-radius: 50%;
-  background: var(--primary-color);
+  background: var(--intranet-accent, #cb2026);
 }
 
 .header-shell__notification-copy {
@@ -448,9 +455,14 @@ html[dir='rtl'] .toolbar-main {
 
 .header-shell__panel-footer {
   border-top: 1px solid var(--border-color);
-  color: var(--primary-color);
+  color: var(--intranet-accent, #cb2026);
   text-decoration: none;
   font-weight: 600;
+  text-align: center;
+}
+
+.header-shell__panel-footer:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 1180px) {

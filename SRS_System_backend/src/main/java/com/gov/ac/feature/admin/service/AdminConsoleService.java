@@ -2,19 +2,20 @@ package com.gov.ac.feature.admin.service;
 
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.NotFoundException;
-import com.gov.ac.domain.admin.UiScreen;
-import com.gov.ac.domain.user.Permission;
-import com.gov.ac.domain.user.Role;
-import com.gov.ac.domain.user.RolePermission;
-import com.gov.ac.domain.user.RolePermissionId;
+import com.gov.ac.feature.admin.entity.UiScreenEntity;
+import com.gov.ac.feature.roles.entity.PermissionEntity;
+import com.gov.ac.feature.roles.entity.RoleEntity;
+import com.gov.ac.feature.roles.entity.RolePermissionEntity;
+import com.gov.ac.feature.roles.entity.RolePermissionId;
 import com.gov.ac.feature.admin.dto.PermissionDto;
 import com.gov.ac.feature.admin.dto.UiScreenDto;
-import com.gov.ac.feature.admin.dto.UpsertPermissionRequest;
-import com.gov.ac.feature.admin.dto.UpsertUiScreenRequest;
-import com.gov.ac.persistence.PermissionRepository;
-import com.gov.ac.persistence.RolePermissionRepository;
-import com.gov.ac.persistence.RoleRepository;
-import com.gov.ac.persistence.UiScreenRepository;
+import com.gov.ac.feature.admin.dto.UpsertPermissionRequestDto;
+import com.gov.ac.feature.admin.dto.UpsertUiScreenRequestDto;
+import com.gov.ac.feature.admin.mapper.AdminConsoleMapper;
+import com.gov.ac.feature.roles.repository.PermissionRepository;
+import com.gov.ac.feature.roles.repository.RolePermissionRepository;
+import com.gov.ac.feature.roles.repository.RoleRepository;
+import com.gov.ac.feature.admin.repository.UiScreenRepository;
 import com.gov.ac.security.SecurityUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +37,18 @@ public class AdminConsoleService {
   @Transactional(readOnly = true)
   public List<PermissionDto> listPermissions() {
     return permissionRepository.findByDeletedAtIsNullOrderBySortOrderAsc().stream()
-        .map(AdminConsoleService::toPermissionDto)
+        .map(AdminConsoleMapper::toPermissionDto)
         .toList();
   }
 
   @Transactional
-  public PermissionDto createPermission(UpsertPermissionRequest req) {
+  public PermissionDto createPermission(UpsertPermissionRequestDto req) {
     String code = req.code().trim();
     if (permissionRepository.existsByCodeIgnoreCaseAndDeletedAtIsNull(code)) {
-      throw new BadRequestException("Permission code already exists");
+      throw new BadRequestException("PermissionEntity code already exists");
     }
     UUID actor = SecurityUtils.requireCurrentUserId();
-    Permission p = new Permission();
+    PermissionEntity p = new PermissionEntity();
     p.setCode(code);
     p.setNameAr(req.nameAr().trim());
     p.setNameEn(req.nameEn().trim());
@@ -57,18 +58,18 @@ public class AdminConsoleService {
     p.setUiScreenId(resolveUiScreenIdOrNull(req.uiScreenId()));
     p.setCreatedBy(actor);
     p.setUpdatedBy(actor);
-    return toPermissionDto(permissionRepository.save(p));
+    return AdminConsoleMapper.toPermissionDto(permissionRepository.save(p));
   }
 
   @Transactional
-  public PermissionDto updatePermission(Long id, UpsertPermissionRequest req) {
-    Permission p =
+  public PermissionDto updatePermission(Long id, UpsertPermissionRequestDto req) {
+    PermissionEntity p =
         permissionRepository
             .findByIdAndDeletedAtIsNull(id)
-            .orElseThrow(() -> new NotFoundException("Permission not found"));
+            .orElseThrow(() -> new NotFoundException("PermissionEntity not found"));
     String code = req.code().trim();
     if (permissionRepository.existsByCodeIgnoreCaseAndDeletedAtIsNullAndIdNot(code, id)) {
-      throw new BadRequestException("Permission code already exists");
+      throw new BadRequestException("PermissionEntity code already exists");
     }
     UUID actor = SecurityUtils.requireCurrentUserId();
     p.setCode(code);
@@ -79,15 +80,15 @@ public class AdminConsoleService {
     p.setActive(req.active());
     p.setUiScreenId(resolveUiScreenIdOrNull(req.uiScreenId()));
     p.setUpdatedBy(actor);
-    return toPermissionDto(permissionRepository.save(p));
+    return AdminConsoleMapper.toPermissionDto(permissionRepository.save(p));
   }
 
   @Transactional
   public void deletePermission(Long id) {
-    Permission p =
+    PermissionEntity p =
         permissionRepository
             .findByIdAndDeletedAtIsNull(id)
-            .orElseThrow(() -> new NotFoundException("Permission not found"));
+            .orElseThrow(() -> new NotFoundException("PermissionEntity not found"));
     UUID actor = SecurityUtils.requireCurrentUserId();
     p.setDeletedAt(java.time.Instant.now());
     p.setDeletedBy(actor);
@@ -103,18 +104,18 @@ public class AdminConsoleService {
 
   @Transactional
   public void replaceRolePermissions(Long roleId, List<Long> permissionIds) {
-    Role role = ensureRole(roleId);
+    RoleEntity role = ensureRole(roleId);
     SecurityUtils.requireCurrentUserId();
     rolePermissionRepository.deleteByRoleId(roleId);
     if (permissionIds == null || permissionIds.isEmpty()) {
       return;
     }
-    List<RolePermission> rows = new ArrayList<>();
+    List<RolePermissionEntity> rows = new ArrayList<>();
     for (Long pid : permissionIds.stream().distinct().toList()) {
       permissionRepository
           .findByIdAndDeletedAtIsNull(pid)
-          .orElseThrow(() -> new NotFoundException("Permission not found: " + pid));
-      RolePermission rp = new RolePermission();
+          .orElseThrow(() -> new NotFoundException("PermissionEntity not found: " + pid));
+      RolePermissionEntity rp = new RolePermissionEntity();
       rp.setId(new RolePermissionId(role.getId(), pid));
       rows.add(rp);
     }
@@ -124,18 +125,18 @@ public class AdminConsoleService {
   @Transactional(readOnly = true)
   public List<UiScreenDto> listUiScreens() {
     return uiScreenRepository.findByDeletedAtIsNullOrderBySortOrderAsc().stream()
-        .map(AdminConsoleService::toUiScreenDto)
+        .map(AdminConsoleMapper::toUiScreenDto)
         .toList();
   }
 
   @Transactional
-  public UiScreenDto createUiScreen(UpsertUiScreenRequest req) {
+  public UiScreenDto createUiScreen(UpsertUiScreenRequestDto req) {
     String code = req.code().trim();
     if (uiScreenRepository.existsByCodeIgnoreCaseAndDeletedAtIsNull(code)) {
       throw new BadRequestException("Screen code already exists");
     }
     UUID actor = SecurityUtils.requireCurrentUserId();
-    UiScreen s = new UiScreen();
+    UiScreenEntity s = new UiScreenEntity();
     s.setCode(code);
     s.setRoutePath(req.routePath().trim());
     s.setNameAr(req.nameAr().trim());
@@ -148,12 +149,12 @@ public class AdminConsoleService {
     s.setRequiredPermissionId(req.requiredPermissionId());
     s.setCreatedBy(actor);
     s.setUpdatedBy(actor);
-    return toUiScreenDto(uiScreenRepository.save(s));
+    return AdminConsoleMapper.toUiScreenDto(uiScreenRepository.save(s));
   }
 
   @Transactional
-  public UiScreenDto updateUiScreen(Long id, UpsertUiScreenRequest req) {
-    UiScreen s =
+  public UiScreenDto updateUiScreen(Long id, UpsertUiScreenRequestDto req) {
+    UiScreenEntity s =
         uiScreenRepository
             .findByIdAndDeletedAtIsNull(id)
             .orElseThrow(() -> new NotFoundException("Screen not found"));
@@ -173,12 +174,12 @@ public class AdminConsoleService {
     s.setShowInShellNav(Boolean.TRUE.equals(req.showInShellNav()));
     s.setRequiredPermissionId(req.requiredPermissionId());
     s.setUpdatedBy(actor);
-    return toUiScreenDto(uiScreenRepository.save(s));
+    return AdminConsoleMapper.toUiScreenDto(uiScreenRepository.save(s));
   }
 
   @Transactional
   public void deleteUiScreen(Long id) {
-    UiScreen s =
+    UiScreenEntity s =
         uiScreenRepository
             .findByIdAndDeletedAtIsNull(id)
             .orElseThrow(() -> new NotFoundException("Screen not found"));
@@ -189,10 +190,10 @@ public class AdminConsoleService {
     uiScreenRepository.save(s);
   }
 
-  private Role ensureRole(Long roleId) {
+  private RoleEntity ensureRole(Long roleId) {
     return roleRepository
         .findByIdAndDeletedAtIsNullAndActiveTrue(roleId)
-        .orElseThrow(() -> new NotFoundException("Role not found"));
+        .orElseThrow(() -> new NotFoundException("RoleEntity not found"));
   }
 
   private Long resolveUiScreenIdOrNull(Long id) {
@@ -201,35 +202,8 @@ public class AdminConsoleService {
     }
     return uiScreenRepository
         .findByIdAndDeletedAtIsNull(id)
-        .map(UiScreen::getId)
+        .map(UiScreenEntity::getId)
         .orElseThrow(() -> new NotFoundException("UI screen not found"));
-  }
-
-  private static PermissionDto toPermissionDto(Permission p) {
-    return new PermissionDto(
-        p.getId(),
-        p.getCode(),
-        p.getNameAr(),
-        p.getNameEn(),
-        p.getDescription(),
-        p.getSortOrder(),
-        p.getActive(),
-        p.getUiScreenId());
-  }
-
-  private static UiScreenDto toUiScreenDto(UiScreen s) {
-    return new UiScreenDto(
-        s.getId(),
-        s.getCode(),
-        s.getRoutePath(),
-        s.getNameAr(),
-        s.getNameEn(),
-        s.getDescription(),
-        s.getSortOrder(),
-        s.getActive(),
-        s.getRequiredPermissionId(),
-        s.getIconKey(),
-        s.getShowInShellNav());
   }
 
   private static String normalizeIconKey(String raw) {

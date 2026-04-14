@@ -172,7 +172,7 @@ export interface CorrespondenceTimelineEntryDto {
   previousStatusCode: string | null;
 }
 
-export interface CorrespondenceDetailResponse {
+export interface CorrespondenceDetailResponseDto {
   id: string;
   referenceNumber: string;
   correspondenceType: LookupLabelDto | null;
@@ -232,7 +232,7 @@ export interface CorrespondenceAttachmentFormDto {
   checksumSha256?: string | null;
 }
 
-export interface CorrespondenceCreateRequest {
+export interface CorrespondenceCreateRequestDto {
   correspondenceTypeCode: string;
   priorityCode: string;
   confidentialityCode: string;
@@ -262,7 +262,7 @@ export interface CorrespondenceCreateRequest {
   beneficiaryIdentifier?: string | null;
 }
 
-export interface CorrespondenceCreatedResponse {
+export interface CorrespondenceCreatedResponseDto {
   id: string;
   referenceNumber: string;
   correspondenceTypeCode: string;
