@@ -142,7 +142,7 @@ npm install
 npm start
 ```
 
-`npm start` runs Angular dev server and proxies `/api` to `http://localhost:8080`.
+`npm start` runs Angular dev server and proxies `/api` to the target in `SRS_System_frontend/proxy.conf.json` (commonly `http://localhost:8080`, or `http://localhost:8081` when the backend runner auto-moves off a busy 8080).
 
 ## Docker
 

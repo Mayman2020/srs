@@ -74,6 +74,20 @@
   margin-bottom: 12px;
 }
 
+.leave-admin-search {
+  margin-bottom: 12px;
+}
+
+.leave-admin-search input {
+  width: min(420px, 100%);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font: inherit;
+}
+
 /* Status chips (aligned with /users table badges) */
 .type-badge {
   padding: 5px 12px;

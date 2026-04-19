@@ -174,10 +174,17 @@
               {{ tx.statusCode | lk:'correspondenceStatus' }}
             </span>
           </td>
-          <td>
-            <button type="button" class="btn small primary" (click)="openTransaction(tx.id)">
-              {{ 'common.open' | t }}
-            </button>
+          <td class="actions">
+            <div class="actions-modern">
+              <button
+                type="button"
+                class="action-btn edit"
+                (click)="openTransaction(tx.id)"
+                [attr.title]="'common.open' | t"
+                [attr.aria-label]="'common.open' | t">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
           </td>
         </tr>
 

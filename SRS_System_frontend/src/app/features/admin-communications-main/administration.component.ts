@@ -28,6 +28,7 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { CapabilitiesService } from '../../core/auth/capabilities.service';
+import { matchesTableSearch } from '../../core/util/table-text-filter';
 import {
   MultiChoiceOption,
   MultiChoiceTableComponent
@@ -64,6 +65,9 @@ export class AdministrationComponent implements OnInit {
   permissions: PermissionAdminDto[] = [];
   screens: UiScreenDto[] = [];
   issues: SystemIssueDto[] = [];
+  permissionsSearchQuery = '';
+  screensSearchQuery = '';
+  issuesSearchQuery = '';
 
   /** Role matrix */
   matrixRoleId: number | null = null;
@@ -212,22 +216,35 @@ export class AdministrationComponent implements OnInit {
     });
   }
 
+  private syncViewAfterAsyncMutation(work: () => void): void {
+    work();
+    queueMicrotask(() => {
+      try {
+        this.cdr.detectChanges();
+      } catch {
+        /* ignore detached views */
+      }
+    });
+  }
+
   displayName(u: UserListDto): string {
     return u.fullNameAr?.trim() || u.fullNameEn?.trim() || u.username;
   }
 
   applyFilters(): void {
     let results = [...this.users];
-    if (this.searchQuery) {
-      const q = this.searchQuery.toLowerCase();
-      results = results.filter(
-        (u) =>
-          this.displayName(u).toLowerCase().includes(q) ||
-          u.username.toLowerCase().includes(q) ||
-          (u.email ?? '').toLowerCase().includes(q) ||
-          (u.departmentCode ?? '').toLowerCase().includes(q)
-      );
-    }
+    results = results.filter((u) =>
+      matchesTableSearch(this.searchQuery, [
+        this.displayName(u),
+        u.fullNameAr,
+        u.fullNameEn,
+        u.username,
+        u.email,
+        u.departmentCode,
+        u.active,
+        this.statusLabel(u.active)
+      ])
+    );
     if (this.filterStatus === 'active') {
       results = results.filter((u) => u.active);
     } else if (this.filterStatus === 'suspended') {
@@ -267,6 +284,20 @@ export class AdministrationComponent implements OnInit {
     });
   }
 
+  get filteredPermissions(): PermissionAdminDto[] {
+    return this.permissions.filter((permission) =>
+      matchesTableSearch(this.permissionsSearchQuery, [
+        permission.code,
+        permission.nameAr,
+        permission.nameEn,
+        permission.description,
+        permission.sortOrder,
+        permission.active,
+        this.labelScreen(permission.uiScreenId)
+      ])
+    );
+  }
+
   loadScreens(): void {
     subscribePageLoad({
       cdr: this.cdr,
@@ -286,6 +317,23 @@ export class AdministrationComponent implements OnInit {
     });
   }
 
+  get filteredScreens(): UiScreenDto[] {
+    return this.screens.filter((screen) =>
+      matchesTableSearch(this.screensSearchQuery, [
+        screen.code,
+        screen.routePath,
+        screen.iconKey,
+        screen.nameAr,
+        screen.nameEn,
+        screen.description,
+        screen.active,
+        screen.showInShellNav,
+        this.screenRequiredPermLabel(screen),
+        this.i18n.instant(screen.showInShellNav ? 'admin.shellNavYes' : 'admin.shellNavNo')
+      ])
+    );
+  }
+
   loadIssues(): void {
     subscribePageLoad({
       cdr: this.cdr,
@@ -299,6 +347,25 @@ export class AdministrationComponent implements OnInit {
         this.setLoadError(err);
       }
     });
+  }
+
+  get filteredIssues(): SystemIssueDto[] {
+    return this.issues.filter((issue) =>
+      matchesTableSearch(this.issuesSearchQuery, [
+        issue.source,
+        issue.severity,
+        issue.message,
+        issue.detail,
+        issue.pageUrl,
+        issue.userId,
+        issue.httpStatus,
+        issue.createdAt,
+        issue.resolvedAt,
+        issue.resolutionNote,
+        this.issueResolved(issue),
+        this.i18n.instant(this.issueResolved(issue) ? 'common.toastOk' : 'common.empty')
+      ])
+    );
   }
 
   loadMatrix(): void {
@@ -363,7 +430,7 @@ export class AdministrationComponent implements OnInit {
 
   openViewUser(u: UserListDto): void {
     this.usersApi.getOne(u.id).subscribe({
-      next: (d) => this.patchUserFormFromDetail(d, true),
+      next: (d) => this.syncViewAfterAsyncMutation(() => this.patchUserFormFromDetail(d, true)),
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
         this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
       }
@@ -372,7 +439,7 @@ export class AdministrationComponent implements OnInit {
 
   openEditUser(u: UserListDto): void {
     this.usersApi.getOne(u.id).subscribe({
-      next: (d) => this.patchUserFormFromDetail(d, false),
+      next: (d) => this.syncViewAfterAsyncMutation(() => this.patchUserFormFromDetail(d, false)),
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
         this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
       }
@@ -380,12 +447,16 @@ export class AdministrationComponent implements OnInit {
   }
 
   openAssignRole(u: UserListDto): void {
-    this.assignTargetUserId = u.id;
-    this.assignRoleIds = [];
-    this.userModal = 'assign';
+    this.syncViewAfterAsyncMutation(() => {
+      this.assignTargetUserId = u.id;
+      this.assignRoleIds = [];
+      this.userModal = 'assign';
+    });
     this.usersApi.getOne(u.id).subscribe({
       next: (d) => {
-        this.assignRoleIds = this.normalizeRoleIds(d.roleIds);
+        this.syncViewAfterAsyncMutation(() => {
+          this.assignRoleIds = this.normalizeRoleIds(d.roleIds);
+        });
       },
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
         this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
@@ -510,9 +581,11 @@ export class AdministrationComponent implements OnInit {
   }
 
   closeUserModal(): void {
-    this.userModal = null;
-    this.assignTargetUserId = null;
-    this.assignRoleIds = [];
+    this.syncViewAfterAsyncMutation(() => {
+      this.userModal = null;
+      this.assignTargetUserId = null;
+      this.assignRoleIds = [];
+    });
   }
 
   get roleMultiOptions(): MultiChoiceOption[] {

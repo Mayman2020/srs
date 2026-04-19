@@ -18,6 +18,7 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import { matchesTableSearch } from '../../core/util/table-text-filter';
 import {
   MultiChoiceOption,
   MultiChoiceTableComponent
@@ -128,16 +129,18 @@ export class UsersComponent implements OnInit {
 
   applyFilters(): void {
     let results = [...this.users];
-    if (this.searchQuery) {
-      const q = this.searchQuery.toLowerCase();
-      results = results.filter(
-        (u) =>
-          this.displayName(u).toLowerCase().includes(q) ||
-          u.username.toLowerCase().includes(q) ||
-          (u.email ?? '').toLowerCase().includes(q) ||
-          (u.departmentCode ?? '').toLowerCase().includes(q)
-      );
-    }
+    results = results.filter((u) =>
+      matchesTableSearch(this.searchQuery, [
+        this.displayName(u),
+        u.fullNameAr,
+        u.fullNameEn,
+        u.username,
+        u.email,
+        u.departmentCode,
+        u.active,
+        this.statusLabel(u.active)
+      ])
+    );
     if (this.filterStatus === 'active') {
       results = results.filter((u) => u.active);
     } else if (this.filterStatus === 'suspended') {

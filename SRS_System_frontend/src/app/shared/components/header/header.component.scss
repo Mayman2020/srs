@@ -2,6 +2,10 @@
   /* One height for menu / icons / language / profile / role — keeps the bar visually aligned */
   --header-ctrl-h: 44px;
   --header-ctrl-r: 11px;
+  --header-ctrl-bg: color-mix(in srgb, var(--surface-elevated) 88%, #f8fbff);
+  --header-ctrl-border: color-mix(in srgb, var(--header-border) 68%, rgba(148, 163, 184, 0.34));
+  --header-ctrl-shadow: 0 10px 22px rgba(15, 35, 65, 0.08);
+  --header-ctrl-shadow-hover: 0 14px 28px rgba(15, 35, 65, 0.12);
 
   position: sticky;
   top: 0;
@@ -60,8 +64,10 @@
   width: var(--header-ctrl-h);
   height: var(--header-ctrl-h);
   border-radius: var(--header-ctrl-r);
-  background: var(--surface-muted);
+  background: var(--header-ctrl-bg);
   color: var(--text-main);
+  border: 1px solid var(--header-ctrl-border);
+  box-shadow: var(--header-ctrl-shadow);
 }
 
 .toolbar-brand__title,
@@ -79,7 +85,7 @@
 }
 
 .account-side {
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
@@ -114,7 +120,9 @@ html[dir='rtl'] .toolbar-main {
   border-radius: var(--header-ctrl-r);
   color: var(--text-main);
   position: relative;
-  background: var(--surface-muted);
+  background: var(--header-ctrl-bg);
+  border: 1px solid var(--header-ctrl-border);
+  box-shadow: var(--header-ctrl-shadow);
 }
 
 .header-icon-btn.has-badge::after {
@@ -133,13 +141,25 @@ html[dir='rtl'] .toolbar-main {
 .profile-btn,
 .role-switch-btn {
   border-radius: var(--header-ctrl-r);
+  border: 1px solid var(--header-ctrl-border) !important;
+  box-shadow: var(--header-ctrl-shadow) !important;
+  background: var(--header-ctrl-bg);
+}
+
+.theme-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--header-ctrl-h);
+  padding: 0.15rem;
+  border-radius: calc(var(--header-ctrl-r) + 4px);
+  background: var(--header-ctrl-bg);
+  border: 1px solid var(--header-ctrl-border);
+  box-shadow: var(--header-ctrl-shadow);
 }
 
 .lang-btn {
   padding-inline: 0.65rem 0.75rem;
-  background: var(--surface-muted);
-  border: 0 !important;
-  box-shadow: none !important;
   height: var(--header-ctrl-h);
   min-height: var(--header-ctrl-h);
   max-height: var(--header-ctrl-h);
@@ -176,9 +196,6 @@ html[dir='rtl'] .toolbar-main {
   max-height: var(--header-ctrl-h);
   padding-block: 0;
   padding-inline: 0.5rem 0.75rem;
-  background: var(--surface-muted);
-  border: 0 !important;
-  box-shadow: none;
   overflow: hidden;
   max-width: 100%;
 }
@@ -188,9 +205,6 @@ html[dir='rtl'] .toolbar-main {
   min-height: var(--header-ctrl-h);
   max-height: var(--header-ctrl-h);
   padding-block: 0;
-  background: var(--surface-muted);
-  border: 0 !important;
-  box-shadow: none !important;
   padding-inline: 0.55rem 0.65rem;
 }
 
@@ -272,22 +286,33 @@ html[dir='rtl'] .toolbar-main {
 :host-context(.dark-theme) .lang-btn,
 :host-context(.dark-theme) .profile-btn,
 :host-context(.dark-theme) .header-icon-btn,
-:host-context(.dark-theme) .role-switch-btn {
+:host-context(.dark-theme) .role-switch-btn,
+:host-context(.dark-theme) .menu-toggle,
+:host-context(.dark-theme) .theme-shell {
   color: #ffffff !important;
 }
 
-.account-side .mat-mdc-button-base {
+.account-side .mat-mdc-button-base,
+.menu-toggle,
+.theme-shell {
   transition:
     background-color 0.18s ease,
     color 0.18s ease,
     transform 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .account-side .mat-mdc-button-base:hover,
-.account-side .mat-mdc-button-base:focus-visible {
+.account-side .mat-mdc-button-base:focus-visible,
+.menu-toggle:hover,
+.menu-toggle:focus-visible,
+.theme-shell:hover,
+.theme-shell:focus-within {
   background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-muted));
   transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary-color) 28%, var(--header-ctrl-border));
+  box-shadow: var(--header-ctrl-shadow-hover);
 }
 
 /* Material default heights differ from our bar — lock to --header-ctrl-h */
@@ -314,7 +339,11 @@ html[dir='rtl'] .toolbar-main {
 }
 
 :host-context(.dark-theme) .account-side .mat-mdc-button-base:hover,
-:host-context(.dark-theme) .account-side .mat-mdc-button-base:focus-visible {
+:host-context(.dark-theme) .account-side .mat-mdc-button-base:focus-visible,
+:host-context(.dark-theme) .menu-toggle:hover,
+:host-context(.dark-theme) .menu-toggle:focus-visible,
+:host-context(.dark-theme) .theme-shell:hover,
+:host-context(.dark-theme) .theme-shell:focus-within {
   background: rgba(255, 255, 255, 0.12);
 }
 

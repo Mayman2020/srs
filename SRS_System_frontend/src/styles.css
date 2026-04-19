@@ -347,7 +347,7 @@ button.btn-danger,
 /* Row icon actions — same family as primary “add” (users page) */
 .actions-modern {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -362,7 +362,7 @@ button.btn-danger,
   min-height: 40px;
   padding: 0 11px;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 0.8125rem;
   cursor: pointer;
@@ -413,10 +413,11 @@ button.btn-danger,
 /* Row action cell: flex + gap */
 td.actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
 /* Administration tables: text + icon links → same pill as primary/danger */

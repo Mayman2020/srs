@@ -178,10 +178,17 @@
                 size="sm"
               />
             </td>
-            <td>
-              <button type="button" class="btn small primary" (click)="openReportRow(tx)">
-                {{ 'reports.openDetail' | t }}
-              </button>
+            <td class="actions">
+              <div class="actions-modern">
+                <button
+                  type="button"
+                  class="action-btn edit"
+                  (click)="openReportRow(tx)"
+                  [attr.title]="'reports.openDetail' | t"
+                  [attr.aria-label]="'reports.openDetail' | t">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="!tableLoading && reportTotal === 0">

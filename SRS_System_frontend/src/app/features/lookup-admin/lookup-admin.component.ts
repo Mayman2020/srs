@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LookupTableAdminApiService, LookupUpsertBody } from '../../core/api/lookup-table-admin-api.service';
 import { LookupCatalogDto, LookupRowAdminDto } from '../../core/api/api-types';
@@ -9,11 +10,12 @@ import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { DialogService } from '../../core/services/dialog.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { matchesTableSearch } from '../../core/util/table-text-filter';
 
 @Component({
   selector: 'app-lookup-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, ErpAutoReferenceFieldComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe, ErpAutoReferenceFieldComponent],
   templateUrl: './lookup-admin.component.html',
   styleUrl: './lookup-admin.component.css'
 })
@@ -24,6 +26,7 @@ export class LookupAdminComponent implements OnInit {
   loadingCatalog = true;
   loadingRows = false;
   parentRows: LookupRowAdminDto[] = [];
+  tableSearch = '';
 
   readonly form;
 
@@ -108,6 +111,24 @@ export class LookupAdminComponent implements OnInit {
         this.rows = [];
       }
     });
+  }
+
+  filteredRows(): LookupRowAdminDto[] {
+    return this.rows.filter((row) =>
+      matchesTableSearch(this.tableSearch, [
+        row.id,
+        row.code,
+        row.nameAr,
+        row.nameEn,
+        row.description,
+        row.sortOrder,
+        row.active,
+        row.parentId,
+        row.terminal,
+        row.slaDays,
+        row.uiVariant
+      ])
+    );
   }
 
   /** Parent dropdown: correspondence_status → correspondence_type rows; classification → other classifications. */

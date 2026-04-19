@@ -78,12 +78,14 @@
             }
           </div>
 
-          <app-dark-light-mode-switch-main
-            [compact]="true"
-            [checked]="isDark"
-            [ariaLabel]="((isDark ? 'topbar.themeSwitchLight' : 'topbar.themeSwitchDark') | t)"
-            (toggled)="themeToggle.emit()"
-          />
+          <div class="theme-shell">
+            <app-dark-light-mode-switch-main
+              [compact]="true"
+              [checked]="isDark"
+              [ariaLabel]="((isDark ? 'topbar.themeSwitchLight' : 'topbar.themeSwitchDark') | t)"
+              (toggled)="themeToggle.emit()"
+            />
+          </div>
 
           <button
             mat-button

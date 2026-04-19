@@ -88,6 +88,14 @@
 
   <section class="leave-card leave-card--table" *ngIf="adminLoaded && adminRows.length">
     <h3 class="leave-card__title">{{ 'leave.adminSection' | t }}</h3>
+    <div class="filters-modern leave-admin-search">
+      <input
+        type="search"
+        [(ngModel)]="adminSearchQuery"
+        [attr.placeholder]="'common.searchTable' | t"
+        [attr.aria-label]="'common.searchTable' | t"
+      />
+    </div>
     <srs-data-table
       [loading]="false"
       [showPagination]="false"
@@ -106,7 +114,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let r of adminRows">
+          <tr *ngFor="let r of filteredAdminRows()">
             <td>{{ r.fullNameAr || r.username }}</td>
             <td>{{ (r.startDate | date : 'mediumDate') | latinDigits }}</td>
             <td>{{ (r.endDate | date : 'mediumDate') | latinDigits }}</td>
@@ -134,6 +142,9 @@
               </div>
               <span *ngIf="r.statusCode !== 'PENDING'" class="muted">—</span>
             </td>
+          </tr>
+          <tr *ngIf="filteredAdminRows().length === 0">
+            <td colspan="5" class="empty-cell">{{ 'common.noSearchResults' | t }}</td>
           </tr>
         </tbody>
       </table>

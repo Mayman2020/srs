@@ -13,7 +13,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/api/auth.interceptor';
 import { systemIssueReporterInterceptor } from './core/api/system-issue-reporter.interceptor';
 import { zonePatchHttpInterceptor } from './core/api/zone-patch-http.interceptor';
-import { catchError, firstValueFrom, of } from 'rxjs';
+import { catchError, firstValueFrom, of, timeout } from 'rxjs';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { successNotificationInterceptor } from './core/interceptors/success-notification.interceptor';
 
@@ -48,6 +48,9 @@ export const appConfig: ApplicationConfig = {
       ])
     ),
     // inject() must run synchronously in the initializer — not after await (NG0203).
+    // Do not return a Promise that waits on HTTP: if i18n or API hangs, bootstrap never runs
+    // (white screen; tab title may still be set from a previous partial run). Run network work
+    // in the background instead — see void runInit() below.
     provideAppInitializer(() => {
       const i18n = inject(I18nService);
       const title = inject(Title);
@@ -57,10 +60,11 @@ export const appConfig: ApplicationConfig = {
       const appRef = inject(ApplicationRef);
       inject(ThemeService);
 
-      return (async () => {
+      const runInit = async (): Promise<void> => {
         try {
           await firstValueFrom(
             i18n.loadLang(readStoredLang()).pipe(
+              timeout(15_000),
               catchError((err: unknown) => {
                 console.warn('[AppInit] i18n load failed', err);
                 return of(undefined);
@@ -76,38 +80,38 @@ export const appConfig: ApplicationConfig = {
           title.setTitle('Admin Communications');
         }
 
-        if (!authToken.getToken()) {
-          ngZone.run(() => {
-            try {
-              appRef.tick();
-            } catch {
-              /* ignore — app may not be attached yet */
-            }
-          });
-          return;
-        }
-
-        try {
-          await firstValueFrom(
+        if (authToken.getToken()) {
+          firstValueFrom(
             lookups.load().pipe(
+              timeout(25_000),
               catchError((err: unknown) => {
                 console.warn('[AppInit] lookup labels load failed', err);
                 return of(undefined);
               })
             )
-          );
-        } catch {
-          /* ignore */
+          )
+            .then(() => {
+              ngZone.run(() => {
+                try {
+                  appRef.tick();
+                } catch {
+                  /* ignore */
+                }
+              });
+            })
+            .catch(() => {});
         }
 
         ngZone.run(() => {
           try {
             appRef.tick();
           } catch {
-            /* ignore */
+            /* ignore — app may not be attached yet */
           }
         });
-      })();
+      };
+
+      void runInit();
     })
   ]
 };

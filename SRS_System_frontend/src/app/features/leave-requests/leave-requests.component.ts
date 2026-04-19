@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LeaveRequestApiService } from '../../core/api/leave-request-api.service';
 import { LeaveRequestDto } from '../../core/api/api-types';
@@ -8,12 +9,14 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import { matchesTableSearch } from '../../core/util/table-text-filter';
 
 @Component({
   selector: 'app-leave-requests',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     TranslatePipe,
     LatinDigitsPipe,
@@ -27,6 +30,7 @@ export class LeaveRequestsComponent implements OnInit {
   mine: LeaveRequestDto[] = [];
   adminRows: LeaveRequestDto[] = [];
   adminLoaded = false;
+  adminSearchQuery = '';
 
   lastCreatedLeaveId: string | null = null;
 
@@ -117,5 +121,20 @@ export class LeaveRequestsComponent implements OnInit {
       },
       error: () => undefined
     });
+  }
+
+  filteredAdminRows(): LeaveRequestDto[] {
+    return this.adminRows.filter((row) =>
+      matchesTableSearch(this.adminSearchQuery, [
+        row.username,
+        row.fullNameAr,
+        row.fullNameEn,
+        row.startDate,
+        row.endDate,
+        row.reason,
+        row.statusCode,
+        this.statusLabel(row.statusCode)
+      ])
+    );
   }
 }

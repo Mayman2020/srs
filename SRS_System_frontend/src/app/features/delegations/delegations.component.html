@@ -76,10 +76,17 @@
             <td>{{ d.validFrom }}</td>
             <td>{{ d.validTo }}</td>
             <td>{{ d.canSignOnBehalf ? ('common.open' | t) : ('common.dash' | t) }}</td>
-            <td>
-              <button type="button" class="btn danger" (click)="confirmRevoke(d)">
-                {{ 'delegations.revoke' | t }}
-              </button>
+            <td class="actions">
+              <div class="actions-modern">
+                <button
+                  type="button"
+                  class="action-btn delete"
+                  (click)="confirmRevoke(d)"
+                  [attr.title]="'delegations.revoke' | t"
+                  [attr.aria-label]="'delegations.revoke' | t">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="filteredRows().length === 0">

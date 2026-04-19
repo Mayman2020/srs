@@ -183,6 +183,14 @@
         {{ 'admin.add' | t }}
       </button>
     </div>
+    <div class="filters-modern panel-search">
+      <input
+        type="search"
+        [(ngModel)]="permissionsSearchQuery"
+        [attr.placeholder]="'common.searchTable' | t"
+        [attr.aria-label]="'common.searchTable' | t"
+      />
+    </div>
     <div class="table-wrap srs-table-shell">
       <table class="data-table">
         <thead>
@@ -197,7 +205,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of permissions">
+          <tr *ngFor="let p of filteredPermissions">
             <td><code>{{ p.code }}</code></td>
             <td>{{ p.nameAr }}</td>
             <td>{{ p.nameEn }}</td>
@@ -205,11 +213,27 @@
             <td>{{ p.active ? ('common.toastOk' | t) : ('common.empty' | t) }}</td>
             <td><code>{{ labelScreen(p.uiScreenId) }}</code></td>
             <td class="actions">
-              <button type="button" class="link" (click)="openEditPerm(p)"><i class="fa-solid fa-pen"></i>{{ 'admin.edit' | t }}</button>
-              <button type="button" class="link danger" (click)="deletePerm(p)"><i class="fa-solid fa-trash"></i>{{ 'admin.delete' | t }}</button>
+              <div class="actions-modern">
+                <button
+                  type="button"
+                  class="action-btn edit"
+                  (click)="openEditPerm(p)"
+                  [attr.title]="'admin.edit' | t"
+                  [attr.aria-label]="'admin.edit' | t">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button
+                  type="button"
+                  class="action-btn delete"
+                  (click)="deletePerm(p)"
+                  [attr.title]="'admin.delete' | t"
+                  [attr.aria-label]="'admin.delete' | t">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
-          <tr *ngIf="permissions.length === 0">
+          <tr *ngIf="filteredPermissions.length === 0">
             <td colspan="7" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
@@ -226,6 +250,14 @@
         {{ 'admin.add' | t }}
       </button>
     </div>
+    <div class="filters-modern panel-search">
+      <input
+        type="search"
+        [(ngModel)]="screensSearchQuery"
+        [attr.placeholder]="'common.searchTable' | t"
+        [attr.aria-label]="'common.searchTable' | t"
+      />
+    </div>
     <div class="table-wrap srs-table-shell">
       <table class="data-table">
         <thead>
@@ -241,7 +273,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of screens">
+          <tr *ngFor="let s of filteredScreens">
             <td><code>{{ s.code }}</code></td>
             <td><code>{{ s.routePath }}</code></td>
             <td><code>{{ s.iconKey }}</code></td>
@@ -250,11 +282,27 @@
             <td>{{ s.nameAr }}</td>
             <td>{{ s.nameEn }}</td>
             <td class="actions">
-              <button type="button" class="link" (click)="openEditScreen(s)"><i class="fa-solid fa-pen"></i>{{ 'admin.edit' | t }}</button>
-              <button type="button" class="link danger" (click)="deleteScreen(s)"><i class="fa-solid fa-trash"></i>{{ 'admin.delete' | t }}</button>
+              <div class="actions-modern">
+                <button
+                  type="button"
+                  class="action-btn edit"
+                  (click)="openEditScreen(s)"
+                  [attr.title]="'admin.edit' | t"
+                  [attr.aria-label]="'admin.edit' | t">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button
+                  type="button"
+                  class="action-btn delete"
+                  (click)="deleteScreen(s)"
+                  [attr.title]="'admin.delete' | t"
+                  [attr.aria-label]="'admin.delete' | t">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
-          <tr *ngIf="screens.length === 0">
+          <tr *ngIf="filteredScreens.length === 0">
             <td colspan="8" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
@@ -332,6 +380,14 @@
         {{ 'admin.refresh' | t }}
       </button>
     </div>
+    <div class="filters-modern panel-search">
+      <input
+        type="search"
+        [(ngModel)]="issuesSearchQuery"
+        [attr.placeholder]="'common.searchTable' | t"
+        [attr.aria-label]="'common.searchTable' | t"
+      />
+    </div>
     <div class="table-wrap srs-table-shell" *ngIf="!loading">
       <table class="data-table">
         <thead>
@@ -346,7 +402,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let i of issues" [class.resolved]="issueResolved(i)">
+          <tr *ngFor="let i of filteredIssues" [class.resolved]="issueResolved(i)">
             <td>{{ (i.createdAt | date: 'short') | latinDigits }}</td>
             <td>{{ i.severity }}</td>
             <td class="msg-cell">{{ i.message }}</td>
@@ -354,13 +410,19 @@
             <td>{{ i.httpStatus ?? ('common.dash' | t) }}</td>
             <td>{{ issueResolved(i) ? ('common.toastOk' | t) : ('common.empty' | t) }}</td>
             <td class="actions">
-              <button type="button" class="link" *ngIf="!issueResolved(i)" (click)="openResolveIssue(i)">
-                <i class="fa-solid fa-screwdriver-wrench"></i>
-                {{ 'admin.resolve' | t }}
-              </button>
+              <div class="actions-modern" *ngIf="!issueResolved(i)">
+                <button
+                  type="button"
+                  class="action-btn toggle"
+                  (click)="openResolveIssue(i)"
+                  [attr.title]="'admin.resolve' | t"
+                  [attr.aria-label]="'admin.resolve' | t">
+                  <i class="fa-solid fa-screwdriver-wrench"></i>
+                </button>
+              </div>
             </td>
           </tr>
-          <tr *ngIf="!loading && issues.length === 0">
+          <tr *ngIf="!loading && filteredIssues.length === 0">
             <td colspan="7" class="empty-row">{{ 'common.empty' | t }}</td>
           </tr>
         </tbody>
@@ -373,25 +435,52 @@
 <div class="modal-overlay" *ngIf="userModal === 'add' || userModal === 'edit'" (click)="closeUserModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <h3>{{ userModal === 'add' ? ('admin.userAdd' | t) : ('admin.userEdit' | t) }}</h3>
-    <app-erp-auto-reference-field *ngIf="userModal === 'add'" />
-    <label *ngIf="userModal === 'add'">{{ 'admin.colUsername' | t }}
-      <input [(ngModel)]="userForm.username" name="u" />
-    </label>
-    <label *ngIf="userModal === 'add' || userModal === 'edit'">{{ 'admin.password' | t }}
-      <input type="password" [(ngModel)]="userForm.password" name="p" [placeholder]="userModal === 'edit' ? ('admin.passwordOptional' | t) : ''" />
-    </label>
-    <label>{{ 'admin.colNameAr' | t }}<input [(ngModel)]="userForm.fullNameAr" /></label>
-    <label>{{ 'admin.colNameEn' | t }}<input [(ngModel)]="userForm.fullNameEn" /></label>
-    <label>{{ 'admin.colEmail' | t }}<input [(ngModel)]="userForm.email" /></label>
-    <label>{{ 'admin.colDept' | t }}
-      <select [(ngModel)]="userForm.departmentId">
-        <option [ngValue]="null">{{ 'genericSelect.placeholder' | t }}</option>
-        <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.nameAr }} ({{ d.code }})</option>
-      </select>
-    </label>
-    <label *ngIf="userModal === 'edit'">
-      <input type="checkbox" [(ngModel)]="userForm.active" /> {{ 'admin.colActive' | t }}
-    </label>
+    <div class="dialog-form dialog-grid">
+      <div class="dialog-form__span-3" *ngIf="userModal === 'add'">
+        <app-erp-auto-reference-field />
+      </div>
+
+      <label class="form-field" *ngIf="userModal === 'add'">
+        <span class="form-field__label">{{ 'admin.colUsername' | t }}</span>
+        <input [(ngModel)]="userForm.username" name="u" />
+      </label>
+
+      <label class="form-field" *ngIf="userModal === 'add' || userModal === 'edit'">
+        <span class="form-field__label">{{ 'admin.password' | t }}</span>
+        <input type="password" [(ngModel)]="userForm.password" name="p" [placeholder]="userModal === 'edit' ? ('admin.passwordOptional' | t) : ''" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colNameAr' | t }}</span>
+        <input [(ngModel)]="userForm.fullNameAr" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colNameEn' | t }}</span>
+        <input [(ngModel)]="userForm.fullNameEn" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colEmail' | t }}</span>
+        <input [(ngModel)]="userForm.email" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colDept' | t }}</span>
+        <select [(ngModel)]="userForm.departmentId">
+          <option [ngValue]="null">{{ 'genericSelect.placeholder' | t }}</option>
+          <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.nameAr }} ({{ d.code }})</option>
+        </select>
+      </label>
+
+      <label class="checkbox-field" *ngIf="userModal === 'edit'">
+        <input type="checkbox" [(ngModel)]="userForm.active" />
+        <span class="checkbox-field__box" aria-hidden="true">
+          <i class="fa-solid fa-check"></i>
+        </span>
+        <span class="checkbox-field__label">{{ 'admin.colActive' | t }}</span>
+      </label>
+    </div>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="closeUserModal()"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
       <button type="button" class="btn primary" (click)="saveUser()"><i class="fa-solid fa-floppy-disk"></i>{{ 'common.apply' | t }}</button>
@@ -442,19 +531,52 @@
 <div class="modal-overlay" *ngIf="permModal" (click)="permModal = null">
   <div class="modal modal-wide" (click)="$event.stopPropagation()">
     <h3>{{ permModal === 'add' ? ('admin.permAdd' | t) : ('admin.permEdit' | t) }}</h3>
-    <app-erp-auto-reference-field [value]="permModal === 'edit' && permForm.id != null ? permForm.id : null" />
-    <label>{{ 'admin.colCode' | t }}<input [(ngModel)]="permForm.code" /></label>
-    <label>{{ 'admin.colNameAr' | t }}<input [(ngModel)]="permForm.nameAr" /></label>
-    <label>{{ 'admin.colNameEn' | t }}<input [(ngModel)]="permForm.nameEn" /></label>
-    <label>{{ 'admin.description' | t }}<textarea [(ngModel)]="permForm.description" rows="2"></textarea></label>
-    <label>{{ 'admin.screensTitle' | t }}
-      <select [(ngModel)]="permForm.uiScreenId">
-        <option [ngValue]="null">—</option>
-        <option *ngFor="let s of screens" [ngValue]="s.id">{{ s.code }} — {{ s.routePath }}</option>
-      </select>
-    </label>
-    <label>{{ 'admin.colSort' | t }}<input type="number" [(ngModel)]="permForm.sortOrder" /></label>
-    <label><input type="checkbox" [(ngModel)]="permForm.active" /> {{ 'admin.colActive' | t }}</label>
+    <div class="dialog-form dialog-grid">
+      <div class="dialog-form__span-3">
+        <app-erp-auto-reference-field [value]="permModal === 'edit' && permForm.id != null ? permForm.id : null" />
+      </div>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colCode' | t }}</span>
+        <input [(ngModel)]="permForm.code" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colNameAr' | t }}</span>
+        <input [(ngModel)]="permForm.nameAr" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colNameEn' | t }}</span>
+        <input [(ngModel)]="permForm.nameEn" />
+      </label>
+
+      <label class="form-field dialog-form__span-3">
+        <span class="form-field__label">{{ 'admin.description' | t }}</span>
+        <textarea [(ngModel)]="permForm.description" rows="3"></textarea>
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.screensTitle' | t }}</span>
+        <select [(ngModel)]="permForm.uiScreenId">
+          <option [ngValue]="null">—</option>
+          <option *ngFor="let s of screens" [ngValue]="s.id">{{ s.code }} — {{ s.routePath }}</option>
+        </select>
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colSort' | t }}</span>
+        <input type="number" [(ngModel)]="permForm.sortOrder" />
+      </label>
+
+      <label class="checkbox-field">
+        <input type="checkbox" [(ngModel)]="permForm.active" />
+        <span class="checkbox-field__box" aria-hidden="true">
+          <i class="fa-solid fa-check"></i>
+        </span>
+        <span class="checkbox-field__label">{{ 'admin.colActive' | t }}</span>
+      </label>
+    </div>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="permModal = null"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
       <button type="button" class="btn primary" (click)="savePerm()"><i class="fa-solid fa-floppy-disk"></i>{{ 'common.apply' | t }}</button>
@@ -466,22 +588,72 @@
 <div class="modal-overlay" *ngIf="screenModal" (click)="screenModal = null">
   <div class="modal modal-wide" (click)="$event.stopPropagation()">
     <h3>{{ screenModal === 'add' ? ('admin.screenAdd' | t) : ('admin.screenEdit' | t) }}</h3>
-    <app-erp-auto-reference-field [value]="screenModal === 'edit' && screenForm.id != null ? screenForm.id : null" />
-    <label>{{ 'admin.colCode' | t }}<input [(ngModel)]="screenForm.code" /></label>
-    <label>{{ 'admin.colRoute' | t }}<input [(ngModel)]="screenForm.routePath" /></label>
-    <label>{{ 'admin.screenIconKey' | t }}<input [(ngModel)]="screenForm.iconKey" /></label>
-    <label>{{ 'admin.colNameAr' | t }}<input [(ngModel)]="screenForm.nameAr" /></label>
-    <label>{{ 'admin.colNameEn' | t }}<input [(ngModel)]="screenForm.nameEn" /></label>
-    <label>{{ 'admin.description' | t }}<textarea [(ngModel)]="screenForm.description" rows="2"></textarea></label>
-    <label>{{ 'admin.colSort' | t }}<input type="number" [(ngModel)]="screenForm.sortOrder" /></label>
-    <label><input type="checkbox" [(ngModel)]="screenForm.active" /> {{ 'admin.colActive' | t }}</label>
-    <label><input type="checkbox" [(ngModel)]="screenForm.showInShellNav" /> {{ 'admin.screenShowInShellNav' | t }}</label>
-    <label>{{ 'admin.screenRequiredPerm' | t }}
-      <select [(ngModel)]="screenForm.requiredPermissionId">
-        <option [ngValue]="null">{{ 'admin.screenPermNone' | t }}</option>
-        <option *ngFor="let p of permissions" [ngValue]="p.id">{{ labelPermission(p) }} ({{ p.code }})</option>
-      </select>
-    </label>
+    <div class="dialog-form dialog-grid">
+      <div class="dialog-form__span-3">
+        <app-erp-auto-reference-field [value]="screenModal === 'edit' && screenForm.id != null ? screenForm.id : null" />
+      </div>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colCode' | t }}</span>
+        <input [(ngModel)]="screenForm.code" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colRoute' | t }}</span>
+        <input [(ngModel)]="screenForm.routePath" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.screenIconKey' | t }}</span>
+        <input [(ngModel)]="screenForm.iconKey" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colNameAr' | t }}</span>
+        <input [(ngModel)]="screenForm.nameAr" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colNameEn' | t }}</span>
+        <input [(ngModel)]="screenForm.nameEn" />
+      </label>
+
+      <label class="form-field">
+        <span class="form-field__label">{{ 'admin.colSort' | t }}</span>
+        <input type="number" [(ngModel)]="screenForm.sortOrder" />
+      </label>
+
+      <label class="form-field dialog-form__span-3">
+        <span class="form-field__label">{{ 'admin.description' | t }}</span>
+        <textarea [(ngModel)]="screenForm.description" rows="3"></textarea>
+      </label>
+
+      <label class="form-field dialog-form__span-3">
+        <span class="form-field__label">{{ 'admin.screenRequiredPerm' | t }}</span>
+        <select [(ngModel)]="screenForm.requiredPermissionId">
+          <option [ngValue]="null">{{ 'admin.screenPermNone' | t }}</option>
+          <option *ngFor="let p of permissions" [ngValue]="p.id">{{ labelPermission(p) }} ({{ p.code }})</option>
+        </select>
+      </label>
+
+      <div class="dialog-form__span-3 checkbox-group">
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="screenForm.active" />
+          <span class="checkbox-field__box" aria-hidden="true">
+            <i class="fa-solid fa-check"></i>
+          </span>
+          <span class="checkbox-field__label">{{ 'admin.colActive' | t }}</span>
+        </label>
+
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="screenForm.showInShellNav" />
+          <span class="checkbox-field__box" aria-hidden="true">
+            <i class="fa-solid fa-check"></i>
+          </span>
+          <span class="checkbox-field__label">{{ 'admin.screenShowInShellNav' | t }}</span>
+        </label>
+      </div>
+    </div>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="screenModal = null"><i class="fa-solid fa-xmark"></i>{{ 'common.close' | t }}</button>
       <button type="button" class="btn primary" (click)="saveScreen()"><i class="fa-solid fa-floppy-disk"></i>{{ 'common.apply' | t }}</button>

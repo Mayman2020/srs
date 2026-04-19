@@ -45,7 +45,8 @@ export class ErpUserProfileStore {
         a.rev === b.rev &&
         a.displayName === b.displayName &&
         a.avatarPrimarySrc === b.avatarPrimarySrc &&
-        a.currentRole === b.currentRole
+        a.currentRole === b.currentRole &&
+        this.sameRoles(a.roles, b.roles)
     ),
     shareReplay({ bufferSize: 1, refCount: false })
   );
@@ -62,6 +63,7 @@ export class ErpUserProfileStore {
         fullNameEn: string;
         profileImageUrl?: string | null;
         lastLoginAt: string | null;
+        roleCodes?: readonly string[] | null;
       } | null,
       avatarPrimarySrc: string | null = this.resolveFallbackAvatarSrc(s, profile)): ErpUserProfileViewModel {
     const displayName = this.resolveDisplayName(s, profile);
@@ -72,7 +74,7 @@ export class ErpUserProfileStore {
       initials: this.initialsFrom(displayName),
       avatarPrimarySrc,
       currentRole: s.currentRole,
-      roles: [...s.roles],
+      roles: this.resolveRoles(s, profile),
       lastLoginAt: profile?.lastLoginAt ?? null
     };
   }
@@ -133,6 +135,33 @@ export class ErpUserProfileStore {
       return '?';
     }
     return t.charAt(0).toUpperCase();
+  }
+
+  private resolveRoles(
+    session: AuthSessionSnapshot,
+    profile: { roleCodes?: readonly string[] | null } | null
+  ): string[] {
+    const rawCodes = [...(profile?.roleCodes ?? []), ...session.roles, session.currentRole];
+    const seen = new Set<string>();
+    const roles: string[] = [];
+
+    for (const raw of rawCodes) {
+      const code = String(raw ?? '').trim();
+      if (!code || seen.has(code)) {
+        continue;
+      }
+      seen.add(code);
+      roles.push(code);
+    }
+
+    return roles;
+  }
+
+  private sameRoles(a: readonly string[], b: readonly string[]): boolean {
+    if (a.length !== b.length) {
+      return false;
+    }
+    return a.every((role, index) => role === b[index]);
   }
 
   private resolveFallbackAvatarSrc(

@@ -114,6 +114,14 @@
         </div>
 
         <div class="intranet-panel lookup-page__table-panel" *ngIf="!loadingRows">
+          <div class="filters-modern lookup-page__table-search">
+            <input
+              type="search"
+              [(ngModel)]="tableSearch"
+              [attr.placeholder]="'common.searchTable' | t"
+              [attr.aria-label]="'common.searchTable' | t"
+            />
+          </div>
           <div class="intranet-table-wrap">
             <table class="intranet-table">
               <thead>
@@ -129,7 +137,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let r of rows">
+                <tr *ngFor="let r of filteredRows()">
                   <td>{{ r.code }}</td>
                   <td>{{ r.nameAr }}</td>
                   <td>{{ r.nameEn }}</td>
@@ -137,19 +145,31 @@
                   <td>{{ r.sortOrder }}</td>
                   <td>{{ r.active ? ('lookupAdmin.yes' | t) : ('lookupAdmin.no' | t) }}</td>
                   <td *ngIf="showStatusUiVariant()">{{ r.uiVariant ?? ('common.dash' | t) }}</td>
-                  <td class="lookup-page__actions">
-                    <button type="button" class="btn btn-primary lookup-page__btn-sm" (click)="startEdit(r)">
-                      {{ 'lookupAdmin.edit' | t }}
-                    </button>
-                    <button type="button" class="btn btn-danger lookup-page__btn-sm" (click)="confirmDelete(r)">
-                      {{ 'lookupAdmin.delete' | t }}
-                    </button>
+                  <td class="actions lookup-page__actions">
+                    <div class="actions-modern">
+                      <button
+                        type="button"
+                        class="action-btn edit"
+                        (click)="startEdit(r)"
+                        [attr.title]="'lookupAdmin.edit' | t"
+                        [attr.aria-label]="'lookupAdmin.edit' | t">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="action-btn delete"
+                        (click)="confirmDelete(r)"
+                        [attr.title]="'lookupAdmin.delete' | t"
+                        [attr.aria-label]="'lookupAdmin.delete' | t">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p class="lookup-page__empty" *ngIf="!rows.length">{{ 'common.empty' | t }}</p>
+          <p class="lookup-page__empty" *ngIf="!filteredRows().length">{{ 'common.empty' | t }}</p>
         </div>
         <p *ngIf="loadingRows" class="lookup-page__loading">{{ 'common.loading' | t }}</p>
       </div>
