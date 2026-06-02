@@ -26,7 +26,7 @@ export class CreateTransactionButton {
   }
 
   createDefault() {
-    this.router.navigate(['/create-transaction']);
+    this.router.navigate(['/correspondence/create']);
   }
 
   go(path: string) {

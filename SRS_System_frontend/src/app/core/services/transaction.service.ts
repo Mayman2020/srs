@@ -21,6 +21,11 @@ import { Transaction, TimelineStep } from '../models/transaction.model';
  * Application facade for correspondence: maps API DTOs to UI {@link Transaction} models,
  * resolves timeline labels via {@link LookupLabelsService}, and delegates mutations to
  * {@link CorrespondenceApiService}. Prefer this service in features; keep HTTP types in `core/api`.
+ *
+ * @deprecated Phase 9 plan: prefer {@link CorrespondenceApiService} directly. This class is kept
+ *     during the transition to canonical naming/routes (`/correspondence/*`); existing callers
+ *     (dashboard, transactions list, details, search, smart-assistant) should migrate to a thin
+ *     view-model mapper. Will be removed in the next release once all callers are converted.
  */
 @Injectable({
   providedIn: 'root'

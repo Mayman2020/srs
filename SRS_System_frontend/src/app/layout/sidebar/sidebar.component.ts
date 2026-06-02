@@ -43,7 +43,15 @@ export class SidebarComponent {
         if (!this.authToken.getToken()?.trim()) {
           return of([] as ShellNavItemDto[]);
         }
-        return this.navApi.listNav().pipe(catchError(() => of([] as ShellNavItemDto[])));
+        return this.navApi.listNav().pipe(
+          catchError((err) => {
+            // No-silent-HTTP-failures policy: when the user is authenticated but navigation
+            // cannot be loaded (e.g. token expired mid-session, server returns 5xx, network drop),
+            // log it once so the failure is at least observable in the browser console.
+            console.warn('[SidebarComponent] Failed to load /profile/me/navigation', err);
+            return of([] as ShellNavItemDto[]);
+          })
+        );
       })
     ),
     { initialValue: [] as ShellNavItemDto[] }

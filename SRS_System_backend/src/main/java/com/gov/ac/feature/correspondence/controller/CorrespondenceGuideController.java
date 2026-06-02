@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/correspondence")
 @RequiredArgsConstructor
+@PreAuthorize("@effectivePermission.has('CORRESPONDENCE_VIEW')")
 public class CorrespondenceGuideController {
 
   private final CorrespondenceGuideService correspondenceGuideService;
@@ -35,6 +37,7 @@ public class CorrespondenceGuideController {
 
   @PostMapping("/{correspondenceId}/links")
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_UPDATE')")
   public CorrespondenceLinkListItemDto addLink(
       @PathVariable UUID correspondenceId, @Valid @RequestBody CreateCorrespondenceLinkRequestDto body) {
     return correspondenceGuideService.addLink(
@@ -43,6 +46,7 @@ public class CorrespondenceGuideController {
 
   @DeleteMapping("/{correspondenceId}/links/{linkId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_UPDATE')")
   public void deleteLink(@PathVariable UUID correspondenceId, @PathVariable long linkId) {
     correspondenceGuideService.deleteLink(correspondenceId, SecurityUtils.requireCurrentUserId(), linkId);
   }
@@ -55,6 +59,7 @@ public class CorrespondenceGuideController {
 
   @PostMapping("/{correspondenceId}/nonarchived-items")
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_UPDATE')")
   public CorrespondenceNonarchivedItemDto addNonarchived(
       @PathVariable UUID correspondenceId,
       @Valid @RequestBody UpsertCorrespondenceNonarchivedItemRequestDto body) {
@@ -63,6 +68,7 @@ public class CorrespondenceGuideController {
   }
 
   @PutMapping("/{correspondenceId}/nonarchived-items/{itemId}")
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_UPDATE')")
   public CorrespondenceNonarchivedItemDto updateNonarchived(
       @PathVariable UUID correspondenceId,
       @PathVariable long itemId,
@@ -73,6 +79,7 @@ public class CorrespondenceGuideController {
 
   @DeleteMapping("/{correspondenceId}/nonarchived-items/{itemId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_UPDATE')")
   public void deleteNonarchived(
       @PathVariable UUID correspondenceId, @PathVariable long itemId) {
     correspondenceGuideService.deleteNonarchived(

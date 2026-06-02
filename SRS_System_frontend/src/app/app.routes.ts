@@ -2,6 +2,16 @@ import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { permissionCanMatch } from './core/auth/permission.guard';
 
+/**
+ * Routing table for the SRS shell.
+ *
+ * Permission strings use the canonical SCREAMING_SNAKE codes from V7 (e.g.
+ * {@code CORRESPONDENCE_VIEW}). The backend resolves both legacy and canonical
+ * codes through {@code permission_alias} until Phase 9 removes the legacy set.
+ *
+ * Legacy `transactions*` URLs are preserved as 301-style redirects to
+ * `correspondence*` so deep links from email / saved tabs keep working.
+ */
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
@@ -10,6 +20,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/login/login.component')
         .then(c => c.LoginComponent)
+  },
+
+  {
+    path: 'verify/:token',
+    loadComponent: () =>
+      import('./features/public-verify/public-verify.component').then((m) => m.PublicVerifyComponent),
+    data: { titleKey: 'verify.pageTitle' }
   },
 
   {
@@ -22,46 +39,75 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component')
             .then(m => m.DashboardComponent),
-        data: { titleKey: 'dashboard.pageTitle', permission: 'VIEW_DASHBOARD' }
+        data: { titleKey: 'dashboard.pageTitle', permission: 'DASHBOARD_VIEW' }
       },
+
+      // ===================== Correspondence (canonical path) =====================
       {
-        path: 'transactions',
+        path: 'correspondence',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/transactions/transactions.component')
             .then(m => m.TransactionsComponent),
-        data: { titleKey: 'transactions.pageTitle', permission: 'VIEW_TRANSACTIONS' }
+        data: { titleKey: 'transactions.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
       },
       {
-        path: 'transactions/list/:type',
+        path: 'correspondence/list/:type',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/transactions-list/transactions-list.component')
             .then(m => m.TransactionsListComponent),
-        data: { titleKey: 'transactionsList.title', permission: 'VIEW_TRANSACTIONS' }
+        data: { titleKey: 'transactionsList.title', permission: 'CORRESPONDENCE_VIEW' }
       },
       {
-        path: 'create-transaction',
+        path: 'correspondence/create',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/create-transaction/create-transaction-component/create-transaction-component')
             .then(m => m.CreateTransactionComponent),
-        data: { titleKey: 'createTx.pageTitle', supplyMode: false, permission: 'CREATE_TRANSACTION' }
+        data: { titleKey: 'createTx.pageTitle', supplyMode: false, permission: 'CORRESPONDENCE_CREATE' }
       },
       {
-        path: 'supply-transaction',
+        path: 'correspondence/supply',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/create-transaction/create-transaction-component/create-transaction-component')
             .then(m => m.CreateTransactionComponent),
-        data: { titleKey: 'supplyTx.pageTitle', supplyMode: true, permission: 'CREATE_TRANSACTION' }
+        data: { titleKey: 'supplyTx.pageTitle', supplyMode: true, permission: 'CORRESPONDENCE_CREATE' }
       },
+      {
+        path: 'correspondence/:id',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/new_transaction_details/transaction-details')
+            .then(m => m.TransactionDetailsComponent),
+        data: { titleKey: 'transactionDetails.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
+      },
+
+      // ===================== Legacy transaction paths -> redirects =====================
+      { path: 'transactions', redirectTo: 'correspondence', pathMatch: 'full' },
+      { path: 'transactions/list/:type', redirectTo: 'correspondence/list/:type', pathMatch: 'full' },
+      { path: 'create-transaction', redirectTo: 'correspondence/create', pathMatch: 'full' },
+      { path: 'supply-transaction', redirectTo: 'correspondence/supply', pathMatch: 'full' },
+      { path: 'transactions/:id', redirectTo: 'correspondence/:id', pathMatch: 'full' },
+
+      // ===================== Workflow inbox =====================
+      {
+        path: 'workflow-tasks',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/workflow-task-inbox/workflow-task-inbox.component')
+            .then(m => m.WorkflowTaskInboxComponent),
+        data: { titleKey: 'workflowTasks.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
+      },
+
+      // ===================== Organization =====================
       {
         path: 'org-structure',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/org-structure/org-structure.component').then((m) => m.OrgStructureComponent),
-        data: { titleKey: 'orgStructure.pageTitle', permission: 'correspondence.view' }
+        data: { titleKey: 'orgStructure.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
       },
       {
         path: 'org-structure/tree',
@@ -70,22 +116,33 @@ export const routes: Routes = [
           import('./features/org-structure/org-structure-tree.component').then(
             (m) => m.OrgStructureTreeComponent
           ),
-        data: { titleKey: 'orgStructure.treePageTitle', permission: 'lookup.manage' }
+        data: { titleKey: 'orgStructure.treePageTitle', permission: 'ADMIN_ORG_MANAGE' }
       },
+      {
+        path: 'org-levels',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/org-levels/org-levels.component').then((m) => m.OrgLevelsComponent),
+        data: { titleKey: 'orgLevels.pageTitle', permission: 'ADMIN_ORG_MANAGE' }
+      },
+
+      // ===================== HR / leave =====================
       {
         path: 'leave-requests',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/leave-requests/leave-requests.component').then((m) => m.LeaveRequestsComponent),
-        data: { titleKey: 'leave.pageTitle', permission: 'leave.self' }
+        data: { titleKey: 'leave.pageTitle', permission: 'LEAVE_SELF' }
       },
+
+      // ===================== Communication =====================
       {
         path: 'notifications',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/notifications/notifications')
             .then(m => m.NotificationsComponent),
-        data: { titleKey: 'notifications.pageTitle', permission: 'correspondence.view' }
+        data: { titleKey: 'notifications.pageTitle', permission: 'NOTIFICATION_VIEW' }
       },
       {
         path: 'circulars',
@@ -94,15 +151,33 @@ export const routes: Routes = [
           import('./features/circular-inbox/circular-inbox.component').then(
             (m) => m.CircularInboxComponent
           ),
-        data: { titleKey: 'circularInbox.title', subtitleKey: 'circularInbox.subtitle', permission: 'correspondence.view' }
+        data: { titleKey: 'circularInbox.title', subtitleKey: 'circularInbox.subtitle', permission: 'CORRESPONDENCE_VIEW' }
       },
+      {
+        path: 'circulars/create',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/circular-create/circular-create.component').then(
+            (m) => m.CircularCreateComponent
+          ),
+        data: { titleKey: 'circularCreate.pageTitle', permission: 'CORRESPONDENCE_CREATE' }
+      },
+      {
+        path: 'sms-dispatch',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/sms-dispatch/sms-dispatch.component').then((m) => m.SmsDispatchComponent),
+        data: { titleKey: 'smsDispatch.pageTitle', permission: 'NOTIFICATION_DISPATCH' }
+      },
+
+      // ===================== Reports =====================
       {
         path: 'reports',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/reports/reports')
             .then(m => m.ReportsComponent),
-        data: { titleKey: 'reports.pageTitle', permission: 'report.view' }
+        data: { titleKey: 'reports.pageTitle', permission: 'REPORT_VIEW' }
       },
       {
         path: 'correspondence-search',
@@ -111,21 +186,43 @@ export const routes: Routes = [
           import('./features/correspondence-search/correspondence-search.component').then(
             (m) => m.CorrespondenceSearchComponent
           ),
-        data: { titleKey: 'correspondenceSearch.pageTitle', permission: 'correspondence.view' }
+        data: { titleKey: 'correspondenceSearch.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
       },
+
+      // ===================== Delegations =====================
       {
         path: 'delegations',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/delegations/delegations.component').then((m) => m.DelegationsComponent),
-        data: { titleKey: 'delegations.pageTitle', permission: 'correspondence.view' }
+        data: { titleKey: 'delegations.pageTitle', permission: 'DELEGATION_MANAGE' }
       },
+      {
+        path: 'task-delegations',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/task-delegations/task-delegations.component').then(
+            (m) => m.TaskDelegationsComponent
+          ),
+        data: { titleKey: 'taskDelegations.pageTitle', permission: 'TASK_DELEGATION_MANAGE_OWN' }
+      },
+      {
+        path: 'acting-assignments',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/acting-assignments/acting-assignments.component').then(
+            (m) => m.ActingAssignmentsComponent
+          ),
+        data: { titleKey: 'acting.pageTitle', permission: 'ACTING_ASSIGNMENT_VIEW' }
+      },
+
+      // ===================== Admin =====================
       {
         path: 'lookup-admin',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/lookup-admin/lookup-admin.component').then((m) => m.LookupAdminComponent),
-        data: { titleKey: 'lookupAdmin.pageTitle', permission: 'lookup.manage' }
+        data: { titleKey: 'lookupAdmin.pageTitle', permission: 'ADMIN_LOOKUP_MANAGE' }
       },
       {
         path: 'admin-communications-main',
@@ -138,7 +235,7 @@ export const routes: Routes = [
           defaultAdminTab: 'users',
           titleKey: 'admin.pageTitle',
           subtitleKey: 'admin.pageSubtitle',
-          permission: 'lookup.manage'
+          permission: 'ADMIN_LOOKUP_MANAGE'
         }
       },
       {
@@ -146,29 +243,91 @@ export const routes: Routes = [
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/users/users').then((m) => m.UsersComponent),
-        data: { titleKey: 'users.pageTitle', permission: 'user.manage' }
+        data: { titleKey: 'users.pageTitle', permission: 'ADMIN_USER_MANAGE' }
       },
       {
         path: 'roles',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/roles/roles').then((m) => m.RolesComponent),
-        data: { titleKey: 'roles.pageTitle', permission: 'role.manage' }
+        data: { titleKey: 'roles.pageTitle', permission: 'ADMIN_ROLE_MANAGE' }
+      },
+      {
+        path: 'audit-events',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/audit-events/audit-events.component').then((m) => m.AuditEventsComponent),
+        data: { titleKey: 'audit.pageTitle', permission: 'ADMIN_AUDIT_VIEW' }
+      },
+      {
+        path: 'sla-policies',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/sla-policies/sla-policies.component').then((m) => m.SlaPoliciesComponent),
+        data: { titleKey: 'sla.pageTitle', permission: 'SLA_POLICY_MANAGE' }
+      },
+
+      {
+        path: 'admin/retention/policies',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/retention-policies-admin/retention-policies-admin.component').then(
+            (m) => m.RetentionPoliciesAdminComponent
+          ),
+        data: { titleKey: 'retention.policiesPageTitle', permission: 'RETENTION_POLICY_VIEW' }
+      },
+      {
+        path: 'admin/retention/legal-holds',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/legal-holds-admin/legal-holds-admin.component').then(
+            (m) => m.LegalHoldsAdminComponent
+          ),
+        data: { titleKey: 'retention.legalHoldsPageTitle', permission: 'LEGAL_HOLD_VIEW' }
+      },
+      {
+        path: 'admin/retention/log',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/retention-archive-log/retention-archive-log.component').then(
+            (m) => m.RetentionArchiveLogComponent
+          ),
+        data: { titleKey: 'retention.logPageTitle', permission: 'RETENTION_LOG_VIEW' }
+      },
+      {
+        path: 'admin/notifications/channels',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/notification-channels-admin/notification-channels-admin.component').then(
+            (m) => m.NotificationChannelsAdminComponent
+          ),
+        data: { titleKey: 'notificationAdmin.channelsPageTitle', permission: 'NOTIFICATION_CHANNEL_ADMIN' }
+      },
+      {
+        path: 'admin/notifications/outbox',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/notification-outbox-admin/notification-outbox-admin.component').then(
+            (m) => m.NotificationOutboxAdminComponent
+          ),
+        data: { titleKey: 'notificationAdmin.outboxPageTitle', permission: 'NOTIFICATION_CHANNEL_ADMIN' }
+      },
+
+      // ===================== Profile =====================
+      {
+        path: 'profile/notifications',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/notification-preferences/notification-preferences.component').then(
+            (m) => m.NotificationPreferencesComponent
+          ),
+        data: { titleKey: 'notificationAdmin.prefsPageTitle', permission: 'NOTIFICATION_PREFERENCE_MANAGE' }
       },
       {
         path: 'profile',
         loadComponent: () =>
           import('./features/profile/profile.component').then((m) => m.ProfileComponent),
         data: { titleKey: 'profile.pageTitle' }
-      },
-
-      {
-        path: 'transactions/:id',
-        canMatch: [permissionCanMatch],
-        loadComponent: () =>
-          import('./features/new_transaction_details/transaction-details')
-            .then(m => m.TransactionDetailsComponent),
-        data: { titleKey: 'transactionDetails.pageTitle', permission: 'VIEW_TRANSACTIONS' }
       }
     ]
   },

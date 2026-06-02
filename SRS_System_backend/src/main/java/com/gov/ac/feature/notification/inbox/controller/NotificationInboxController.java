@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
+@PreAuthorize("@effectivePermission.has('NOTIFICATION_VIEW')")
 public class NotificationInboxController {
 
   private final NotificationInboxService notificationInboxService;
@@ -36,6 +38,16 @@ public class NotificationInboxController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void markRead(@PathVariable UUID id) {
     notificationInboxService.markRead(id, SecurityUtils.requireCurrentUserId());
+  }
+
+  /**
+   * Marks every unread notification for the current user as read in a single bulk UPDATE.
+   * Eliminates the N-request pattern from the frontend topbar.
+   */
+  @PatchMapping("/read-all")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void markAllRead() {
+    notificationInboxService.markAllRead(SecurityUtils.requireCurrentUserId());
   }
 
   @DeleteMapping("/{id}")

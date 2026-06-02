@@ -19,6 +19,15 @@ public interface AppUserRepository extends JpaRepository<AppUserEntity, UUID> {
 
   List<AppUserEntity> findByDepartment_IdAndDeletedAtIsNullAndActiveTrue(Long departmentId);
 
+  /** Pick any active user in the given department (deterministic by created_at). */
+  Optional<AppUserEntity> findFirstByDepartment_IdAndDeletedAtIsNullAndActiveTrueOrderByCreatedAtAsc(
+      Long departmentId);
+
+  /** Convenience alias used by routing stop assignment listener. */
+  default Optional<AppUserEntity> findFirstActiveByDepartmentId(Long departmentId) {
+    return findFirstByDepartment_IdAndDeletedAtIsNullAndActiveTrueOrderByCreatedAtAsc(departmentId);
+  }
+
   @EntityGraph(attributePaths = "department")
   Optional<AppUserEntity> findByUsernameAndDeletedAtIsNull(String username);
 

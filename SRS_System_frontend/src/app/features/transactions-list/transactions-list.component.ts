@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { Subject, of } from 'rxjs';
+import { catchError, debounceTime, switchMap, takeUntil } from 'rxjs/operators';
 
 import { Transaction } from '../../core/models/transaction.model';
 import { TransactionService } from '../../core/services/transaction.service';
@@ -16,11 +15,17 @@ import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 import { SrsSortHeaderComponent } from '../../shared/data-table/srs-sort-header.component';
 import { srsTableRowEnter } from '../../shared/data-table/srs-table.animations';
-import { compareSortValues, type SortDirection } from '../../shared/data-table/table-sort.util';
+import { type SortDirection } from '../../shared/data-table/table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
-import { srsClientPaginate } from '../../shared/data-table/srs-client-pagination.util';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
+import { SpringPage } from '../../core/api/api-types';
 
+/**
+ * Correspondence list with server-side pagination, sorting, and filtering. Free-text search
+ * uses the backend {@code q} parameter (matches reference number / subject / external ref).
+ * Status / type / priority pass through to the backend specification, so no client-side
+ * filtering is needed.
+ */
 @Component({
   selector: 'app-transactions-list',
   standalone: true,
@@ -37,10 +42,11 @@ import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.com
   styleUrls: ['./transactions-list.component.css'],
   animations: [srsTableRowEnter]
 })
-export class TransactionsListComponent implements OnInit {
-  all: Transaction[] = [];
-  filtered: Transaction[] = [];
+export class TransactionsListComponent implements OnInit, OnDestroy {
+  /** Rows currently rendered for the active page. */
   pageData: Transaction[] = [];
+  /** Compatibility for the existing template — same as {@link pageData}. */
+  filtered: Transaction[] = [];
 
   type = '';
 
@@ -58,6 +64,9 @@ export class TransactionsListComponent implements OnInit {
   sortDir: SortDirection = 'desc';
 
   statusFilterCodes: string[] = [];
+
+  private readonly reload$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private service: TransactionService,
@@ -80,53 +89,62 @@ export class TransactionsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.type = this.route.snapshot.paramMap.get('type') || '';
-    subscribePageLoad({
-      cdr: this.cdr,
-      setLoading: (v) => (this.tableLoading = v),
-      source: forkJoin({
-        correspondenceStatuses: this.lookupLabels
-          .loadTable(LookupCode.CorrespondenceStatus)
-          .pipe(catchError(() => of([]))),
-        correspondenceTypes: this.lookupLabels
-          .loadTable(LookupCode.CorrespondenceType)
-          .pipe(catchError(() => of([]))),
-        list: this.service.listPage().pipe(catchError(() => of([] as Transaction[])))
-      }),
-      next: ({ correspondenceStatuses, list }) => {
-        this.statusFilterCodes = (correspondenceStatuses ?? []).map((r) => r.code);
-        if (this.type === 'ARCHIVED') {
-          this.all = list.filter((t) => t.statusCode === 'ARCHIVED');
-        } else if (this.type) {
-          this.all = list.filter((t) => t.typeCode === this.type);
-        } else {
-          this.all = list;
-        }
-        this.applyFilters();
-      },
-      error: () => {
-        this.all = [];
-        this.applyFilters();
-      }
-    });
+
+    this.lookupLabels
+      .loadTable(LookupCode.CorrespondenceStatus)
+      .pipe(takeUntil(this.destroy$), catchError(() => of([])))
+      .subscribe((rows) => {
+        this.statusFilterCodes = (rows ?? []).map((r) => r.code);
+        this.cdr.detectChanges();
+      });
+
+    this.reload$
+      .pipe(
+        debounceTime(200),
+        switchMap(() => {
+          this.tableLoading = true;
+          return this.service
+            .listSpringPage({
+              page: this.page - 1,
+              size: this.pageSize,
+              sort: [`${this.toBackendSort(this.sortColumn)},${this.sortDir}`],
+              status: this.effectiveStatus(),
+              type: this.effectiveType(),
+              q: this.composeFreeText()
+            })
+            .pipe(
+              catchError(() =>
+                of<SpringPage<Transaction>>({
+                  content: [],
+                  totalElements: 0,
+                  totalPages: 0,
+                  number: 0,
+                  size: this.pageSize
+                })
+              )
+            );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((sp) => {
+        this.pageData = sp.content ?? [];
+        this.filtered = this.pageData;
+        this.total = sp.totalElements ?? 0;
+        this.tableLoading = false;
+        this.cdr.detectChanges();
+      });
+
+    this.reload$.next();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   applyFilters(): void {
-    this.filtered = this.all.filter((t) => {
-      const id = t.id?.toString().toLowerCase() ?? '';
-      const ref = (t.referenceNumber ?? '').toString().toLowerCase();
-      const subject = t.subject?.toLowerCase() ?? '';
-      const from = t.from?.toLowerCase() ?? '';
-
-      if (this.fNo && !id.includes(this.fNo.toLowerCase()) && !ref.includes(this.fNo.toLowerCase()))
-        return false;
-      if (this.fSubject && !subject.includes(this.fSubject.toLowerCase())) return false;
-      if (this.fFrom && !from.includes(this.fFrom.toLowerCase())) return false;
-      if (this.fStatus && t.statusCode !== this.fStatus) return false;
-      return true;
-    });
-
     this.page = 1;
-    this.applyPagination();
+    this.reload$.next();
   }
 
   resetFilters(): void {
@@ -137,76 +155,30 @@ export class TransactionsListComponent implements OnInit {
     this.applyFilters();
   }
 
-  applyPagination(): void {
-    const sorted = this.sortTransactions(this.filtered);
-    const r = srsClientPaginate(sorted, this.page, this.pageSize);
-    this.page = r.page;
-    this.total = r.total;
-    this.pageData = r.pageRows;
-  }
-
   goToPage(p: number): void {
     this.page = p;
-    this.applyPagination();
+    this.reload$.next();
   }
 
   onSort(ev: { columnId: string; direction: SortDirection }): void {
     this.sortColumn = ev.columnId;
     this.sortDir = ev.direction;
     this.page = 1;
-    this.applyPagination();
+    this.reload$.next();
   }
 
   onPageSizeChange(n: number): void {
     this.pageSize = n;
     this.page = 1;
-    this.applyPagination();
+    this.reload$.next();
   }
 
   trackByTxId(_i: number, t: Transaction): string {
     return t.id;
   }
 
-  private sortTransactions(rows: Transaction[]): Transaction[] {
-    const col = this.sortColumn;
-    const dir = this.sortDir;
-    return [...rows].sort((a, b) => {
-      switch (col) {
-        case 'createdAt':
-          return compareSortValues(a.createdAt.getTime(), b.createdAt.getTime(), dir);
-        case 'id': {
-          const na = Number(a.id);
-          const nb = Number(b.id);
-          if (!Number.isNaN(na) && !Number.isNaN(nb)) {
-            return compareSortValues(na, nb, dir);
-          }
-          return compareSortValues(a.id, b.id, dir);
-        }
-        case 'type':
-          return compareSortValues(a.typeCode, b.typeCode, dir);
-        case 'subject':
-          return compareSortValues(a.subject, b.subject, dir);
-        case 'entity': {
-          const sa = `${a.from ?? ''} ${a.to ?? ''}`;
-          const sb = `${b.from ?? ''} ${b.to ?? ''}`;
-          return compareSortValues(sa, sb, dir);
-        }
-        case 'sla':
-          return compareSortValues(this.calcSla(a), this.calcSla(b), dir);
-        case 'secrecy':
-          return compareSortValues(a.secrecy || '', b.secrecy || '', dir);
-        case 'attachments':
-          return compareSortValues(a.attachments?.length ?? 0, b.attachments?.length ?? 0, dir);
-        case 'status':
-          return compareSortValues(a.statusCode, b.statusCode, dir);
-        default:
-          return 0;
-      }
-    });
-  }
-
   back(): void {
-    this.router.navigate(['/transactions']);
+    this.router.navigate(['/correspondence']);
   }
 
   calcSla(t: Transaction): number {
@@ -219,6 +191,46 @@ export class TransactionsListComponent implements OnInit {
 
   open(tx: Transaction): void {
     localStorage.setItem('gov-selected-tx', tx.id);
-    this.router.navigate(['/transactions', tx.id]);
+    this.router.navigate(['/correspondence', tx.id]);
+  }
+
+  private effectiveStatus(): string | undefined {
+    if (this.type === 'ARCHIVED') return 'ARCHIVED';
+    if (this.fStatus) return this.fStatus;
+    return undefined;
+  }
+
+  private effectiveType(): string | undefined {
+    if (!this.type || this.type === 'ARCHIVED') return undefined;
+    return this.type;
+  }
+
+  private composeFreeText(): string | undefined {
+    const parts = [this.fNo, this.fSubject, this.fFrom]
+      .map((p) => (p ?? '').trim())
+      .filter((p) => !!p);
+    return parts.length ? parts.join(' ') : undefined;
+  }
+
+  /** Map UI sort keys to backend entity properties. */
+  private toBackendSort(col: string): string {
+    switch (col) {
+      case 'id':
+        return 'referenceNumber';
+      case 'createdAt':
+        return 'createdAt';
+      case 'subject':
+        return 'subject';
+      case 'type':
+        return 'correspondenceType.code';
+      case 'status':
+        return 'correspondenceStatus.code';
+      case 'sla':
+      case 'attachments':
+      case 'entity':
+      case 'secrecy':
+      default:
+        return 'createdAt';
+    }
   }
 }

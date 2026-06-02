@@ -1,0 +1,63 @@
+<section class="page" aria-labelledby="log-title">
+  <header class="page-header">
+    <h1 id="log-title">{{ 'retention.logPageTitle' | t }}</h1>
+    <p class="muted">{{ 'retention.log.subtitle' | t }}</p>
+  </header>
+
+  <div class="toolbar">
+    <button type="button" class="btn btn-secondary" (click)="refresh()">{{ 'common.refresh' | t }}</button>
+  </div>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'common.loading' | t }}</p>
+  <p *ngIf="error()" class="state-msg err" role="alert">{{ error()! | t }}</p>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <p *ngIf="rows().length === 0" class="state-msg muted">{{ 'retention.log.empty' | t }}</p>
+
+    <div *ngIf="rows().length > 0" class="card">
+      <table class="rows">
+        <thead>
+          <tr>
+            <th>{{ 'retention.log.executedAt' | t }}</th>
+            <th>{{ 'retention.log.action' | t }}</th>
+            <th>{{ 'retention.log.appliedTo' | t }}</th>
+            <th>{{ 'retention.log.resourceId' | t }}</th>
+            <th>{{ 'retention.log.policyId' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of rows()"
+            (click)="select(row)"
+            [class.selected]="selected()?.id === row.id">
+            <td>{{ row.executedAt | date: 'short' }}</td>
+            <td><span class="badge">{{ row.action }}</span></td>
+            <td><code class="code">{{ row.appliedTo }}</code></td>
+            <td><code class="code">{{ row.resourceId }}</code></td>
+            <td><code class="code" *ngIf="row.policyId">{{ row.policyId }}</code><span *ngIf="!row.policyId">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pager">
+        <button type="button" class="btn btn-secondary" (click)="prevPage()" [disabled]="page()?.first">
+          {{ 'common.previous' | t }}
+        </button>
+        <span class="muted">
+          {{ 'common.showing' | t }} {{ (page()?.number ?? 0) + 1 }} / {{ page()?.totalPages || 1 }}
+        </span>
+        <button type="button" class="btn btn-secondary" (click)="nextPage()" [disabled]="page()?.last">
+          {{ 'common.next' | t }}
+        </button>
+      </div>
+    </div>
+
+    <aside *ngIf="selected() as s" class="details">
+      <header class="details-header">
+        <h3>{{ 'retention.log.detailsTitle' | t }}</h3>
+        <button type="button" class="btn btn-link" (click)="closeDetails()">{{ 'common.close' | t }}</button>
+      </header>
+      <pre class="json-pane">{{ prettyJson(s.detailJson) || ('retention.log.noDetails' | t) }}</pre>
+    </aside>
+  </ng-container>
+</section>

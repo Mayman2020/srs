@@ -5,6 +5,7 @@ import com.gov.ac.feature.correspondence.dto.CorrespondenceAttachmentDetailDto;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceCommentDetailDto;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceDetailResponseDto;
 import com.gov.ac.feature.correspondence.dto.WorkflowActionAvailableDto;
+import com.gov.ac.feature.correspondence.readtracking.dto.CorrespondenceReadReceiptDto;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceTimelineEntryDto;
 import com.gov.ac.feature.correspondence.dto.DepartmentSummaryDto;
 import com.gov.ac.feature.correspondence.dto.LookupLabelDto;
@@ -40,7 +41,9 @@ public class CorrespondenceDetailMapper {
       List<CorrespondenceCommentEntity> comments,
       List<WorkflowHistoryEntity> historyRows,
       List<WorkflowActionAvailableDto> availableWorkflowActions,
-      boolean cancelAllowed) {
+      boolean cancelAllowed,
+      CorrespondenceReadReceiptDto myReadReceipt,
+      boolean acknowledgementSupported) {
 
     List<CorrespondenceAttachmentDetailDto> attachmentDtos = new ArrayList<>();
     for (AttachmentEntity a : attachments) {
@@ -100,6 +103,8 @@ public class CorrespondenceDetailMapper {
         .comments(commentDtos)
         .availableWorkflowActions(availableWorkflowActions != null ? availableWorkflowActions : List.of())
         .cancelAllowed(cancelAllowed)
+        .myReadReceipt(myReadReceipt)
+        .acknowledgementSupported(acknowledgementSupported)
         .build();
   }
 
@@ -200,6 +205,7 @@ public class CorrespondenceDetailMapper {
         .code(c.getCode())
         .nameAr(c.getNameAr())
         .nameEn(c.getNameEn())
+        .requiresClearance(c.getRequiresClearance())
         .build();
   }
 

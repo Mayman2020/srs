@@ -10,6 +10,7 @@ import com.gov.ac.feature.users.entity.AppUserEntity;
 import com.gov.ac.feature.users.repository.AppUserRepository;
 import com.gov.ac.feature.attachment.repository.AttachmentRepository;
 import com.gov.ac.feature.attachment.repository.AttachmentVersionRepository;
+import com.gov.ac.feature.retention.LegalHoldService;
 import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
 import com.gov.ac.common.api.ForbiddenException;
 import com.gov.ac.common.api.NotFoundException;
@@ -33,6 +34,7 @@ public class AttachmentDeletionService {
   private final AppUserRepository appUserRepository;
   private final CorrespondenceViewAuthorization correspondenceViewAuthorization;
   private final CorrespondenceActionAudit correspondenceActionAudit;
+  private final LegalHoldService legalHoldService;
 
   @Transactional
   public void softDelete(Long attachmentId, UUID actorUserId) {
@@ -56,6 +58,7 @@ public class AttachmentDeletionService {
 
     correspondenceViewAuthorization.assertCanView(viewer, correspondence);
     CorrespondenceMutationGuards.assertCorrespondenceMutable(correspondence);
+    legalHoldService.assertNotHeld(correspondence.getId());
 
     Long verId = attachment.getCurrentVersionId();
     if (verId == null) {

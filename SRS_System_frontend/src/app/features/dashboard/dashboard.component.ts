@@ -364,11 +364,11 @@ export class DashboardComponent implements OnInit {
   }
 
   openTransctions(): void {
-    this.router.navigate(['/transactions']);
+    this.router.navigate(['/correspondence']);
   }
 
   openTransaction(id: string): void {
-    this.router.navigate(['/transactions', id]);
+    this.router.navigate(['/correspondence', id]);
   }
 
   trackByRecentId(_i: number, row: DashboardRecentRow): string {

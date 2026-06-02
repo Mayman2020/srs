@@ -14,6 +14,7 @@ import com.gov.ac.feature.workflow.execution.entity.WorkflowInstanceEntity;
 import com.gov.ac.feature.shared.lookup.service.LookupResolutionService;
 import com.gov.ac.feature.users.repository.AppUserRepository;
 import com.gov.ac.feature.lookups.repository.CorrespondenceStatusRepository;
+import com.gov.ac.feature.retention.LegalHoldService;
 import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
 import com.gov.ac.feature.workflow.execution.repository.WorkflowHistoryRepository;
 import com.gov.ac.feature.workflow.execution.repository.WorkflowInstanceRepository;
@@ -50,6 +51,7 @@ public class CorrespondenceCancelService {
   private final WorkflowService workflowService;
   private final CorrespondenceActionAudit correspondenceActionAudit;
   private final EffectiveUserPermissionService effectiveUserPermissionService;
+  private final LegalHoldService legalHoldService;
 
   @Transactional
   public void cancel(UUID correspondenceId, UUID actorUserId, CorrespondenceCancelRequestDto body) {
@@ -60,8 +62,8 @@ public class CorrespondenceCancelService {
     if (!Boolean.TRUE.equals(actor.getActive())) {
       throw new ForbiddenException("You cannot cancel this correspondence");
     }
-    if (!effectiveUserPermissionService.hasActivePermission(actorUserId, "CANCEL_TRANSACTION")) {
-      throw new ForbiddenException("Missing CANCEL_TRANSACTION permission");
+    if (!effectiveUserPermissionService.hasActivePermission(actorUserId, "CORRESPONDENCE_DELETE")) {
+      throw new ForbiddenException("Missing CORRESPONDENCE_DELETE permission");
     }
 
     CorrespondenceEntity correspondence =
@@ -70,6 +72,7 @@ public class CorrespondenceCancelService {
             .orElseThrow(() -> new NotFoundException("CorrespondenceEntity not found"));
 
     correspondenceViewAuthorization.assertCanView(actor, correspondence);
+    legalHoldService.assertNotHeld(correspondenceId);
 
     CorrespondenceStatusEntity previous = correspondence.getCorrespondenceStatus();
     if (!isUserCancelAllowed(correspondence)) {

@@ -82,4 +82,11 @@ public class AppUserEntity extends SoftDeletableEntity {
   /** {@code ar} or {@code en} — persisted UI language. */
   @Column(name = "ui_locale", nullable = false, length = 8)
   private String uiLocale = "ar";
+
+  /**
+   * Maximum confidentiality level this user is cleared to view (FK to {@code confidentiality.id}).
+   * Null is treated by {@code CorrespondenceViewAuthorization} as the lowest clearance.
+   */
+  @Column(name = "security_clearance_id")
+  private Long securityClearanceId;
 }

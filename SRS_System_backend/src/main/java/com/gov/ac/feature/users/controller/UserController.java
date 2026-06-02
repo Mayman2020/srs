@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@PreAuthorize("@effectivePermission.has(authentication, 'user.manage')")
+@PreAuthorize("@effectivePermission.has('ADMIN_USER_MANAGE')")
 public class UserController {
 
   private final UserAdminService userAdminService;

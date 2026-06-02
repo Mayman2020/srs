@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>{{ 'verify.qrDialogTitle' | t }}</h2>
+<mat-dialog-content>
+  <p class="file-label">{{ data.fileLabel }}</p>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'verify.issuingToken' | t }}</p>
+  <p *ngIf="errorKey()" class="state-msg err" role="alert">{{ errorKey()! | t }}</p>
+
+  <ng-container *ngIf="!loading() && !errorKey() && qrDataUrl() as data">
+    <div class="qr-wrap">
+      <img
+        [src]="data"
+        width="240"
+        height="240"
+        [attr.alt]="'verify.qrAltText' | t" />
+    </div>
+    <p class="hint">{{ 'verify.qrHint' | t }}</p>
+    <label class="url-row">
+      <span class="sr-only">{{ 'verify.verifyUrl' | t }}</span>
+      <input type="text" readonly [value]="verifyUrl() ?? ''" (focus)="$event.target && ($any($event.target).select())" />
+    </label>
+    <p *ngIf="issued()?.expiresAt as exp" class="expires">
+      {{ 'verify.expiresAt' | t }}: {{ exp | date: 'medium' }}
+    </p>
+    <p *ngIf="!issued()?.expiresAt" class="expires">{{ 'verify.permanent' | t }}</p>
+  </ng-container>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close>{{ 'common.close' | t }}</button>
+  <button
+    mat-button
+    type="button"
+    (click)="copyUrl()"
+    [disabled]="loading() || !!errorKey() || !verifyUrl()">
+    {{ copied() ? ('verify.copied' | t) : ('verify.copyUrl' | t) }}
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="print()"
+    [disabled]="loading() || !!errorKey() || !qrDataUrl()">
+    {{ 'verify.print' | t }}
+  </button>
+</mat-dialog-actions>

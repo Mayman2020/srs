@@ -28,10 +28,6 @@ export class AttachmentApiService {
     );
   }
 
-  downloadUrl(attachmentId: number): string {
-    return `${apiPathWithId(this.base, AppConstants.API.ATTACHMENTS, attachmentId)}/download`;
-  }
-
   delete(attachmentId: number): Observable<void> {
     return this.http.delete<void>(
       apiPathWithId(this.base, AppConstants.API.ATTACHMENTS, attachmentId)

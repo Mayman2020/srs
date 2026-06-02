@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/leave-requests")
 @RequiredArgsConstructor
-@PreAuthorize("@effectivePermission.has(authentication, 'leave.admin')")
+@PreAuthorize("@effectivePermission.has('LEAVE_ADMIN')")
 public class LeaveRequestAdminController {
 
   private final LeaveRequestService leaveRequestService;

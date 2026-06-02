@@ -3,6 +3,8 @@ package com.gov.ac.feature.correspondence.service;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceDetailResponseDto;
 import com.gov.ac.feature.correspondence.dto.WorkflowActionAvailableDto;
 import com.gov.ac.feature.correspondence.mapper.CorrespondenceDetailMapper;
+import com.gov.ac.feature.correspondence.readtracking.dto.CorrespondenceReadReceiptDto;
+import com.gov.ac.feature.correspondence.readtracking.service.CorrespondenceReadTrackingService;
 import com.gov.ac.feature.correspondence.security.CorrespondenceViewAuthorization;
 import com.gov.ac.feature.attachment.entity.AttachmentEntity;
 import com.gov.ac.feature.attachment.entity.AttachmentVersionEntity;
@@ -42,6 +44,7 @@ public class CorrespondenceDetailService {
   private final CorrespondenceDetailMapper correspondenceDetailMapper;
   private final CorrespondenceWorkflowAvailabilityService correspondenceWorkflowAvailabilityService;
   private final CorrespondenceCancelService correspondenceCancelService;
+  private final CorrespondenceReadTrackingService correspondenceReadTrackingService;
 
   @Transactional(readOnly = true)
   public CorrespondenceDetailResponseDto getById(UUID correspondenceId, UUID viewerId) {
@@ -93,7 +96,37 @@ public class CorrespondenceDetailService {
 
     boolean cancelAllowed = correspondenceCancelService.isUserCancelAllowed(correspondence);
 
+    try {
+      correspondenceReadTrackingService.recordOpen(correspondenceId, viewerId);
+    } catch (RuntimeException ex) {
+      log.warn(
+          "Read tracking failed (non-fatal) for correspondenceId={} viewerId={}: {}",
+          correspondenceId,
+          viewerId,
+          ex.getMessage());
+    }
+
+    CorrespondenceReadReceiptDto myReceipt = null;
+    try {
+      myReceipt =
+          correspondenceReadTrackingService.getOwnReceipt(correspondenceId, viewerId).orElse(null);
+    } catch (RuntimeException ex) {
+      log.warn(
+          "Read tracking lookup failed (non-fatal) for correspondenceId={} viewerId={}: {}",
+          correspondenceId,
+          viewerId,
+          ex.getMessage());
+    }
+
     return correspondenceDetailMapper.toResponse(
-        correspondence, attachments, versionsByAttachmentId, comments, history, actions, cancelAllowed);
+        correspondence,
+        attachments,
+        versionsByAttachmentId,
+        comments,
+        history,
+        actions,
+        cancelAllowed,
+        myReceipt,
+        true);
   }
 }

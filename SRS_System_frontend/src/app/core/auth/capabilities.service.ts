@@ -46,6 +46,39 @@ export class CapabilitiesService implements OnDestroy {
     return this.permissionCodes.has(permissionCode);
   }
 
+  /**
+   * True when at least one of the given canonical permission codes is in the user's effective
+   * union. Templates can short-circuit with this; the backend remains the source of truth for
+   * authorization.
+   */
+  canAny(permissionCodes: readonly string[]): boolean {
+    if (!permissionCodes || permissionCodes.length === 0) {
+      return false;
+    }
+    for (const code of permissionCodes) {
+      if (this.permissionCodes.has(code)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * True when every given canonical permission code is in the user's effective union. Returns
+   * false for an empty list to avoid accidental "always true" gates in templates.
+   */
+  canAll(permissionCodes: readonly string[]): boolean {
+    if (!permissionCodes || permissionCodes.length === 0) {
+      return false;
+    }
+    for (const code of permissionCodes) {
+      if (!this.permissionCodes.has(code)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   getSnapshot(): UserCapabilitiesDto | null {
     return this.snapshot;
   }

@@ -46,6 +46,15 @@ public interface CorrespondenceRepository
   long countActive();
 
   /**
+   * Department-scoped active count. {@code departmentId == null} disables scoping (global).
+   */
+  @Query(
+      "select count(c) from CorrespondenceEntity c "
+          + "where c.deletedAt is null "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId)")
+  long countActiveScoped(@Param("departmentId") Long departmentId);
+
+  /**
    * One row per {@link com.gov.ac.feature.lookups.entity.CorrespondenceStatusEntity}: id, code, nameAr, nameEn,
    * sortOrder, count — all label fields from the lookup table.
    */
@@ -53,9 +62,11 @@ public interface CorrespondenceRepository
       "select s.id, s.code, s.nameAr, s.nameEn, s.sortOrder, count(c) "
           + "from CorrespondenceEntity c join c.correspondenceStatus s "
           + "where c.deletedAt is null and s.deletedAt is null "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId) "
           + "group by s.id, s.code, s.nameAr, s.nameEn, s.sortOrder "
           + "order by s.sortOrder")
-  List<Object[]> aggregateActiveByCorrespondenceStatus();
+  List<Object[]> aggregateActiveByCorrespondenceStatusScoped(
+      @Param("departmentId") Long departmentId);
 
   /**
    * One row per {@link com.gov.ac.feature.lookups.entity.PriorityEntity}: id, code, nameAr, nameEn, sortOrder,
@@ -65,9 +76,50 @@ public interface CorrespondenceRepository
       "select p.id, p.code, p.nameAr, p.nameEn, p.sortOrder, count(c) "
           + "from CorrespondenceEntity c join c.priority p "
           + "where c.deletedAt is null and p.deletedAt is null "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId) "
           + "group by p.id, p.code, p.nameAr, p.nameEn, p.sortOrder "
           + "order by p.sortOrder")
-  List<Object[]> aggregateActiveByPriority();
+  List<Object[]> aggregateActiveByPriorityScoped(@Param("departmentId") Long departmentId);
+
+  /**
+   * Aggregation by owner-department level (Q/L/K/S). One row per active
+   * {@link com.gov.ac.feature.organization.entity.OrganizationalUnitLevelEntity}: id, code,
+   * nameAr, nameEn, sortOrder, count.
+   */
+  // organizational_unit_level uses rank_order (1..10, lower = higher authority); there is no
+  // sort_order column on this table (see V5__org_levels_routing.sql). The DashboardBucketDto
+  // projection slot at index 4 is the integer ordering for the bucket, so rank_order maps onto it
+  // directly.
+  //
+  // INNER JOIN (not LEFT JOIN): we only bucket correspondences whose owner department has a
+  // resolvable level. A LEFT JOIN would produce a single all-null grouping row whenever any
+  // department is missing a level_code, and DashboardMapper.toBucket assumes every row has a
+  // non-null id/code (matching priority/confidentiality aggregations, which also use INNER JOIN).
+  @Query(
+      value =
+          "select lvl.id, lvl.code, lvl.name_ar, lvl.name_en, lvl.rank_order, count(c.id) "
+              + "from srs_system.correspondence c "
+              + "join srs_system.department d on d.id = c.owner_department_id and d.deleted_at is null "
+              + "join srs_system.organizational_unit_level lvl on lvl.code = d.level_code "
+              + "and lvl.deleted_at is null and lvl.is_active = true "
+              + "where c.deleted_at is null "
+              + "and (cast(:departmentId as bigint) is null or c.owner_department_id = :departmentId) "
+              + "group by lvl.id, lvl.code, lvl.name_ar, lvl.name_en, lvl.rank_order "
+              + "order by lvl.rank_order nulls last",
+      nativeQuery = true)
+  List<Object[]> aggregateActiveByOrgLevelScoped(@Param("departmentId") Long departmentId);
+
+  /**
+   * One row per active confidentiality level: id, code, nameAr, nameEn, sortOrder, count.
+   */
+  @Query(
+      "select cf.id, cf.code, cf.nameAr, cf.nameEn, cf.sortOrder, count(c) "
+          + "from CorrespondenceEntity c join c.confidentiality cf "
+          + "where c.deletedAt is null and cf.deletedAt is null "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId) "
+          + "group by cf.id, cf.code, cf.nameAr, cf.nameEn, cf.sortOrder "
+          + "order by cf.sortOrder")
+  List<Object[]> aggregateActiveByConfidentialityScoped(@Param("departmentId") Long departmentId);
 
   /**
    * Items with a due date in the past and a non-terminal lifecycle status (still actionable).
@@ -75,19 +127,23 @@ public interface CorrespondenceRepository
   @Query(
       "select count(c) from CorrespondenceEntity c join c.correspondenceStatus s "
           + "where c.deletedAt is null and s.deletedAt is null and s.terminal = false "
-          + "and c.dueDate is not null and c.dueDate < :now")
-  long countOverdueOpen(@Param("now") Instant now);
+          + "and c.dueDate is not null and c.dueDate < :now "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId)")
+  long countOverdueOpenScoped(@Param("now") Instant now, @Param("departmentId") Long departmentId);
 
   @Query(
       "select count(c) from CorrespondenceEntity c join c.correspondenceStatus s "
-          + "where c.deletedAt is null and s.deletedAt is null and s.kpiSegment = :segment")
-  long countActiveByKpiSegment(@Param("segment") String segment);
+          + "where c.deletedAt is null and s.deletedAt is null and s.kpiSegment = :segment "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId)")
+  long countActiveByKpiSegmentScoped(
+      @Param("segment") String segment, @Param("departmentId") Long departmentId);
 
   @Query(
       "select count(c) from CorrespondenceEntity c join c.correspondenceType t "
           + "where c.deletedAt is null and t.deletedAt is null "
-          + "and t.dashboardOutboundHighlight = true")
-  long countActiveOutboundHighlighted();
+          + "and t.dashboardOutboundHighlight = true "
+          + "and (:departmentId is null or c.ownerDepartment.id = :departmentId)")
+  long countActiveOutboundHighlightedScoped(@Param("departmentId") Long departmentId);
 
   @Query(
       value =
@@ -120,4 +176,30 @@ public interface CorrespondenceRepository
           + "from CorrespondenceEntity c join c.correspondenceType t join c.correspondenceStatus st "
           + "where c.deletedAt is null order by c.createdAt desc")
   Page<Object[]> exportRows(Pageable pageable);
+
+  /**
+   * Department-scoped export rows for restricted callers (returns reference number, subject,
+   * type code, status code, confidentiality code, level code, createdAt, updatedAt).
+   */
+  @Query(
+      value =
+          "select c.reference_number, c.subject, t.code, st.code, "
+              + "cf.code, d.level_code, c.created_at, c.updated_at "
+              + "from srs_system.correspondence c "
+              + "join srs_system.correspondence_type t on t.id = c.correspondence_type_id "
+              + "join srs_system.correspondence_status st on st.id = c.correspondence_status_id "
+              + "left join srs_system.confidentiality cf on cf.id = c.confidentiality_id "
+              + "left join srs_system.department d on d.id = c.owner_department_id "
+              + "where c.deleted_at is null "
+              + "and (cast(:departmentId as bigint) is null or c.owner_department_id = :departmentId) "
+              + "and (cast(:viewerSortOrder as integer) is null "
+              + "  or cf.id is null "
+              + "  or coalesce(cf.requires_clearance, false) = false "
+              + "  or coalesce(cf.sort_order, 2147483647) >= :viewerSortOrder) "
+              + "order by c.created_at desc",
+      nativeQuery = true)
+  Page<Object[]> exportRowsScoped(
+      @Param("departmentId") Long departmentId,
+      @Param("viewerSortOrder") Integer viewerSortOrder,
+      Pageable pageable);
 }

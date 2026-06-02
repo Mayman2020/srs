@@ -1,0 +1,62 @@
+<section class="prefs-page" aria-labelledby="prefs-title">
+  <header class="page-header">
+    <h1 id="prefs-title">{{ 'notificationAdmin.prefsPageTitle' | t }}</h1>
+    <p class="muted">{{ 'notificationAdmin.prefs.subtitle' | t }}</p>
+  </header>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'common.loading' | t }}</p>
+  <p *ngIf="error()" class="state-msg err" role="alert">{{ 'notificationAdmin.prefs.loadFailed' | t }}</p>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <p *ngIf="rows().length === 0" class="state-msg muted">{{ 'notificationAdmin.prefs.empty' | t }}</p>
+
+    <div *ngIf="rows().length > 0" class="prefs-card">
+      <div class="table-wrap" role="region" aria-labelledby="prefs-title">
+        <table class="prefs-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'notificationAdmin.prefs.eventType' | t }}</th>
+              <th *ngFor="let ch of channels()" scope="col" class="ch-th">
+                {{ labelFor(ch) }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of rows()">
+              <th scope="row" class="row-th">{{ labelFor(row.eventType) }}</th>
+              <td *ngFor="let ch of channels()" class="ch-cell">
+                <label class="toggle-cell">
+                  <input
+                    type="checkbox"
+                    [checked]="row.channels[ch.code]?.enabled === true"
+                    [attr.aria-label]="labelFor(row.eventType) + ' / ' + labelFor(ch)"
+                    [disabled]="saving()"
+                    (change)="toggle(row, ch.code)" />
+                  <span class="sr-only">{{ labelFor(ch) }}</span>
+                </label>
+                <span *ngIf="row.channels[ch.code]?.dirty" class="dirty-dot" aria-hidden="true"></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="reset()"
+          [disabled]="saving() || !dirty()">
+          {{ 'notificationAdmin.prefs.reset' | t }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="save()"
+          [disabled]="saving() || !dirty()">
+          {{ saving() ? ('common.saving' | t) : ('notificationAdmin.prefs.save' | t) }}
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</section>

@@ -1,0 +1,124 @@
+<section class="page" aria-labelledby="outbox-title">
+  <header class="page-header">
+    <h1 id="outbox-title">{{ 'notificationAdmin.outboxPageTitle' | t }}</h1>
+    <p class="muted">{{ 'notificationAdmin.outbox.subtitle' | t }}</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="status-tabs" role="tablist" aria-label="{{ 'notificationAdmin.outbox.statusFilters' | t }}">
+      <button
+        *ngFor="let s of statuses"
+        type="button"
+        role="tab"
+        class="tab-btn"
+        [class.active]="status() === s"
+        [attr.aria-selected]="status() === s"
+        (click)="setStatus(s)">
+        {{ 'notificationAdmin.outbox.status.' + s | t }}
+      </button>
+    </div>
+    <input
+      type="search"
+      class="search-input"
+      [(ngModel)]="searchModel"
+      [ngModelOptions]="{ standalone: true }"
+      (ngModelChange)="onSearch($event)"
+      [attr.aria-label]="'notificationAdmin.outbox.searchAria' | t"
+      placeholder="{{ 'notificationAdmin.outbox.searchPlaceholder' | t }}" />
+    <button type="button" class="btn btn-secondary" (click)="refresh()">{{ 'common.refresh' | t }}</button>
+  </div>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'common.loading' | t }}</p>
+  <p *ngIf="error()" class="state-msg err" role="alert">{{ error()! | t }}</p>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <p *ngIf="rows().length === 0" class="state-msg muted">{{ 'notificationAdmin.outbox.empty' | t }}</p>
+
+    <div *ngIf="rows().length > 0" class="card">
+      <table class="rows">
+        <thead>
+          <tr>
+            <th>{{ 'notificationAdmin.outbox.eventType' | t }}</th>
+            <th>{{ 'notificationAdmin.outbox.channel' | t }}</th>
+            <th>{{ 'notificationAdmin.outbox.recipient' | t }}</th>
+            <th>{{ 'notificationAdmin.outbox.statusCol' | t }}</th>
+            <th>{{ 'notificationAdmin.outbox.attempts' | t }}</th>
+            <th>{{ 'notificationAdmin.outbox.nextAttempt' | t }}</th>
+            <th class="actions-col">{{ 'common.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of rows()"
+            (click)="select(row)"
+            [class.selected]="selected()?.id === row.id">
+            <td>{{ row.eventTypeCode }}</td>
+            <td>{{ row.channelCode }}</td>
+            <td class="truncate">{{ row.recipientAddress ?? '—' }}</td>
+            <td>
+              <span class="badge" [ngClass]="statusBadge(row.status)">
+                {{ 'notificationAdmin.outbox.status.' + row.status | t }}
+              </span>
+            </td>
+            <td class="num">{{ row.attemptCount }}</td>
+            <td>{{ row.nextAttemptAt ? (row.nextAttemptAt | date: 'short') : '—' }}</td>
+            <td class="actions-col" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="btn btn-link"
+                (click)="requeue(row)"
+                [disabled]="!canRequeue(row)">
+                {{ 'notificationAdmin.outbox.requeue' | t }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-link warn"
+                (click)="confirmCancel(row)"
+                [disabled]="!canCancel(row)">
+                {{ 'notificationAdmin.outbox.cancel' | t }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pager">
+        <button type="button" class="btn btn-secondary" (click)="prevPage()" [disabled]="page()?.first">
+          {{ 'common.previous' | t }}
+        </button>
+        <span class="muted">
+          {{ 'common.showing' | t }} {{ (page()?.number ?? 0) + 1 }} / {{ page()?.totalPages || 1 }}
+        </span>
+        <button type="button" class="btn btn-secondary" (click)="nextPage()" [disabled]="page()?.last">
+          {{ 'common.next' | t }}
+        </button>
+      </div>
+    </div>
+
+    <aside *ngIf="selected() as s" class="details" aria-labelledby="details-title">
+      <header class="details-header">
+        <h3 id="details-title">{{ 'notificationAdmin.outbox.detailsTitle' | t }}</h3>
+        <button type="button" class="btn btn-link" (click)="closeDetails()">
+          {{ 'common.close' | t }}
+        </button>
+      </header>
+      <dl>
+        <dt>{{ 'notificationAdmin.outbox.eventType' | t }}</dt><dd>{{ s.eventTypeCode }}</dd>
+        <dt>{{ 'notificationAdmin.outbox.channel' | t }}</dt><dd>{{ s.channelCode }}</dd>
+        <dt>{{ 'notificationAdmin.outbox.recipient' | t }}</dt><dd>{{ s.recipientAddress ?? '—' }}</dd>
+        <dt>{{ 'notificationAdmin.outbox.idempotencyKey' | t }}</dt>
+        <dd><code class="code">{{ s.idempotencyKey ?? '—' }}</code></dd>
+        <dt>{{ 'notificationAdmin.outbox.attempts' | t }}</dt><dd>{{ s.attemptCount }}</dd>
+        <dt>{{ 'notificationAdmin.outbox.lastAttempt' | t }}</dt>
+        <dd>{{ s.lastAttemptedAt ? (s.lastAttemptedAt | date: 'medium') : '—' }}</dd>
+        <dt>{{ 'notificationAdmin.outbox.nextAttempt' | t }}</dt>
+        <dd>{{ s.nextAttemptAt ? (s.nextAttemptAt | date: 'medium') : '—' }}</dd>
+        <dt>{{ 'notificationAdmin.outbox.lastError' | t }}</dt>
+        <dd>
+          <pre *ngIf="s.lastError" class="error-pane">{{ s.lastError }}</pre>
+          <span *ngIf="!s.lastError" class="muted">—</span>
+        </dd>
+      </dl>
+    </aside>
+  </ng-container>
+</section>

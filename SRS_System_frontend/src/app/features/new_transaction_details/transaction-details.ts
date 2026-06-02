@@ -9,13 +9,19 @@ import {
   CorrespondenceCommentDetailDto,
   CorrespondenceDetailResponseDto,
   CorrespondenceNonarchivedItemDto,
+  CorrespondenceReadReceiptDto,
+  CorrespondenceReadStatusSummaryDto,
   WorkflowActionAvailableDto,
   WorkflowHistoryEntryDto
 } from '../../core/api/api-types';
 import { CorrespondenceApiService } from '../../core/api/correspondence-api.service';
+import { CorrespondenceReadTrackingApiService } from '../../core/api/correspondence-read-tracking-api.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { PlatformWorkflowApiService } from '../../core/api/platform-workflow-api.service';
 import { AttachmentApiService } from '../../core/api/attachment-api.service';
+import { AttachmentDownloadApiService } from '../../core/api/attachment-download-api.service';
+import { DocumentSignatureApiService } from '../../core/api/document-signature-api.service';
+import type { DocumentSignatureDto } from '../../core/api/api-types';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
@@ -34,6 +40,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { VisualWorkflowDialogComponent } from '../visual-workflow-dialog/visual-workflow-dialog.component';
 import { TextInputDialogComponent, TextInputDialogData } from '../../shared/dialogs/text-input-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/dialogs/confirm-dialog.component';
+import {
+  VerificationQrDialogComponent,
+  VerificationQrDialogData,
+} from './verification-qr-dialog.component';
 import {
   SendMailDialogComponent,
   SendMailDialogData,
@@ -61,6 +71,14 @@ export interface Attachment {
   size: string;
   date: string;
   url: string;
+  /** Slice 5 — true when the parent correspondence's confidentiality requires clearance. */
+  classified?: boolean;
+  /** Slice 5 — id of the current attachment_version (drives signature panel + verify links). */
+  currentVersionId?: number | null;
+  /** Slice 5 — true when the on-disk blob is encrypted (`encryption_algo` non-null). */
+  encrypted?: boolean;
+  /** Slice 5 — signatures on the current version (lazy-loaded when the panel opens). */
+  signatures?: DocumentSignatureDto[];
 }
 
 export interface TransactionNote {
@@ -166,6 +184,20 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   indexEntriesByAttachmentId: Record<number, AttachmentIndexEntryDto[]> = {};
   correspondenceUuid = '';
 
+  /** Slice 1 — calling user's read receipt for this correspondence (`null` until tracked). */
+  myReadReceipt: CorrespondenceReadReceiptDto | null = null;
+  /** Slice 1 — server-driven flag; defaults to true if absent. */
+  acknowledgementSupported = true;
+  /** Slice 1 — cross-user read status, lazily fetched on demand. */
+  readStatus: CorrespondenceReadStatusSummaryDto | null = null;
+  readStatusLoading = false;
+  readStatusPanelOpen = false;
+  /** Optional comment captured before calling acknowledge. */
+  ackCommentDraft = '';
+  ackInProgress = false;
+  /** Permission codes for Slice 1 panels (kept as literals, only ever compared to API codes). */
+  readonly READ_STATUS_VIEW_PERMISSION = 'CORRESPONDENCE_READ_STATUS_VIEW';
+
   // ── UI State ────────────────────────────────
   activeIndex = 2;
   newNote = '';
@@ -203,7 +235,10 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private transactionService: TransactionService,
     private platformWorkflow: PlatformWorkflowApiService,
     private attachmentApi: AttachmentApiService,
+    private attachmentDownloadApi: AttachmentDownloadApiService,
+    private signatureApi: DocumentSignatureApiService,
     private correspondenceApi: CorrespondenceApiService,
+    private readTrackingApi: CorrespondenceReadTrackingApiService,
     private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private i18n: I18nService,
@@ -274,6 +309,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.canAddNote = true;
           const draft = (d.replyDraftHtml ?? '').trim();
           this.form.patchValue({ letterContent: draft });
+          this.myReadReceipt = d.myReadReceipt ?? null;
+          this.acknowledgementSupported = d.acknowledgementSupported !== false;
           this.cdr.detectChanges();
           this.loadGuideData();
         },
@@ -360,17 +397,24 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         ? ((isAr ? d.ownerDepartment.nameAr : d.ownerDepartment.nameEn) ?? d.ownerDepartment.code ?? '—')
         : '—',
       timeline: steps,
-      attachments: (d.attachments ?? []).map((a) => ({
-        id: a.id,
-        name: a.displayName,
-        type: a.contentType?.code ?? 'FILE',
-        secrecy: secrecyLabel,
-        size: this.formatBytes(
-          (a.versions ?? []).reduce((m, v) => Math.max(m, v.byteSize), 0)
-        ),
-        date: (a.versions?.[0]?.createdAt ?? d.updatedAt ?? '').toString().substring(0, 10),
-        url: this.attachmentApi.downloadUrl(a.id),
-      })),
+      attachments: (d.attachments ?? []).map((a) => {
+        const current = a.versions?.find((v) => v.id === a.currentVersionId) ?? a.versions?.[0] ?? null;
+        return {
+          id: a.id,
+          name: a.displayName,
+          type: a.contentType?.code ?? 'FILE',
+          secrecy: secrecyLabel,
+          size: this.formatBytes(
+            (a.versions ?? []).reduce((m, v) => Math.max(m, v.byteSize), 0)
+          ),
+          date: (a.versions?.[0]?.createdAt ?? d.updatedAt ?? '').toString().substring(0, 10),
+          url: '',
+          classified: d.confidentiality?.requiresClearance === true,
+          currentVersionId: a.currentVersionId ?? current?.id ?? null,
+          encrypted: !!current?.encryptionAlgo,
+          signatures: undefined,
+        };
+      }),
       notes: this.notesFromComments(d.comments ?? []),
       workflowActions: d.availableWorkflowActions ?? [],
       cancelAllowed: d.cancelAllowed !== false,
@@ -522,6 +566,10 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   }
 
   onWorkflowAction(a: WorkflowActionAvailableDto): void {
+    if (a.requiresSignature && this.workflowActionSignatureMissing(a)) {
+      this.toast(this.i18n.instant('attachments.signRequiredTooltip'), 'warning');
+      return;
+    }
     if (a.requiresComment) {
       const ref = this.dialog.open(TextInputDialogComponent, {
         width: 'min(480px, 94vw)',
@@ -660,7 +708,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         this.transactionService.cancelCorrespondence(cid).subscribe({
           next: () => {
             this.toast(this.i18n.instant('transactionDetails.cancelSuccess'), 'success');
-            this.router.navigate(['/transactions']);
+            this.router.navigate(['/correspondence']);
           },
           error: (err: HttpErrorResponse & { userMessage?: string }) => {
             this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
@@ -751,6 +799,12 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
             byteSize: res.byteSize,
             mimeType: res.mimeType,
             ...(contentTypeCode ? { contentTypeCode } : {}),
+            ...(res.plaintextSha256 ? { plaintextSha256: res.plaintextSha256 } : {}),
+            ...(res.encryptionAlgo ? { encryptionAlgo: res.encryptionAlgo } : {}),
+            ...(res.encryptionKeyRef ? { encryptionKeyRef: res.encryptionKeyRef } : {}),
+            ...(res.encryptionWrappedDekB64 ? { encryptionWrappedDekB64: res.encryptionWrappedDekB64 } : {}),
+            ...(res.encryptionIvB64 ? { encryptionIvB64: res.encryptionIvB64 } : {}),
+            ...(res.ciphertextSha256 ? { ciphertextSha256: res.ciphertextSha256 } : {}),
           })
           .subscribe({
             next: () => {
@@ -776,52 +830,193 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     this.downloadWithAuth(att.id, att.name, false);
   }
 
+  openVerificationQr(att: Attachment): void {
+    const data: VerificationQrDialogData = { attachmentId: att.id, fileLabel: att.name };
+    this.dialog.open(VerificationQrDialogComponent, { width: '420px', data });
+  }
+
+  /**
+   * Slice 5 — two-step signed-download flow.
+   *
+   *   1. `POST /attachments/{id}/download-intent` returns `{ token, expiresAt }`.
+   *   2. `GET /attachments/download/{token}` streams the decrypted bytes (token is single-use,
+   *      bound to the issuing user, and expires after `ac.attachment.download-token.ttl-seconds`).
+   *
+   * The legacy `GET /attachments/{id}/download` path returns {@code 410 Gone} (Slice 6); this UI
+   * uses the intent + token pipeline only.
+   */
   private downloadWithAuth(attachmentId: number, filename: string, openInTab: boolean): void {
-    const token = this.tokens.getToken();
-    if (!token) {
+    const jwt = this.tokens.getToken();
+    if (!jwt) {
       this.toast(this.i18n.instant('transactionDetails.downloadNoSession'), 'warning');
       this.authApi.logout();
       void this.router.navigate(['/login']);
       return;
     }
-    void fetch(this.attachmentApi.downloadUrl(attachmentId), {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (r.status === 401 || r.status === 403) {
-          this.ngZone.run(() => {
-            this.toast(this.i18n.instant('transactionDetails.downloadNoSession'), 'warning');
-            this.authApi.logout();
-            void this.router.navigate(['/login']);
+    this.attachmentDownloadApi.requestIntent(attachmentId).subscribe({
+      next: (intent) => {
+        void fetch(this.attachmentDownloadApi.tokenDownloadUrl(intent.token), {
+          headers: { Authorization: `Bearer ${jwt}` },
+        })
+          .then((r) => {
+            if (r.status === 401 || r.status === 403) {
+              this.ngZone.run(() => {
+                this.toast(this.i18n.instant('transactionDetails.downloadNoSession'), 'warning');
+                this.authApi.logout();
+                void this.router.navigate(['/login']);
+              });
+              throw new Error('session invalid');
+            }
+            if (r.status === 410) {
+              throw new Error('token expired');
+            }
+            if (r.status === 409) {
+              throw new Error('token consumed');
+            }
+            if (!r.ok) {
+              throw new Error('download failed');
+            }
+            return r.blob();
+          })
+          .then((blob) => {
+            this.ngZone.run(() => {
+              const url = URL.createObjectURL(blob);
+              if (openInTab) {
+                window.open(url, '_blank', 'noopener');
+              } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+              }
+              setTimeout(() => URL.revokeObjectURL(url), 60_000);
+            });
+          })
+          .catch((e: unknown) => {
+            if (e instanceof Error && e.message === 'session invalid') {
+              return;
+            }
+            const msg =
+              e instanceof Error && e.message === 'token expired'
+                ? this.i18n.instant('attachments.tokenExpired')
+                : this.i18n.instant('attachments.downloadFailed');
+            this.ngZone.run(() => this.toast(msg, 'error'));
           });
-          throw new Error('session invalid');
-        }
-        if (!r.ok) {
-          throw new Error('download failed');
-        }
-        return r.blob();
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(
+          err.userMessage ?? this.i18n.instant('attachments.downloadFailed'),
+          'error'
+        );
+      },
+    });
+  }
+
+  // ══════════════════════════════════════════════
+  // SLICE 5 — DIGITAL SIGNATURES
+  // ══════════════════════════════════════════════
+
+  /** Lazy-load signatures for the row (first toggle / pre-action gate). */
+  loadSignaturesFor(att: Attachment): void {
+    if (att.signatures !== undefined) {
+      return;
+    }
+    this.signatureApi.list(att.id).subscribe({
+      next: (rows) => {
+        att.signatures = rows;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        att.signatures = [];
+      },
+    });
+  }
+
+  /** Sign the current version on behalf of the logged-in user. */
+  signAttachment(att: Attachment): void {
+    if (!this.cap.can('ATTACHMENT_SIGN_CREATE')) {
+      this.toast(this.i18n.instant('errors.forbidden'), 'warning');
+      return;
+    }
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: 'min(420px, 92vw)',
+        data: {
+          titleKey: 'signature.sign',
+          messageKey: 'signature.confirmSign',
+          confirmKey: 'signature.sign',
+          cancelKey: 'common.close',
+        },
       })
-      .then((blob) => {
-        this.ngZone.run(() => {
-          const url = URL.createObjectURL(blob);
-          if (openInTab) {
-            window.open(url, '_blank', 'noopener');
-          } else {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-          }
-          setTimeout(() => URL.revokeObjectURL(url), 60_000);
-        });
-      })
-      .catch((e: unknown) => {
-        if (e instanceof Error && e.message === 'session invalid') {
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((ok) => {
+        if (!ok) {
           return;
         }
-        console.error('[TransactionDetails] attachment download failed', e);
-        this.ngZone.run(() => this.toast(this.i18n.instant('errors.generic'), 'error'));
+        this.signatureApi.create(att.id).subscribe({
+          next: (sig) => {
+            att.signatures = [...(att.signatures ?? []), sig];
+            this.toast(this.i18n.instant('signature.signedToast'), 'success');
+          },
+          error: (err: HttpErrorResponse & { userMessage?: string }) => {
+            this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
+          },
+        });
       });
+  }
+
+  verifySignature(att: Attachment, sig: DocumentSignatureDto): void {
+    this.signatureApi.verify(sig.id).subscribe({
+      next: (updated) => {
+        att.signatures = (att.signatures ?? []).map((s) => (s.id === updated.id ? updated : s));
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
+      },
+    });
+  }
+
+  revokeSignature(att: Attachment, sig: DocumentSignatureDto): void {
+    if (!this.cap.can('ATTACHMENT_SIGNATURE_ADMIN')) {
+      return;
+    }
+    this.signatureApi.revoke(sig.id).subscribe({
+      next: (updated) => {
+        att.signatures = (att.signatures ?? []).map((s) => (s.id === updated.id ? updated : s));
+        this.toast(this.i18n.instant('signature.revokedToast'), 'success');
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
+      },
+    });
+  }
+
+  /**
+   * Slice 5 — true when the supplied workflow action requires a signature and the current user
+   * has NOT yet signed every active attachment. Templates pin disabled state + tooltip on this.
+   */
+  workflowActionSignatureMissing(action: WorkflowActionAvailableDto): boolean {
+    if (!action || !action.requiresSignature) {
+      return false;
+    }
+    const atts = this.transaction?.attachments ?? [];
+    if (atts.length === 0) {
+      return false;
+    }
+    const myId = this.tokens.getUserId();
+    if (!myId) {
+      return true;
+    }
+    return atts.some((a) => {
+      if (a.signatures === undefined) {
+        this.loadSignaturesFor(a);
+        return true;
+      }
+      return !a.signatures.some(
+        (s) => s.signerUserId === myId && s.status === 'VALID' && s.verificationStatus === 'VERIFIED'
+      );
+    });
   }
 
   deleteAttachment(att: Attachment): void {
@@ -875,11 +1070,97 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   }
 
   // ══════════════════════════════════════════════
+  // READ TRACKING (Slice 1)
+  // ══════════════════════════════════════════════
+
+  /** Whether the current user has already acknowledged this correspondence. */
+  isAcknowledged(): boolean {
+    return !!this.myReadReceipt?.acknowledgedAt;
+  }
+
+  /** Whether the workspace should expose the Acknowledge button right now. */
+  canShowAckButton(): boolean {
+    return !!this.transaction && this.acknowledgementSupported && !this.isAcknowledged();
+  }
+
+  /** Whether the calling user may see the cross-user read-status panel. */
+  canViewReadStatus(): boolean {
+    return this.cap.can(this.READ_STATUS_VIEW_PERMISSION);
+  }
+
+  acknowledgeRead(): void {
+    if (!this.correspondenceUuid || this.ackInProgress || this.isAcknowledged()) {
+      return;
+    }
+    this.ackInProgress = true;
+    const comment = this.ackCommentDraft.trim();
+    this.readTrackingApi
+      .acknowledge(this.correspondenceUuid, comment.length > 0 ? comment : null)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (receipt) => {
+          this.myReadReceipt = receipt;
+          this.ackCommentDraft = '';
+          this.ackInProgress = false;
+          this.toast(this.i18n.instant('readTracking.ackSuccess'), 'success');
+          this.cdr.detectChanges();
+        },
+        error: (err: HttpErrorResponse & { userMessage?: string }) => {
+          this.ackInProgress = false;
+          this.toast(err.userMessage ?? this.i18n.instant('readTracking.ackFailure'), 'error');
+        },
+      });
+  }
+
+  toggleReadStatusPanel(): void {
+    if (!this.canViewReadStatus() || !this.correspondenceUuid) {
+      return;
+    }
+    this.readStatusPanelOpen = !this.readStatusPanelOpen;
+    if (this.readStatusPanelOpen && !this.readStatus) {
+      this.loadReadStatus();
+    }
+  }
+
+  private loadReadStatus(): void {
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    this.readStatusLoading = true;
+    this.readTrackingApi
+      .readStatus(this.correspondenceUuid)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (summary) => {
+          this.readStatus = summary;
+          this.readStatusLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.readStatus = null;
+          this.readStatusLoading = false;
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  readStatusDisplayName(row: CorrespondenceReadReceiptDto): string {
+    const isAr = this.i18n.currentLang() !== 'en';
+    return (
+      (isAr ? row.fullNameAr : row.fullNameEn) ||
+      (isAr ? row.fullNameEn : row.fullNameAr) ||
+      row.username ||
+      row.userId ||
+      '—'
+    );
+  }
+
+  // ══════════════════════════════════════════════
   // NAVIGATION
   // ══════════════════════════════════════════════
 
   navigateToTransaction(id: string): void {
-    this.router.navigate(['/transactions', id]);
+    this.router.navigate(['/correspondence', id]);
   }
 
 

@@ -231,10 +231,10 @@ export class TransactionsComponent implements OnInit {
 
   open(tx: Transaction): void {
     localStorage.setItem('gov-selected-tx', tx.id);
-    this.router.navigate(['/transactions', tx.id]);
+    this.router.navigate(['/correspondence', tx.id]);
   }
 
   openType(typeCode: string): void {
-    this.router.navigate(['/transactions/list', typeCode]);
+    this.router.navigate(['/correspondence/list', typeCode]);
   }
 }

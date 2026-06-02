@@ -1,5 +1,7 @@
 # Production — activate with spring.profiles.active=prod.
-# AC_JWT_SECRET, SPRING_DATASOURCE_*, AC_CORS_ALLOWED_ORIGIN_PATTERNS, CAMUNDA_BPM_ADMIN_PASSWORD are mandatory via environment / secret store.
+# Mandatory env vars: AC_JWT_SECRET, SPRING_DATASOURCE_*, AC_CORS_ALLOWED_ORIGIN_PATTERNS,
+#   CAMUNDA_BPM_ADMIN_PASSWORD, AC_ATTACHMENT_KEK_HEX, AC_SIGN_PRIVATE_KEY_PEM, AC_SIGN_PUBLIC_KEY_PEM.
+# See deploy/env/prod.env.example for the full list.
 
 springdoc:
   swagger-ui:
@@ -14,6 +16,19 @@ ac:
     headers:
       # When TLS terminates at Nginx/Ingress, set AC_SECURITY_HSTS_ENABLED=false here and enforce HSTS at the edge.
       hsts-enabled: ${AC_SECURITY_HSTS_ENABLED:true}
+  attachment:
+    encryption:
+      # Production MUST have encryption enabled and a real KEK.
+      enabled: ${AC_ATTACHMENT_ENCRYPTION_ENABLED:true}
+      kek-ref: ${AC_ATTACHMENT_KEK_REF:KEK_V1}
+      kek-hex: ${AC_ATTACHMENT_KEK_HEX}
+  signature:
+    key-ref: ${AC_SIGN_KEY_REF:SIGN_V1}
+    private-key-pem: ${AC_SIGN_PRIVATE_KEY_PEM}
+    public-key-pem: ${AC_SIGN_PUBLIC_KEY_PEM}
+  retention:
+    # Set to false in production when retention lifecycle is intended to run.
+    dry-run: ${AC_RETENTION_DRY_RUN:false}
 
 management:
   endpoint:
@@ -24,7 +39,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        # Prometheus is exposed in prod so the SRE scrape job (kube-prometheus / VictoriaMetrics) can
+        # collect workflow_task_duration_seconds + correspondence_sla_breach_total. Lock down via
+        # Ingress/Nginx network policy — do NOT expose /actuator/** publicly.
+        include: health,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 logging:
   level:

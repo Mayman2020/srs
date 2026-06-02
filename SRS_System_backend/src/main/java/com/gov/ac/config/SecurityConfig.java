@@ -65,14 +65,19 @@ public class SecurityConfig {
   }
 
   /**
-   * Auth endpoints must not use the OAuth2 resource-server JWT filter: without a Bearer token that
-   * filter responds with 401 + {@code WWW-Authenticate: Bearer} before {@code permitAll} is applied,
-   * so login/refresh/MFA never reach {@link com.gov.ac.feature.auth.controller.AuthController}.
+   * Public auth endpoints (login / refresh / MFA) must not require a Bearer token but must remain
+   * isolated from the resource-server chain so the JWT filter cannot 401 them before the
+   * controller runs. {@code /switch-role} is intentionally NOT here — it requires an existing
+   * session and is served by the main {@link #apiSecurityFilterChain}.
    */
   @Bean
   @Order(1)
   SecurityFilterChain authEndpointsChain(HttpSecurity http) throws Exception {
-    http.securityMatcher("/api/v1/auth/**")
+    http.securityMatcher(
+            "/api/v1/auth/login",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/mfa/challenge",
+            "/api/v1/auth/mfa/verify")
         .csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -103,6 +108,7 @@ public class SecurityConfig {
                     "/api/v1/api-docs/**")
                 .permitAll();
           }
+          a.requestMatchers(HttpMethod.GET, "/api/v1/public/verify/**").permitAll();
           a.anyRequest().authenticated();
         });
     http.oauth2ResourceServer(

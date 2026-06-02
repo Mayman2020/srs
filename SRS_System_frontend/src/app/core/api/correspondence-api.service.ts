@@ -27,6 +27,8 @@ export interface CorrespondenceListParams {
   priority?: string;
   createdFrom?: string;
   createdTo?: string;
+  /** Server-side case-insensitive search across reference number / subject / external ref. */
+  q?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,6 +47,7 @@ export class CorrespondenceApiService {
     if (p.priority) params = params.set('priority', p.priority);
     if (p.createdFrom) params = params.set('createdFrom', p.createdFrom);
     if (p.createdTo) params = params.set('createdTo', p.createdTo);
+    if (p.q && p.q.trim()) params = params.set('q', p.q.trim());
     const sort = p.sort?.length ? p.sort : ['createdAt,desc'];
     sort.forEach((s) => (params = params.append('sort', s)));
     return this.http.get<SpringPage<CorrespondenceListItemDto>>(this.correspondenceUrl, {

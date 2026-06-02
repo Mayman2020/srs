@@ -333,6 +333,91 @@
 
 </div>
 
+<!-- ── READ TRACKING / ACKNOWLEDGEMENT (Slice 1) ── -->
+<div class="card read-tracking-card"
+     *ngIf="activeTab==='details' && transaction && acknowledgementSupported">
+
+  <div class="card-header">
+    <div class="card-header-title">
+      <div class="header-icon">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h3>{{ 'readTracking.title' | t }}</h3>
+    </div>
+  </div>
+
+  <div class="read-tracking-body">
+
+    <div class="read-tracking-row" *ngIf="myReadReceipt as r; else notOpenedYet">
+      <i class="fa-regular fa-eye"></i>
+      <span>
+        {{ 'readTracking.firstOpenedOn' | t: { date: ((r.firstOpenedAt | date:'d MMM y, HH:mm') | latinDigits) } }}
+      </span>
+      <span class="muted">
+        ({{ 'readTracking.openedTimes' | t: { n: r.openCount } }})
+      </span>
+    </div>
+    <ng-template #notOpenedYet>
+      <div class="read-tracking-row muted">
+        <i class="fa-regular fa-eye-slash"></i>
+        <span>{{ 'readTracking.notYetOpened' | t }}</span>
+      </div>
+    </ng-template>
+
+    <div class="read-tracking-row success" *ngIf="isAcknowledged() && myReadReceipt as r">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>
+        {{ 'readTracking.acknowledgedOn' | t: { date: ((r.acknowledgedAt | date:'d MMM y, HH:mm') | latinDigits) } }}
+      </span>
+    </div>
+
+    <div class="read-tracking-ack-form" *ngIf="canShowAckButton()">
+      <textarea class="ack-comment"
+                rows="2"
+                [(ngModel)]="ackCommentDraft"
+                [placeholder]="'readTracking.acknowledgementComment' | t"></textarea>
+      <button type="button"
+              class="btn btn-primary"
+              [disabled]="ackInProgress"
+              (click)="acknowledgeRead()">
+        <i class="fa-solid fa-check"></i>
+        {{ 'readTracking.acknowledge' | t }}
+      </button>
+    </div>
+
+    <div class="read-tracking-status-panel" *ngIf="canViewReadStatus()">
+      <button type="button"
+              class="btn btn-link"
+              (click)="toggleReadStatusPanel()">
+        <i class="fa-solid" [class.fa-chevron-down]="!readStatusPanelOpen" [class.fa-chevron-up]="readStatusPanelOpen"></i>
+        {{ 'readTracking.readStatusTitle' | t }}
+      </button>
+
+      <div class="read-status-list" *ngIf="readStatusPanelOpen">
+        <div class="muted" *ngIf="readStatusLoading">{{ 'common.loading' | t }}</div>
+        <div class="muted"
+             *ngIf="!readStatusLoading && readStatus && readStatus.receipts.length === 0">
+          {{ 'readTracking.readStatusEmpty' | t }}
+        </div>
+        <ul *ngIf="!readStatusLoading && readStatus && readStatus.receipts.length">
+          <li *ngFor="let r of readStatus.receipts">
+            <span class="reader-name">{{ readStatusDisplayName(r) }}</span>
+            <span class="reader-opened">
+              {{ (r.firstOpenedAt | date:'d MMM y, HH:mm') | latinDigits }}
+              <span class="muted">({{ 'readTracking.openedTimes' | t: { n: r.openCount } }})</span>
+            </span>
+            <span class="reader-ack success" *ngIf="r.acknowledgedAt">
+              <i class="fa-solid fa-circle-check"></i>
+              {{ (r.acknowledgedAt | date:'d MMM y, HH:mm') | latinDigits }}
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
     <!-- ── WORKFLOW ── -->
     <!-- <div class="wf-wrapper" *ngIf="activeTab==='workflow'"> 
 
@@ -582,7 +667,7 @@
 
       <div class="attachments">
 
-        <div class="attachment" *ngFor="let att of transaction.attachments">
+        <div class="attachment" *ngFor="let att of transaction.attachments" [class.attachment--classified]="att.classified">
           <div class="att-icon" [ngClass]="'att-' + att.type.toLowerCase()">
             <i class="fa-solid fa-file-pdf"   *ngIf="att.type === 'PDF'"></i>
             <i class="fa-solid fa-file-excel" *ngIf="att.type === 'Excel'"></i>
@@ -592,7 +677,17 @@
                *ngIf="!['PDF','Excel','Word','Image'].includes(att.type)"></i>
           </div>
           <div class="att-info">
-            <h4>{{ att.name }}</h4>
+            <h4>
+              {{ att.name }}
+              <span *ngIf="att.classified" class="badge badge--classified"
+                    [attr.title]="'attachments.classifiedTooltip' | t">
+                <i class="fa-solid fa-lock"></i> {{ 'attachments.classified' | t }}
+              </span>
+              <span *ngIf="att.encrypted && !att.classified" class="badge badge--encrypted"
+                    [attr.title]="'attachments.encryptedTooltip' | t">
+                <i class="fa-solid fa-shield-halved"></i> {{ 'attachments.encrypted' | t }}
+              </span>
+            </h4>
             <div class="meta">
               <span>{{ att.type }}</span>
               <span>{{ att.secrecy }}</span>
@@ -607,9 +702,87 @@
             <button class="icon-btn" [attr.title]="'transactionDetails.downloadAttachment' | t" (click)="downloadAttachment(att)">
               <i class="fa-solid fa-download"></i>
             </button>
+            <button
+              class="icon-btn"
+              *ngIf="cap.can('ATTACHMENT_VERIFY_TOKEN_ISSUE')"
+              [attr.title]="'verify.qrButton' | t"
+              type="button"
+              (click)="openVerificationQr(att)">
+              <i class="fa-solid fa-qrcode"></i>
+            </button>
+            <button
+              class="icon-btn"
+              *ngIf="cap.can('ATTACHMENT_SIGN_CREATE')"
+              [attr.title]="'signature.sign' | t"
+              (click)="signAttachment(att)">
+              <i class="fa-solid fa-signature"></i>
+            </button>
+            <button
+              class="icon-btn"
+              *ngIf="cap.can('ATTACHMENT_SIGN_VIEW') && att.signatures === undefined"
+              [attr.title]="'signature.loadList' | t"
+              (click)="loadSignaturesFor(att)">
+              <i class="fa-solid fa-list-check"></i>
+            </button>
             <button class="icon-btn danger" [attr.title]="'transactionDetails.deleteAttachment' | t" (click)="deleteAttachment(att)">
               <i class="fa-solid fa-trash"></i>
             </button>
+          </div>
+
+          <div class="att-signatures" *ngIf="att.signatures && att.signatures.length">
+            <h4 class="att-signatures-title">
+              <i class="fa-solid fa-signature"></i>
+              {{ 'signature.panelTitle' | t }}
+            </h4>
+            <div class="mini-table-wrap srs-table-shell">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>{{ 'signature.signer' | t }}</th>
+                  <th>{{ 'signature.algorithm' | t }}</th>
+                  <th>{{ 'signature.signedAt' | t }}</th>
+                  <th>{{ 'signature.status' | t }}</th>
+                  <th>{{ 'signature.verification' | t }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let sig of att.signatures">
+                  <td>{{ sig.signerFullNameEn || sig.signerUsername || sig.signerUserId }}</td>
+                  <td>{{ sig.algorithm }}</td>
+                  <td>{{ sig.signedAt }}</td>
+                  <td>
+                    <span class="badge"
+                          [class.badge--success]="sig.status === 'VALID'"
+                          [class.badge--danger]="sig.status === 'REVOKED'">
+                      {{ ('signature.statusValue.' + sig.status) | t }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge"
+                          [class.badge--success]="sig.verificationStatus === 'VERIFIED'"
+                          [class.badge--warning]="sig.verificationStatus === 'PENDING'"
+                          [class.badge--danger]="sig.verificationStatus === 'FAILED'">
+                      {{ ('signature.verificationValue.' + sig.verificationStatus) | t }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="icon-btn" type="button"
+                            [attr.title]="'signature.verify' | t"
+                            (click)="verifySignature(att, sig)">
+                      <i class="fa-solid fa-rotate"></i>
+                    </button>
+                    <button class="icon-btn danger" type="button"
+                            *ngIf="cap.can('ATTACHMENT_SIGNATURE_ADMIN') && sig.status === 'VALID'"
+                            [attr.title]="'signature.revoke' | t"
+                            (click)="revokeSignature(att, sig)">
+                      <i class="fa-solid fa-ban"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
           </div>
           <div class="att-index" *ngIf="indexEntriesByAttachmentId[att.id]?.length">
             <h4 class="att-index-title">{{ 'transactionDetails.indexTitle' | t }}</h4>
@@ -785,9 +958,12 @@
       type="button"
       class="action-btn"
       [ngClass]="workflowActionUiClass(wa.uiVariant)"
+      [disabled]="wa.requiresSignature && workflowActionSignatureMissing(wa)"
+      [attr.title]="wa.requiresSignature && workflowActionSignatureMissing(wa) ? ('attachments.signRequiredTooltip' | t) : null"
       (click)="onWorkflowAction(wa)">
       <i class="fa-solid fa-bolt"></i>
       {{ workflowActionLabel(wa) }}
+      <i *ngIf="wa.requiresSignature" class="fa-solid fa-signature wa-sign-hint"></i>
     </button>
   </ng-container>
 
@@ -799,7 +975,7 @@
   <button
     type="button"
     class="action-btn gray"
-    *ngIf="transaction.cancelAllowed !== false && cap.can('CANCEL_TRANSACTION')"
+    *ngIf="transaction.cancelAllowed !== false && cap.can('CORRESPONDENCE_DELETE')"
     (click)="openCancelDialog()">
     <i class="fa-solid fa-xmark"></i>
     {{ 'transactionDetails.actionCancel' | t }}

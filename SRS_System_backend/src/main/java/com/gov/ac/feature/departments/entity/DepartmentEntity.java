@@ -44,4 +44,11 @@ public class DepartmentEntity extends SoftDeletableEntity {
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;
+
+  /**
+   * Q/L/K/S level code used by {@code OrgRoutingService} to compute correspondence routing
+   * chains. Mirrors {@code organizational_unit_level.code}. Nullable until admin assigns.
+   */
+  @Column(name = "level_code", length = 8)
+  private String levelCode;
 }

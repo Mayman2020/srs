@@ -4,17 +4,17 @@ export interface SrsServiceUrl {
 }
 
 export const SrsServicesUrls: readonly SrsServiceUrl[] = [
-  { serviceCode: 'CREATE_CORRESPONDENCE', url: '/create-transaction' },
-  { serviceCode: 'SUPPLY_CORRESPONDENCE', url: '/supply-transaction' },
-  { serviceCode: 'TRANSACTIONS', url: '/transactions' },
+  { serviceCode: 'CREATE_CORRESPONDENCE', url: '/correspondence/create' },
+  { serviceCode: 'SUPPLY_CORRESPONDENCE', url: '/correspondence/supply' },
+  { serviceCode: 'TRANSACTIONS', url: '/correspondence' },
   { serviceCode: 'CORRESPONDENCE_SEARCH', url: '/correspondence-search' },
   { serviceCode: 'NOTIFICATIONS', url: '/notifications' },
   { serviceCode: 'REPORTS', url: '/reports' }
 ];
 
 export const SrsServicesRequestUrls: readonly SrsServiceUrl[] = [
-  { serviceCode: 'CORRESPONDENCE_TASK', url: '/transactions' },
-  { serviceCode: 'CORRESPONDENCE_DETAILS', url: '/transactions/:id' }
+  { serviceCode: 'CORRESPONDENCE_TASK', url: '/correspondence' },
+  { serviceCode: 'CORRESPONDENCE_DETAILS', url: '/correspondence/:id' }
 ];
 
 export function serviceUrlFor(

@@ -8,6 +8,8 @@ import com.gov.ac.feature.correspondence.query.CorrespondenceListPageables;
 import com.gov.ac.feature.correspondence.query.CorrespondenceSpecifications;
 import com.gov.ac.feature.correspondence.security.CorrespondencePrivilegedRoleChecker;
 import com.gov.ac.feature.correspondence.entity.CorrespondenceEntity;
+import com.gov.ac.feature.lookups.entity.ConfidentialityEntity;
+import com.gov.ac.feature.lookups.repository.ConfidentialityRepository;
 import com.gov.ac.feature.users.entity.AppUserEntity;
 import com.gov.ac.feature.users.repository.AppUserRepository;
 import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
@@ -34,6 +36,7 @@ public class CorrespondenceListService {
   private final CorrespondencePrivilegedRoleChecker privilegedRoleChecker;
   private final CorrespondenceListMapper correspondenceListMapper;
   private final UserAuditResolutionService userAuditResolutionService;
+  private final ConfidentialityRepository confidentialityRepository;
 
   @Transactional(readOnly = true)
   public Page<CorrespondenceListItemDto> search(
@@ -43,6 +46,7 @@ public class CorrespondenceListService {
       String priorityCode,
       Instant createdFrom,
       Instant createdTo,
+      String freeText,
       UUID viewerId) {
     AppUserEntity viewer =
         appUserRepository
@@ -59,11 +63,20 @@ public class CorrespondenceListService {
 
     boolean privileged = privilegedRoleChecker.hasPrivilegedViewRole(viewerId);
     Long deptId = viewer.getDepartment().getId();
+    Integer viewerClearanceSortOrder = resolveViewerClearanceSortOrder(viewer);
 
     Pageable p = CorrespondenceListPageables.sanitize(pageable);
     var spec =
         CorrespondenceSpecifications.forList(
-            privileged, deptId, statusCode, typeCode, priorityCode, createdFrom, createdTo);
+            privileged,
+            deptId,
+            statusCode,
+            typeCode,
+            priorityCode,
+            createdFrom,
+            createdTo,
+            freeText,
+            viewerClearanceSortOrder);
 
     var page = correspondenceRepository.findAll(spec, p);
     Set<UUID> actorIds = new HashSet<>();
@@ -94,5 +107,21 @@ public class CorrespondenceListService {
       return null;
     }
     return actors.get(id);
+  }
+
+  /**
+   * Look up the viewer's clearance sort_order so the list query can filter restricted material.
+   * Returns {@code null} when no clearance is assigned (the list spec then hides all items whose
+   * confidentiality requires clearance).
+   */
+  private Integer resolveViewerClearanceSortOrder(AppUserEntity viewer) {
+    Long clearanceId = viewer.getSecurityClearanceId();
+    if (clearanceId == null) {
+      return null;
+    }
+    return confidentialityRepository
+        .findByIdAndDeletedAtIsNull(clearanceId)
+        .map(ConfidentialityEntity::getSortOrder)
+        .orElse(null);
   }
 }

@@ -726,7 +726,13 @@ export class CreateTransactionComponent implements OnInit {
                     displayName: (a.name || a.file.name).trim(),
                     storageKey: up.storageKey,
                     byteSize: up.byteSize,
-                    mimeType: up.mimeType ?? undefined
+                    mimeType: up.mimeType ?? undefined,
+                    ...(up.plaintextSha256 ? { plaintextSha256: up.plaintextSha256 } : {}),
+                    ...(up.encryptionAlgo ? { encryptionAlgo: up.encryptionAlgo } : {}),
+                    ...(up.encryptionKeyRef ? { encryptionKeyRef: up.encryptionKeyRef } : {}),
+                    ...(up.encryptionWrappedDekB64 ? { encryptionWrappedDekB64: up.encryptionWrappedDekB64 } : {}),
+                    ...(up.encryptionIvB64 ? { encryptionIvB64: up.encryptionIvB64 } : {}),
+                    ...(up.ciphertextSha256 ? { ciphertextSha256: up.ciphertextSha256 } : {}),
                   })
                 )
               )
@@ -821,7 +827,7 @@ export class CreateTransactionComponent implements OnInit {
 
   viewCreated(): void {
     if (this.lastCreatedCorrespondenceId) {
-      this.router.navigate(['/transactions', this.lastCreatedCorrespondenceId]);
+      this.router.navigate(['/correspondence', this.lastCreatedCorrespondenceId]);
     }
   }
 

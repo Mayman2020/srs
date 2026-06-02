@@ -30,6 +30,15 @@ export class NotificationApiService {
     });
   }
 
+  /** Single bulk PATCH — marks every unread notification for the current user as read. */
+  markAllRead(): Observable<void> {
+    return this.http.patch<void>(
+      `${apiPath(this.base, AppConstants.API.NOTIFICATIONS)}/read-all`,
+      {},
+      { context: withSilentSuccess() }
+    );
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(apiPathWithId(this.base, AppConstants.API.NOTIFICATIONS, id));
   }

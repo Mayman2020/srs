@@ -10,6 +10,7 @@ import com.gov.ac.feature.auth.service.AuthService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,17 +26,20 @@ public class AuthController {
   private final AuthService authService;
 
   @PostMapping("/login")
+  @PreAuthorize("permitAll()")
   public LoginResponseDto login(@Valid @RequestBody LoginRequestDto request) {
     return authService.login(request.username(), request.password());
   }
 
   @PostMapping("/refresh")
+  @PreAuthorize("permitAll()")
   public LoginResponseDto refresh(@Valid @RequestBody RefreshRequestDto request) {
     return authService.refresh(request.refreshToken());
   }
 
   /** Switch {@code active_role} claim; returns a fresh JWT (no logout). */
   @PostMapping("/switch-role")
+  @PreAuthorize("isAuthenticated()")
   public LoginResponseDto switchRole(
       @Valid @RequestBody SwitchRoleRequestDto request, Authentication authentication) {
     UUID userId = (UUID) authentication.getPrincipal();
@@ -43,11 +47,13 @@ public class AuthController {
   }
 
   @PostMapping("/mfa/challenge")
+  @PreAuthorize("permitAll()")
   public void mfaChallenge(@Valid @RequestBody MfaChallengeRequestDto request) {
     authService.requestMfaChallenge(request.username(), request.channel());
   }
 
   @PostMapping("/mfa/verify")
+  @PreAuthorize("permitAll()")
   public LoginResponseDto mfaVerify(@Valid @RequestBody MfaVerifyRequestDto request) {
     return authService.verifyMfaAndLogin(request.username(), request.password(), request.code());
   }

@@ -48,4 +48,28 @@ public class WorkflowInstanceEntity extends SoftDeletableEntity {
 
   @Column(name = "business_key")
   private String businessKey;
+
+  /** JSON snapshot of the routing chain produced by {@code routingChainDelegate} (V5 column). */
+  @Column(name = "routing_chain_json", columnDefinition = "jsonb")
+  private String routingChainJson;
+
+  /** Current routing-chain level code (Q/L/K/S). */
+  @Column(name = "current_level_code", length = 8)
+  private String currentLevelCode;
+
+  /** Current routing stop department id. */
+  @Column(name = "current_department_id")
+  private Long currentDepartmentId;
+
+  /** Number of SLA breaches recorded against this instance. */
+  @Column(name = "escalation_count", nullable = false)
+  private Integer escalationCount = 0;
+
+  /** Originator department id at process start. */
+  @Column(name = "originator_department_id")
+  private Long originatorDepartmentId;
+
+  /** Final target department id at process start. */
+  @Column(name = "target_department_id")
+  private Long targetDepartmentId;
 }

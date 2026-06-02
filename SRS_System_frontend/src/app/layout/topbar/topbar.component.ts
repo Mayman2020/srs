@@ -14,7 +14,6 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
@@ -362,24 +361,23 @@ export class TopbarComponent implements OnInit {
     this.toggleRead(index);
     if (n.correspondenceId) {
       this.showNotifications = false;
-      this.router.navigate(['/transactions', n.correspondenceId]);
+      this.router.navigate(['/correspondence', n.correspondenceId]);
     } else {
       this.openNotificationsPage();
     }
   }
 
   /**
-   * No bulk `mark-all-read` API on backend yet — one PATCH per notification.
-   * Batched via {@link forkJoin} for a single error/success surface.
+   * Marks all unread notifications as read via a single bulk PATCH to `/notifications/read-all`.
    */
   markAllRead() {
-    const unread = this.notifications.filter((n) => !n.read);
-    if (!unread.length) {
+    const hasUnread = this.notifications.some((n) => !n.read);
+    if (!hasUnread) {
       return;
     }
-    forkJoin(unread.map((n) => this.notificationApi.markRead(n.id))).subscribe({
+    this.notificationApi.markAllRead().subscribe({
       next: () => {
-        for (const n of unread) {
+        for (const n of this.notifications) {
           n.read = true;
         }
       },

@@ -1,0 +1,180 @@
+.page {
+  padding: 1.5rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.page-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.muted {
+  color: #5b6573;
+}
+
+.err {
+  color: #b00020;
+}
+
+.state-msg {
+  margin: 0.5rem 0;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e3e6eb;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.25rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+form .row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+
+  > span {
+    display: block;
+    font-size: 0.85rem;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+
+  > input,
+  > select,
+  > textarea {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #fff;
+  }
+}
+
+.hint {
+  display: block;
+  color: #6b7280;
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+}
+
+.inline-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  > span {
+    margin: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.5rem 0.6rem;
+    text-align: start;
+    border-bottom: 1px solid #eef0f3;
+    vertical-align: middle;
+  }
+
+  thead th {
+    background: #f7f8fa;
+    font-weight: 600;
+  }
+
+  .actions-col {
+    width: 14rem;
+    white-space: nowrap;
+  }
+
+  .truncate {
+    max-width: 18rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.code {
+  background: #f4f4f5;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+
+  &.badge-on {
+    background: #ecfdf5;
+    color: #047857;
+  }
+
+  &.badge-off {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-link {
+  background: transparent;
+  color: #2563eb;
+  padding: 0.2rem 0.5rem;
+
+  &.warn {
+    color: #b91c1c;
+  }
+}

@@ -1,0 +1,132 @@
+.page-wrapper {
+  padding: 1rem 1.25rem 2rem;
+  max-width: 1080px;
+}
+
+.page-header h2 {
+  margin: 0 0 0.25rem;
+}
+
+.muted {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.card {
+  background: var(--surface-card, #fff);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.form-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.form-card label.inline-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-card input[type='text'],
+.form-card input[type='date'],
+.form-card select,
+.form-card textarea {
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font: inherit;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn.primary {
+  background: var(--primary, #1a6b3a);
+  color: #fff;
+}
+
+.btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  opacity: 0.75;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 0.75rem;
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  font: inherit;
+  border-bottom: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tab-btn.active {
+  border-bottom-color: var(--primary, #1a6b3a);
+  font-weight: 600;
+  color: var(--primary, #1a6b3a);
+}
+
+.tab-btn .badge {
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.4rem;
+  min-width: 1.4rem;
+  text-align: center;
+}
+
+.tab-btn.active .badge {
+  background: rgba(26, 107, 58, 0.15);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.csv {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+
+.empty,
+.loading {
+  text-align: center;
+  padding: 1rem;
+  opacity: 0.75;
+}

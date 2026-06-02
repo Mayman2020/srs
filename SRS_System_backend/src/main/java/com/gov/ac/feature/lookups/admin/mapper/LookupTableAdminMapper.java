@@ -130,7 +130,9 @@ public final class LookupTableAdminMapper {
         null,
         null,
         null,
-        null);
+        null,
+        actionType.getRequiresComment(),
+        actionType.getRequiresSignature());
   }
 
   public static LookupRowAdminDto mapWfEvent(WorkflowHistoryEventTypeEntity eventType, String lookupCode) {

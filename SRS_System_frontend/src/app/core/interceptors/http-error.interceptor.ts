@@ -43,10 +43,7 @@ function shouldShowErrorNotification(method: string, isSkipped: boolean): boolea
   if (isSkipped) {
     return false;
   }
-  if (method !== 'GET') {
-    return true;
-  }
-  return false;
+  return true;
 }
 
 function resolveError(

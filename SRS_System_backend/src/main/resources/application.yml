@@ -89,12 +89,20 @@ management:
     web:
       base-path: /actuator
       exposure:
-        include: health
+        # health + readiness/liveness probes + prometheus scrape endpoint for workflow SLA metrics.
+        include: health,info,prometheus
   endpoint:
     health:
       probes:
         enabled: true
       show-details: when_authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 ac:
   security:
@@ -114,8 +122,54 @@ ac:
     escalation:
       unassigned-after-minutes: ${WF_ESCALATION_MINUTES:120}
       poll-ms: ${WF_ESCALATION_POLL_MS:120000}
+  acting-assignment:
+    expiry-poll-ms: ${ACTING_ASSIGNMENT_EXPIRY_MS:600000}
+    reconciliation-poll-ms: ${ACTING_ASSIGNMENT_RECONCILIATION_MS:180000}
+    reconciliation-max-tasks: ${ACTING_ASSIGNMENT_RECONCILE_LIMIT:150}
   storage:
     root: ${AC_STORAGE_ROOT:./data/attachments}
+  attachment:
+    encryption:
+      # Master switch. When false, uploads land as plaintext (legacy mode) — useful for local dev
+      # only. Production must keep this true.
+      enabled: ${AC_ATTACHMENT_ENCRYPTION_ENABLED:true}
+      # Reference persisted on every encrypted version row. Rotate by issuing a new ref + KEK and
+      # leaving the old one available to decrypt existing rows.
+      kek-ref: ${AC_ATTACHMENT_KEK_REF:KEK_V1}
+      # 64 hex chars = 32-byte AES-256 KEK. Empty value falls back to a deterministic dev key and
+      # logs WARN at startup. Production MUST set AC_ATTACHMENT_KEK_HEX (runbook §11).
+      kek-hex: ${AC_ATTACHMENT_KEK_HEX:}
+    download-token:
+      # Short by design — clients call /download-intent right before /download/{token}.
+      ttl-seconds: ${AC_ATTACHMENT_DOWNLOAD_TOKEN_TTL_S:60}
+      # Cleanup job purges tokens past expires_at + 1h.
+      cleanup-poll-ms: ${AC_ATTACHMENT_DOWNLOAD_TOKEN_CLEANUP_MS:600000}
+    verify:
+      public:
+        rate-limit-per-minute: 30
+        default-ttl-days: 1825
+  signature:
+    # ED25519 is fixed at the SPI level; configuration is here for the env-loaded keypair only.
+    algorithm: ${AC_SIGN_ALGORITHM:ED25519}
+    key-ref: ${AC_SIGN_KEY_REF:SIGN_V1}
+    private-key-pem: ${AC_SIGN_PRIVATE_KEY_PEM:}
+    public-key-pem:  ${AC_SIGN_PUBLIC_KEY_PEM:}
+  retention:
+    poll-ms: 3600000
+    batch-size: 500
+    dry-run: ${AC_RETENTION_DRY_RUN:true}
+  notification:
+    routing: ${AC_NOTIFICATION_ROUTING:outbox}
+    dispatch:
+      poll-ms: 5000
+      batch-size: 50
+      max-attempts: 8
+      base-backoff-ms: 5000
+      max-backoff-ms: 3600000
+    webhook:
+      signing-secret: ${AC_NOTIFICATION_WEBHOOK_SECRET:}
+    teams:
+      default-target-code: ${AC_NOTIFICATION_TEAMS_TARGET:}
 
 logging:
   level:

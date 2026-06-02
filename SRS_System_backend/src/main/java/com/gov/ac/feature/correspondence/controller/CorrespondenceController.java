@@ -31,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/correspondence")
 @RequiredArgsConstructor
+@PreAuthorize("@effectivePermission.has('CORRESPONDENCE_VIEW')")
 public class CorrespondenceController {
 
   private final CorrespondenceCreateService correspondenceCreateService;
@@ -62,9 +64,17 @@ public class CorrespondenceController {
       @RequestParam(required = false) String type,
       @RequestParam(required = false) String priority,
       @RequestParam(required = false) Instant createdFrom,
-      @RequestParam(required = false) Instant createdTo) {
+      @RequestParam(required = false) Instant createdTo,
+      @RequestParam(required = false, name = "q") String freeText) {
     return correspondenceListService.search(
-        pageable, status, type, priority, createdFrom, createdTo, SecurityUtils.requireCurrentUserId());
+        pageable,
+        status,
+        type,
+        priority,
+        createdFrom,
+        createdTo,
+        freeText,
+        SecurityUtils.requireCurrentUserId());
   }
 
   @GetMapping("/{id}")
@@ -74,6 +84,7 @@ public class CorrespondenceController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_CREATE')")
   public CorrespondenceCreatedResponseDto create(@Valid @RequestBody CorrespondenceCreateFormDto form) {
     UUID userId = SecurityUtils.requireCurrentUserId();
     return correspondenceCreateService.create(userId, form);
@@ -82,8 +93,9 @@ public class CorrespondenceController {
   /** Complete the current user's active Camunda task for this correspondence (same auth as view). */
   @PostMapping("/{id}/actions")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("@effectivePermission.has('WORKFLOW_TASK_ACTION')")
   public void workflowAction(
-      @PathVariable UUID id, @RequestBody(required = false) WorkflowActionRequestDto body) {
+      @PathVariable UUID id, @Valid @RequestBody(required = false) WorkflowActionRequestDto body) {
     String action = body != null ? body.action() : null;
     String comment = body != null ? body.comment() : null;
     correspondenceWorkflowActionService.completeActiveAssigneeTask(
@@ -92,6 +104,7 @@ public class CorrespondenceController {
 
   @PostMapping("/{id}/workflow-delegate")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("@effectivePermission.has('WORKFLOW_TASK_ACTION')")
   public void workflowDelegate(
       @PathVariable UUID id, @Valid @RequestBody WorkflowDelegateRequestDto body) {
     correspondenceWorkflowActionService.delegateActiveAssigneeTask(
@@ -108,6 +121,7 @@ public class CorrespondenceController {
 
   @PostMapping("/{id}/cancel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_DELETE')")
   public void cancel(
       @PathVariable UUID id,
       @RequestBody(required = false) @Valid CorrespondenceCancelRequestDto body) {
@@ -117,6 +131,7 @@ public class CorrespondenceController {
 
   @PostMapping("/{id}/attachments")
   @ResponseStatus(HttpStatus.CREATED)
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_UPDATE')")
   public CorrespondenceAttachmentDetailDto addAttachment(
       @PathVariable UUID id, @Valid @RequestBody CorrespondenceAttachmentFormDto form) {
     return correspondenceAttachmentMutationService.addAttachment(

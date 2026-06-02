@@ -10,6 +10,11 @@ export interface EmailDispatchBody {
   body: string;
 }
 
+export interface SmsDispatchBody {
+  phoneE164: string;
+  message: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NotificationDispatchApiService {
   constructor(
@@ -19,7 +24,14 @@ export class NotificationDispatchApiService {
 
   dispatchEmail(body: EmailDispatchBody): Observable<void> {
     return this.http.post<void>(
-      `${apiPath(this.base, AppConstants.API.NOTIFICATIONS)}/dispatch/email`,
+      `${apiPath(this.base, AppConstants.API.NOTIFICATION_DISPATCH)}/email`,
+      body
+    );
+  }
+
+  dispatchSms(body: SmsDispatchBody): Observable<void> {
+    return this.http.post<void>(
+      `${apiPath(this.base, AppConstants.API.NOTIFICATION_DISPATCH)}/sms`,
       body
     );
   }

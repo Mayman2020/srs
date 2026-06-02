@@ -1,0 +1,214 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h2>{{ 'sla.pageTitle' | t }}</h2>
+    <p class="muted">{{ 'sla.subtitle' | t }}</p>
+  </div>
+
+  <div class="tabs">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'policies'"
+      (click)="setTab('policies')"
+    >
+      {{ 'sla.tabPolicies' | t }}
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'breaches'"
+      (click)="setTab('breaches')"
+    >
+      {{ 'sla.tabBreaches' | t }}
+    </button>
+  </div>
+
+  <!-- ============================ POLICIES TAB ============================ -->
+  <ng-container *ngIf="activeTab === 'policies'">
+    <div class="card form-card">
+      <h3>{{ editingId == null ? ('sla.formTitleCreate' | t) : ('sla.formTitleEdit' | t) }}</h3>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="row-2">
+          <label>
+            <span>{{ 'sla.code' | t }}</span>
+            <input type="text" formControlName="code" autocomplete="off" />
+          </label>
+          <label>
+            <span>{{ 'sla.targetHours' | t }}</span>
+            <input type="number" formControlName="targetHours" min="1" />
+          </label>
+        </div>
+
+        <div class="row-2">
+          <label>
+            <span>{{ 'sla.nameAr' | t }}</span>
+            <input type="text" formControlName="nameAr" />
+          </label>
+          <label>
+            <span>{{ 'sla.nameEn' | t }}</span>
+            <input type="text" formControlName="nameEn" />
+          </label>
+        </div>
+
+        <div class="row-2">
+          <label>
+            <span>{{ 'sla.orgLevelCode' | t }}</span>
+            <select formControlName="orgLevelCode">
+              <option *ngFor="let l of orgLevels" [value]="l">
+                {{ l ? ('sla.level.' + l | t) : ('sla.levelAny' | t) }}
+              </option>
+            </select>
+          </label>
+          <label>
+            <span>{{ 'sla.breachGraceMinutes' | t }}</span>
+            <input type="number" formControlName="breachGraceMinutes" min="0" />
+          </label>
+        </div>
+
+        <label>
+          <span>{{ 'sla.description' | t }}</span>
+          <textarea formControlName="description" rows="2"></textarea>
+        </label>
+
+        <label class="inline-checkbox">
+          <input type="checkbox" formControlName="active" />
+          <span>{{ 'sla.active' | t }}</span>
+        </label>
+
+        <!-- Escalation steps -->
+        <h4 class="steps-title">{{ 'sla.stepsTitle' | t }}</h4>
+        <div class="steps" formArrayName="steps">
+          <div *ngFor="let s of steps.controls; let i = index" [formGroupName]="i" class="step-row">
+            <label>
+              <span>{{ 'sla.step.order' | t }}</span>
+              <input type="number" formControlName="stepOrder" min="0" />
+            </label>
+            <label>
+              <span>{{ 'sla.step.action' | t }}</span>
+              <select formControlName="actionCode">
+                <option *ngFor="let a of actionCodes" [value]="a">{{ actionLabel(a) }}</option>
+              </select>
+            </label>
+            <label>
+              <span>{{ 'sla.step.delayMinutes' | t }}</span>
+              <input type="number" formControlName="delayAfterBreachMinutes" min="0" />
+            </label>
+            <label class="grow">
+              <span>{{ 'sla.step.description' | t }}</span>
+              <input type="text" formControlName="description" />
+            </label>
+            <button type="button" class="btn btn-icon" (click)="removeStep(i)">
+              {{ 'sla.removeStep' | t }}
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary" (click)="addStep()">
+          {{ 'sla.addStep' | t }}
+        </button>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="submitting || form.invalid">
+            {{ editingId == null ? ('sla.create' | t) : ('sla.save' | t) }}
+          </button>
+          <button
+            *ngIf="editingId != null"
+            type="button"
+            class="btn btn-secondary"
+            (click)="cancelEdit()"
+          >
+            {{ 'common.close' | t }}
+          </button>
+          <button
+            *ngIf="editingId == null"
+            type="button"
+            class="btn btn-secondary"
+            (click)="startCreate()"
+          >
+            {{ 'sla.reset' | t }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>{{ 'sla.listTitle' | t }}</h3>
+      <p *ngIf="loading" class="muted">{{ 'common.loading' | t }}</p>
+      <table *ngIf="!loading && policies.length > 0" class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'sla.col.code' | t }}</th>
+            <th>{{ 'sla.col.name' | t }}</th>
+            <th>{{ 'sla.col.targetHours' | t }}</th>
+            <th>{{ 'sla.col.specificity' | t }}</th>
+            <th>{{ 'sla.col.steps' | t }}</th>
+            <th>{{ 'sla.col.active' | t }}</th>
+            <th>{{ 'sla.col.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of policies">
+            <td>{{ p.code }}</td>
+            <td>{{ policyName(p) }}</td>
+            <td>{{ p.targetHours }}</td>
+            <td>{{ p.specificity }}</td>
+            <td>{{ p.steps?.length || 0 }}</td>
+            <td>{{ (p.active ? 'sla.statusActive' : 'sla.statusInactive') | t }}</td>
+            <td class="actions">
+              <button type="button" class="btn btn-link" (click)="startEdit(p)">
+                {{ 'sla.edit' | t }}
+              </button>
+              <button type="button" class="btn btn-link danger" (click)="confirmDelete(p)">
+                {{ 'sla.delete' | t }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="!loading && policies.length === 0" class="muted">{{ 'sla.empty' | t }}</p>
+    </div>
+  </ng-container>
+
+  <!-- ============================ BREACHES TAB ============================ -->
+  <ng-container *ngIf="activeTab === 'breaches'">
+    <div class="card">
+      <div class="card-header">
+        <h3>{{ 'sla.breachesTitle' | t }}</h3>
+        <label class="inline-checkbox">
+          <input
+            type="checkbox"
+            [checked]="showOnlyActiveBreaches"
+            (change)="toggleBreachFilter()"
+          />
+          <span>{{ 'sla.onlyActive' | t }}</span>
+        </label>
+      </div>
+      <table *ngIf="breaches.length > 0" class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'sla.breach.taskId' | t }}</th>
+            <th>{{ 'sla.breach.policy' | t }}</th>
+            <th>{{ 'sla.breach.correspondence' | t }}</th>
+            <th>{{ 'sla.breach.target' | t }}</th>
+            <th>{{ 'sla.breach.breached' | t }}</th>
+            <th>{{ 'sla.breach.lastStep' | t }}</th>
+            <th>{{ 'sla.breach.status' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of breaches" [class.resolved]="b.resolvedAt">
+            <td class="mono">{{ b.taskId }}</td>
+            <td>{{ b.slaPolicyCode || '-' }}</td>
+            <td>{{ b.correspondenceReferenceNumber || '-' }}</td>
+            <td>{{ b.targetAt }}</td>
+            <td>{{ b.breachedAt }}</td>
+            <td>{{ b.lastStepActionCode || '-' }}</td>
+            <td>
+              {{ (b.resolvedAt ? 'sla.breach.resolved' : 'sla.breach.active') | t }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="breaches.length === 0" class="muted">{{ 'sla.breach.empty' | t }}</p>
+    </div>
+  </ng-container>
+</div>

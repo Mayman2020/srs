@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
-@PreAuthorize("@effectivePermission.has(authentication, 'role.manage')")
+@PreAuthorize("@effectivePermission.has('ADMIN_ROLE_MANAGE')")
 public class RoleController {
 
   private final RoleService roleService;

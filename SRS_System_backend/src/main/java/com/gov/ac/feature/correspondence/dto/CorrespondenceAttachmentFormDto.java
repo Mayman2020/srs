@@ -31,4 +31,24 @@ public class CorrespondenceAttachmentFormDto {
 
   @Size(max = 64)
   private String checksumSha256;
+
+  // Slice 5 — at-rest encryption metadata returned by the upload endpoint.
+
+  @Size(max = 64)
+  private String plaintextSha256;
+
+  @Size(max = 32)
+  private String encryptionAlgo;
+
+  @Size(max = 128)
+  private String encryptionKeyRef;
+
+  @Size(max = 8192)
+  private String encryptionWrappedDekB64;
+
+  @Size(max = 64)
+  private String encryptionIvB64;
+
+  @Size(max = 64)
+  private String ciphertextSha256;
 }

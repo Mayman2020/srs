@@ -79,6 +79,8 @@ export interface LookupLabelDto {
   nameEn: string;
   /** Correspondence status: `correspondence_status.ui_variant`. */
   uiVariant?: string | null;
+  /** Slice 5 — only populated for `confidentiality`; true marks the correspondence as classified. */
+  requiresClearance?: boolean | null;
 }
 
 export interface DepartmentSummaryDto {
@@ -134,6 +136,10 @@ export interface AttachmentVersionDto {
   mimeType: string | null;
   checksumSha256: string | null;
   createdAt: string;
+  /** Slice 5 — when present the bytes on disk are encrypted (AES_256_GCM). */
+  encryptionAlgo?: string | null;
+  /** Slice 5 — canonical content hash that digital signatures bind to. */
+  plaintextSha256?: string | null;
 }
 
 export interface CorrespondenceAttachmentDetailDto {
@@ -209,6 +215,55 @@ export interface CorrespondenceDetailResponseDto {
   availableWorkflowActions?: WorkflowActionAvailableDto[];
   /** From `correspondence_status.allows_cancel` + cancel outcome row; hides cancel when false. */
   cancelAllowed?: boolean;
+  /** Slice 1 — calling user's read receipt for this correspondence; `null` until tracked. */
+  myReadReceipt?: CorrespondenceReadReceiptDto | null;
+  /** Slice 1 — whether the workspace should expose the Acknowledge action; defaults to true. */
+  acknowledgementSupported?: boolean;
+}
+
+/** Slice 1 — per-(correspondence,user) read receipt. */
+export interface CorrespondenceReadReceiptDto {
+  id: number;
+  /** Null when this is the caller's own receipt (compact embedded form). */
+  userId: string | null;
+  username: string | null;
+  fullNameAr: string | null;
+  fullNameEn: string | null;
+  firstOpenedAt: string;
+  lastOpenedAt: string;
+  openCount: number;
+  acknowledgedAt: string | null;
+  acknowledgementComment: string | null;
+}
+
+/** Slice 1 — body of `POST /api/v1/correspondence/{id}/ack`. */
+export interface CorrespondenceAckRequestDto {
+  comment?: string | null;
+}
+
+/** Slice 1 — cross-user read status; gated by `CORRESPONDENCE_READ_STATUS_VIEW`. */
+export interface CorrespondenceReadStatusSummaryDto {
+  correspondenceId: string;
+  totalReaders: number;
+  acknowledgedReaders: number;
+  receipts: CorrespondenceReadReceiptDto[];
+}
+
+/** Slice 1 — single row from `attachment_access_log`. */
+export interface AttachmentAccessLogDto {
+  id: number;
+  attachmentId: number | null;
+  attachmentVersionId: number | null;
+  correspondenceId: string | null;
+  userId: string | null;
+  username: string | null;
+  fullNameAr: string | null;
+  fullNameEn: string | null;
+  actionCode: string;
+  occurredAt: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  success: boolean;
 }
 
 /** Row from GET correspondence detail — dynamic workflow buttons. */
@@ -218,6 +273,8 @@ export interface WorkflowActionAvailableDto {
   nameAr: string;
   nameEn: string;
   requiresComment: boolean;
+  /** Slice 5 — when true, the actor must sign every active attachment first. */
+  requiresSignature?: boolean;
   sortOrder: number;
   /** Semantic style: primary | secondary | danger | warning | success */
   uiVariant?: string;
@@ -230,6 +287,13 @@ export interface CorrespondenceAttachmentFormDto {
   mimeType?: string | null;
   contentTypeCode?: string | null;
   checksumSha256?: string | null;
+  /** Slice 5 — at-rest encryption metadata round-tripped from POST /attachments/upload. */
+  plaintextSha256?: string | null;
+  encryptionAlgo?: string | null;
+  encryptionKeyRef?: string | null;
+  encryptionWrappedDekB64?: string | null;
+  encryptionIvB64?: string | null;
+  ciphertextSha256?: string | null;
 }
 
 export interface CorrespondenceCreateRequestDto {
@@ -352,12 +416,23 @@ export interface DashboardResponseDto {
   totalCorrespondences: number;
   byStatus: DashboardBucketDto[];
   byPriority: DashboardBucketDto[];
+  /** Distribution by owner-department organizational level (Q/L/K/S) — Phase 7. */
+  byOrgLevel: DashboardBucketDto[];
+  /** Distribution by confidentiality level (filtered by viewer clearance) — Phase 7. */
+  byConfidentiality: DashboardBucketDto[];
   overdueCount: number;
   /** Headline KPI counts (see Flyway `kpi_segment` / `dashboard_outbound_highlight`). */
   kpiSlaDoneCount: number;
   kpiPipelineCount: number;
   kpiInboxCount: number;
   kpiOutboundCount: number;
+}
+
+/** `GET /api/v1/reports/workflow-sla-trend` */
+export interface WorkflowSlaPointDto {
+  bucketStart: string;
+  averageRoutingSeconds: number;
+  completedCount: number;
 }
 
 export interface UserListDto {
@@ -509,6 +584,48 @@ export interface AttachmentUploadResponseDto {
   storageKey: string;
   byteSize: number;
   mimeType: string;
+  /** Slice 5 — at-rest encryption envelope; non-null when the upload was AES-256-GCM encrypted. */
+  plaintextSha256?: string | null;
+  encryptionAlgo?: string | null;
+  encryptionKeyRef?: string | null;
+  encryptionWrappedDekB64?: string | null;
+  encryptionIvB64?: string | null;
+  ciphertextSha256?: string | null;
+}
+
+/** Slice 5 — response of POST /attachments/{id}/download-intent. */
+export interface AttachmentDownloadIntentDto {
+  /** Opaque single-use token. Returned exactly once; pair with `Authorization: Bearer` to stream. */
+  token: string;
+  /** ISO timestamp at which the token stops being accepted. */
+  expiresAt: string;
+}
+
+/** Slice 5 — `document_signature` row. */
+export interface DocumentSignatureDto {
+  id: string;
+  attachmentId: number | null;
+  attachmentVersionId: number | null;
+  signerUserId: string | null;
+  signerUsername: string | null;
+  signerFullNameAr: string | null;
+  signerFullNameEn: string | null;
+  algorithm: string;
+  canonicalHashSha256: string;
+  keyRef: string;
+  signedAt: string;
+  status: 'VALID' | 'REVOKED' | string;
+  verificationStatus: 'PENDING' | 'VERIFIED' | 'FAILED' | string;
+  verificationAt: string | null;
+  verificationDetail: string | null;
+}
+
+/** Slice 5 — response of GET /verify/attachment-versions/{id}. */
+export interface AttachmentVerificationDto {
+  attachmentVersionId: number;
+  plaintextSha256: string | null;
+  encryptionAlgo: string | null;
+  signatures: DocumentSignatureDto[];
 }
 
 /** Guide §9 — administrative delegation */
@@ -522,6 +639,211 @@ export interface AuthorityDelegationDto {
   allowedConfidentialityCodes: string | null;
   canSignOnBehalf: boolean;
   notes: string | null;
+}
+
+/**
+ * Slice 2 — Task Delegation. Scope codes match the backend CHECK constraint:
+ * - `TASK` targets a specific Camunda task or correspondence.
+ * - `TYPE_CONFIDENTIALITY` applies to every open task whose correspondence matches the
+ *    optional csv filters (empty = all).
+ */
+export type TaskDelegationScope = 'TASK' | 'TYPE_CONFIDENTIALITY';
+
+export interface TaskDelegationDto {
+  id: string;
+  delegator: UserSummaryDto;
+  delegate: UserSummaryDto;
+  scopeType: TaskDelegationScope;
+  correspondenceId: string | null;
+  camundaTaskId: string | null;
+  processInstanceId: string | null;
+  allowedCorrespondenceTypeCodes: string | null;
+  allowedConfidentialityCodes: string | null;
+  validFrom: string;
+  validTo: string;
+  notes: string | null;
+  revokedAt: string | null;
+  revokedBy: string | null;
+  authorityDelegationId: string | null;
+  active: boolean;
+}
+
+export interface CreateTaskDelegationRequestDto {
+  delegateUserId: string;
+  scopeType: TaskDelegationScope;
+  correspondenceId?: string | null;
+  camundaTaskId?: string | null;
+  processInstanceId?: string | null;
+  allowedCorrespondenceTypeCodes?: string | null;
+  allowedConfidentialityCodes?: string | null;
+  validFrom: string;
+  validTo: string;
+  notes?: string | null;
+  authorityDelegationId?: string | null;
+}
+
+export interface TaskDelegationListDto {
+  outgoingActive: TaskDelegationDto[];
+  incomingActive: TaskDelegationDto[];
+  inactive: TaskDelegationDto[];
+}
+
+// ============================================================================
+// Slice 4 — Acting manager assignments
+// ============================================================================
+
+export type ActingAssignmentLifecycleStatus = 'ACTIVE' | 'UPCOMING' | 'EXPIRED' | 'REVOKED';
+
+export interface ActingAssignmentDto {
+  id: string;
+  absentUserId: string;
+  absentUsername: string;
+  actingUserId: string;
+  actingUsername: string;
+  departmentId: number | null;
+  includeDepartmentSubtree: boolean;
+  orgLevelCode: string | null;
+  correspondenceTypeId: number | null;
+  confidentialityId: number | null;
+  workflowActionTypeId: number | null;
+  processDefinitionKey: string | null;
+  taskDefinitionKey: string | null;
+  validFrom: string;
+  validTo: string;
+  notes: string | null;
+  revokedAt: string | null;
+  active: boolean;
+  lifecycleStatus: ActingAssignmentLifecycleStatus;
+}
+
+export interface CreateActingAssignmentRequestDto {
+  absentUserId: string;
+  actingUserId: string;
+  departmentId?: number | null;
+  includeDepartmentSubtree?: boolean | null;
+  orgLevelCode?: string | null;
+  correspondenceTypeId?: number | null;
+  confidentialityId?: number | null;
+  workflowActionTypeId?: number | null;
+  processDefinitionKey?: string | null;
+  taskDefinitionKey?: string | null;
+  validFrom: string;
+  validTo: string;
+  notes?: string | null;
+}
+
+export interface ActingAssignmentListDto {
+  asAbsent: ActingAssignmentDto[];
+  asActing: ActingAssignmentDto[];
+  upcoming: ActingAssignmentDto[];
+  inactive: ActingAssignmentDto[];
+}
+
+// ============================================================================
+// Slice 3 — SLA Policy Engine
+// ============================================================================
+
+/** Escalation action codes — must match the V16 CHECK constraint. */
+export type SlaEscalationActionCode =
+  | 'NOTIFY_MANAGER'
+  | 'REASSIGN_TO_DELEGATE'
+  | 'ESCALATE_TO_HIGHER_LEVEL'
+  | 'NOTIFY_AUDIT_ADMIN';
+
+export interface SlaEscalationStepDto {
+  id: number;
+  stepOrder: number;
+  actionCode: SlaEscalationActionCode | string;
+  delayAfterBreachMinutes: number;
+  targetRoleCode: string | null;
+  description: string | null;
+  active: boolean;
+}
+
+export interface SlaPolicyDto {
+  id: number;
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  description: string | null;
+  correspondenceTypeId: number | null;
+  correspondenceTypeCode: string | null;
+  priorityId: number | null;
+  priorityCode: string | null;
+  confidentialityId: number | null;
+  confidentialityCode: string | null;
+  orgLevelCode: string | null;
+  workflowActionTypeId: number | null;
+  workflowActionTypeCode: string | null;
+  targetHours: number;
+  breachGraceMinutes: number;
+  active: boolean;
+  specificity: number;
+  steps: SlaEscalationStepDto[];
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface CreateSlaEscalationStepRequestDto {
+  stepOrder: number;
+  actionCode: SlaEscalationActionCode | string;
+  delayAfterBreachMinutes: number;
+  targetRoleCode?: string | null;
+  description?: string | null;
+  active?: boolean | null;
+}
+
+export interface CreateSlaPolicyRequestDto {
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  description?: string | null;
+  correspondenceTypeId?: number | null;
+  priorityId?: number | null;
+  confidentialityId?: number | null;
+  orgLevelCode?: string | null;
+  workflowActionTypeId?: number | null;
+  targetHours: number;
+  breachGraceMinutes?: number | null;
+  active?: boolean | null;
+  steps?: CreateSlaEscalationStepRequestDto[];
+}
+
+export interface SlaBreachEventDto {
+  id: number;
+  taskId: string;
+  processInstanceId: string | null;
+  workflowInstanceId: string | null;
+  correspondenceId: string | null;
+  correspondenceReferenceNumber: string | null;
+  slaPolicyId: number | null;
+  slaPolicyCode: string | null;
+  targetAt: string;
+  breachedAt: string;
+  lastStepExecutedOrder: number | null;
+  lastStepExecutedAt: string | null;
+  lastStepActionCode: string | null;
+  stepsExecutedTotal: number | null;
+  resolvedAt: string | null;
+  resolutionOutcome: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface SlaTaskStatusDto {
+  taskId: string;
+  slaPolicyId: number | null;
+  slaPolicyCode: string | null;
+  taskCreatedAt: string | null;
+  targetAt: string | null;
+  breachedAt: string | null;
+  resolvedAt: string | null;
+  overdue: boolean;
+  secondsRemaining: number;
+  secondsOverdue: number;
+  lastStepExecutedOrder: number | null;
+  lastStepActionCode: string | null;
+  stepsExecutedTotal: number | null;
 }
 
 /** Guide — linked correspondences tab */

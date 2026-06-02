@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api-url';
@@ -16,13 +16,13 @@ export interface PlatformCircularInboxRowDto {
 export interface PlatformCreateCircularRequestDto {
   title: string;
   body: string;
+  /**
+   * Server overrides this from the JWT subject; we send the current user id only so existing
+   * payload validation passes.
+   */
   createdBy: string;
   broadcast: boolean;
   recipientUserIds: string[];
-}
-
-export interface PlatformMarkCircularReadRequestDto {
-  userId: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -32,24 +32,31 @@ export class PlatformCircularApiService {
     @Inject(API_BASE_URL) private base: string
   ) {}
 
-  inbox(userId: string): Observable<PlatformCircularInboxRowDto[]> {
-    const params = new HttpParams().set('userId', userId);
+  /** Self-scoped — recipient is always the JWT subject; no userId parameter. */
+  inbox(): Observable<PlatformCircularInboxRowDto[]> {
     return this.http.get<PlatformCircularInboxRowDto[]>(
-      `${apiPath(this.base, AppConstants.API.CIRCULARS)}/inbox`,
-      { params }
+      `${apiPath(this.base, AppConstants.API.CIRCULARS)}/inbox`
     );
   }
 
-  markRead(circularId: string, body: PlatformMarkCircularReadRequestDto): Observable<void> {
+  /** Mark as read for the current user; backend derives user id from JWT. */
+  markRead(circularId: string): Observable<void> {
     return this.http.post<void>(
       `${apiPathWithId(this.base, AppConstants.API.CIRCULARS, circularId)}/read`,
-      body
+      {}
     );
   }
 
   create(body: PlatformCreateCircularRequestDto): Observable<{ id: string }> {
     return this.http.post<{ id: string }>(
       apiPath(this.base, AppConstants.API.CIRCULARS),
+      body
+    );
+  }
+
+  broadcast(body: PlatformCreateCircularRequestDto): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(
+      `${apiPath(this.base, AppConstants.API.CIRCULARS)}/broadcast`,
       body
     );
   }

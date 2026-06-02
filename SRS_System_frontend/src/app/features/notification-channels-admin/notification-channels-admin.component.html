@@ -1,0 +1,130 @@
+<section class="page" aria-labelledby="ch-title">
+  <header class="page-header">
+    <h1 id="ch-title">{{ 'notificationAdmin.channelsPageTitle' | t }}</h1>
+    <p class="muted">{{ 'notificationAdmin.channels.subtitle' | t }}</p>
+  </header>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'common.loading' | t }}</p>
+  <p *ngIf="error()" class="state-msg err" role="alert">{{ error()! | t }}</p>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <div class="card form-card">
+      <h3>
+        {{ editingId() == null
+          ? ('notificationAdmin.channels.formTitleCreate' | t)
+          : ('notificationAdmin.channels.formTitleEdit' | t) }}
+      </h3>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="row-2">
+          <label>
+            <span>{{ 'notificationAdmin.channels.channelCode' | t }}</span>
+            <select formControlName="channelCode">
+              <option *ngFor="let k of kinds" [value]="k">{{ channelLabel(k) | t }}</option>
+            </select>
+          </label>
+          <label>
+            <span>{{ 'notificationAdmin.channels.targetCode' | t }}</span>
+            <input type="text" formControlName="targetCode" autocomplete="off" required />
+          </label>
+        </div>
+
+        <label *ngIf="needsUrl(form.get('channelCode')!.value)">
+          <span>{{ 'notificationAdmin.channels.targetUrl' | t }}</span>
+          <input
+            type="url"
+            formControlName="targetUrl"
+            placeholder="https://example.com/hook"
+            autocomplete="off" />
+          <small class="hint">{{ 'notificationAdmin.channels.targetUrlHint' | t }}</small>
+        </label>
+
+        <label *ngIf="needsUrl(form.get('channelCode')!.value)">
+          <span>{{ 'notificationAdmin.channels.signingSecretRef' | t }}</span>
+          <input
+            type="text"
+            formControlName="signingSecretRef"
+            placeholder="AC_WEBHOOK_SIGNING_SECRET"
+            autocomplete="off" />
+          <small class="hint">{{ 'notificationAdmin.channels.signingSecretRefHint' | t }}</small>
+        </label>
+
+        <label>
+          <span>{{ 'notificationAdmin.channels.description' | t }}</span>
+          <textarea formControlName="description" rows="2"></textarea>
+        </label>
+
+        <label class="inline-checkbox">
+          <input type="checkbox" formControlName="enabled" />
+          <span>{{ 'notificationAdmin.channels.enabled' | t }}</span>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+            {{ editingId() == null ? ('common.create' | t) : ('common.save' | t) }}
+          </button>
+          <button
+            *ngIf="editingId() != null"
+            type="button"
+            class="btn btn-secondary"
+            (click)="cancelEdit()">
+            {{ 'common.cancel' | t }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card list-card">
+      <div class="card-header">
+        <h3>{{ 'notificationAdmin.channels.listTitle' | t }}</h3>
+        <button type="button" class="btn btn-secondary" (click)="refresh()">
+          {{ 'common.refresh' | t }}
+        </button>
+      </div>
+
+      <p *ngIf="rows().length === 0" class="muted state-msg">
+        {{ 'notificationAdmin.channels.empty' | t }}
+      </p>
+
+      <table *ngIf="rows().length > 0" class="rows">
+        <thead>
+          <tr>
+            <th>{{ 'notificationAdmin.channels.channelCode' | t }}</th>
+            <th>{{ 'notificationAdmin.channels.targetCode' | t }}</th>
+            <th>{{ 'notificationAdmin.channels.targetUrl' | t }}</th>
+            <th>{{ 'notificationAdmin.channels.signingSecretRef' | t }}</th>
+            <th>{{ 'notificationAdmin.channels.enabled' | t }}</th>
+            <th class="actions-col">{{ 'common.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows()">
+            <td>{{ channelLabel(row.channelCode) | t }}</td>
+            <td><code class="code">{{ row.targetCode }}</code></td>
+            <td class="truncate" [attr.title]="row.targetUrl">{{ row.targetUrl ?? '—' }}</td>
+            <td>
+              <code class="code" *ngIf="row.signingSecretRef">{{ row.signingSecretRef }}</code>
+              <span *ngIf="!row.signingSecretRef" class="muted">—</span>
+            </td>
+            <td>
+              <span class="badge" [class.badge-on]="row.enabled" [class.badge-off]="!row.enabled">
+                {{ row.enabled ? ('notificationAdmin.channels.statusOn' | t) : ('notificationAdmin.channels.statusOff' | t) }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" class="btn btn-link" (click)="startEdit(row)">
+                {{ 'common.edit' | t }}
+              </button>
+              <button type="button" class="btn btn-link" (click)="toggleEnabled(row)">
+                {{ row.enabled ? ('notificationAdmin.channels.disable' | t) : ('notificationAdmin.channels.enable' | t) }}
+              </button>
+              <button type="button" class="btn btn-link warn" (click)="confirmDelete(row)">
+                {{ 'common.delete' | t }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</section>

@@ -1,0 +1,155 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h2>{{ 'taskDelegations.pageTitle' | t }}</h2>
+    <p class="muted">{{ 'taskDelegations.subtitle' | t }}</p>
+  </div>
+
+  <div class="card form-card">
+    <h3>{{ 'taskDelegations.formTitle' | t }}</h3>
+    <app-erp-auto-reference-field [value]="lastCreatedDelegationId" />
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>{{ 'taskDelegations.delegateUser' | t }}</span>
+        <select formControlName="delegateUserId">
+          <option value="">{{ 'taskDelegations.selectUser' | t }}</option>
+          <option *ngFor="let u of users" [value]="u.id">{{ userLabel(u) }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'taskDelegations.scopeType' | t }}</span>
+        <select formControlName="scopeType">
+          <option *ngFor="let s of scopeOptions" [value]="s">{{ scopeLabel(s) }}</option>
+        </select>
+      </label>
+
+      <ng-container *ngIf="form.get('scopeType')?.value === 'TASK'">
+        <div class="row-2">
+          <label>
+            <span>{{ 'taskDelegations.camundaTaskId' | t }}</span>
+            <input type="text" formControlName="camundaTaskId" />
+          </label>
+          <label>
+            <span>{{ 'taskDelegations.correspondenceId' | t }}</span>
+            <input type="text" formControlName="correspondenceId" />
+          </label>
+        </div>
+        <p class="hint">{{ 'taskDelegations.taskScopeHint' | t }}</p>
+      </ng-container>
+
+      <ng-container *ngIf="form.get('scopeType')?.value === 'TYPE_CONFIDENTIALITY'">
+        <label>
+          <span>{{ 'taskDelegations.typeCodesHint' | t }}</span>
+          <input type="text" formControlName="allowedCorrespondenceTypeCodes" />
+        </label>
+        <label>
+          <span>{{ 'taskDelegations.confidentialityCodesHint' | t }}</span>
+          <input type="text" formControlName="allowedConfidentialityCodes" />
+        </label>
+      </ng-container>
+
+      <div class="row-2">
+        <label>
+          <span>{{ 'taskDelegations.validFrom' | t }}</span>
+          <input type="date" formControlName="validFrom" />
+        </label>
+        <label>
+          <span>{{ 'taskDelegations.validTo' | t }}</span>
+          <input type="date" formControlName="validTo" />
+        </label>
+      </div>
+
+      <label>
+        <span>{{ 'taskDelegations.notes' | t }}</span>
+        <textarea rows="2" formControlName="notes"></textarea>
+      </label>
+
+      <button type="submit" class="btn primary" [disabled]="form.invalid || submitting">
+        {{ 'taskDelegations.submit' | t }}
+      </button>
+    </form>
+  </div>
+
+  <div class="card" *ngIf="!loading">
+    <div class="tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'outgoing'"
+        (click)="setTab('outgoing')">
+        {{ 'taskDelegations.tabOutgoing' | t }}
+        <span class="badge">{{ list.outgoingActive.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'incoming'"
+        (click)="setTab('incoming')">
+        {{ 'taskDelegations.tabIncoming' | t }}
+        <span class="badge">{{ list.incomingActive.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'inactive'"
+        (click)="setTab('inactive')">
+        {{ 'taskDelegations.tabInactive' | t }}
+        <span class="badge">{{ list.inactive.length }}</span>
+      </button>
+    </div>
+
+    <div class="table-scroll srs-table-shell" *ngIf="currentRows().length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'taskDelegations.colDelegator' | t }}</th>
+            <th>{{ 'taskDelegations.colDelegate' | t }}</th>
+            <th>{{ 'taskDelegations.colScope' | t }}</th>
+            <th>{{ 'taskDelegations.colTarget' | t }}</th>
+            <th>{{ 'taskDelegations.colFrom' | t }}</th>
+            <th>{{ 'taskDelegations.colTo' | t }}</th>
+            <th>{{ 'taskDelegations.colStatus' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of currentRows()">
+            <td>{{ delegatorName(d) }}</td>
+            <td>{{ delegateName(d) }}</td>
+            <td>{{ scopeLabel(d.scopeType) }}</td>
+            <td>
+              <ng-container *ngIf="d.scopeType === 'TASK'">
+                <span *ngIf="d.camundaTaskId">{{ d.camundaTaskId }}</span>
+                <span *ngIf="!d.camundaTaskId && d.correspondenceId">{{ d.correspondenceId }}</span>
+              </ng-container>
+              <ng-container *ngIf="d.scopeType === 'TYPE_CONFIDENTIALITY'">
+                <small class="csv">
+                  {{ d.allowedCorrespondenceTypeCodes || ('taskDelegations.allTypes' | t) }} /
+                  {{ d.allowedConfidentialityCodes || ('taskDelegations.allLevels' | t) }}
+                </small>
+              </ng-container>
+            </td>
+            <td>{{ d.validFrom }}</td>
+            <td>{{ d.validTo }}</td>
+            <td>{{ statusLabel(d) }}</td>
+            <td class="actions">
+              <div class="actions-modern" *ngIf="d.active">
+                <button
+                  type="button"
+                  class="action-btn delete"
+                  (click)="confirmRevoke(d)"
+                  [attr.title]="'taskDelegations.revoke' | t"
+                  [attr.aria-label]="'taskDelegations.revoke' | t">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty" *ngIf="!currentRows().length">{{ 'taskDelegations.emptyTab' | t }}</p>
+  </div>
+
+  <p *ngIf="loading" class="loading">{{ 'common.loading' | t }}</p>
+</div>

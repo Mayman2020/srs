@@ -6,7 +6,6 @@ import { NotificationItemDto } from '../../core/api/api-types';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { forkJoin } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
@@ -147,11 +146,11 @@ export class NotificationsComponent implements OnInit {
   }
 
   markAllAsRead(): void {
-    const unread = this.notifications.filter((n) => !n.read);
-    if (!unread.length) {
+    const hasUnread = this.notifications.some((n) => !n.read);
+    if (!hasUnread) {
       return;
     }
-    forkJoin(unread.map((n) => this.notificationApi.markRead(n.id))).subscribe({
+    this.notificationApi.markAllRead().subscribe({
       next: () => {
         this.notifications.forEach((n) => {
           n.read = true;
@@ -165,7 +164,7 @@ export class NotificationsComponent implements OnInit {
 
   viewTransaction(correspondenceId?: string): void {
     if (correspondenceId) {
-      this.router.navigate(['/transactions', correspondenceId]);
+      this.router.navigate(['/correspondence', correspondenceId]);
     }
   }
 

@@ -31,7 +31,7 @@ export class SmartAssistantService {
     {
       id: 'transactions',
       label: this.i18n.instant('chat.actions.openTransactions'),
-      route: '/transactions'
+      route: '/correspondence'
     }
   ];
 
@@ -51,7 +51,7 @@ export class SmartAssistantService {
           if (!rows.length) {
             return {
               text: this.i18n.instant('chat.latestEmpty'),
-              actions: [{ id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/transactions' }]
+              actions: [{ id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/correspondence' }]
             };
           }
 
@@ -77,7 +77,7 @@ export class SmartAssistantService {
             n: this.format.formatNumber(dash.kpiPipelineCount)
           }),
           actions: [
-            { id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/transactions' },
+            { id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/correspondence' },
             { id: 'reports', label: this.i18n.instant('chat.actions.openReports'), route: '/reports' }
           ]
         }))
@@ -146,7 +146,7 @@ export class SmartAssistantService {
           }),
           actions: [
             { id: 'dashboard', label: this.i18n.instant('chat.actions.openDashboard'), route: '/dashboard' },
-            { id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/transactions' }
+            { id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/correspondence' }
           ]
         }))
       );
@@ -164,7 +164,7 @@ export class SmartAssistantService {
           if (!found) {
             return {
               text: this.i18n.instant('chat.notFoundLive'),
-              actions: [{ id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/transactions' }]
+              actions: [{ id: 'transactions', label: this.i18n.instant('chat.actions.openTransactions'), route: '/correspondence' }]
             };
           }
 

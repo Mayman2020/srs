@@ -58,4 +58,15 @@ public class NotificationInboxService {
       notification.setReadAt(Instant.now());
     }
   }
+
+  /**
+   * Bulk-marks every unread, non-deleted notification for the given recipient as read.
+   * Executes a single UPDATE rather than N individual saves.
+   *
+   * @return number of rows updated
+   */
+  @Transactional
+  public int markAllRead(UUID recipientId) {
+    return inAppNotificationRepository.markAllReadForRecipient(recipientId, Instant.now());
+  }
 }

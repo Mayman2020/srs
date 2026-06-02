@@ -1,15 +1,19 @@
 package com.gov.ac.feature.correspondence.workflow;
 
 import com.gov.ac.feature.correspondence.entity.CorrespondenceEntity;
+import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
 import com.gov.ac.feature.lookups.entity.CorrespondenceStatusEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowActionTypeEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowHistoryEventTypeEntity;
-import com.gov.ac.feature.users.entity.AppUserEntity;
-import com.gov.ac.feature.workflow.execution.entity.WorkflowHistoryEntity;
 import com.gov.ac.feature.shared.lookup.service.LookupResolutionService;
+import com.gov.ac.feature.users.entity.AppUserEntity;
 import com.gov.ac.feature.users.repository.AppUserRepository;
-import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
+import com.gov.ac.feature.workflow.execution.entity.WorkflowActionEntity;
+import com.gov.ac.feature.workflow.execution.entity.WorkflowHistoryEntity;
+import com.gov.ac.feature.workflow.execution.entity.WorkflowInstanceEntity;
+import com.gov.ac.feature.workflow.execution.repository.WorkflowActionRepository;
 import com.gov.ac.feature.workflow.execution.repository.WorkflowHistoryRepository;
+import com.gov.ac.feature.workflow.execution.repository.WorkflowInstanceRepository;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +44,8 @@ public class CorrespondenceWorkflowTaskPersistenceService {
 
   private final CorrespondenceRepository correspondenceRepository;
   private final WorkflowHistoryRepository workflowHistoryRepository;
+  private final WorkflowActionRepository workflowActionRepository;
+  private final WorkflowInstanceRepository workflowInstanceRepository;
   private final LookupResolutionService lookups;
   private final AppUserRepository appUserRepository;
 
@@ -144,6 +150,50 @@ public class CorrespondenceWorkflowTaskPersistenceService {
     detail.put("taskDefinitionKey", task.getTaskDefinitionKey());
     detail.put("taskName", task.getName());
     detail.put("wfDecision", decision);
+
+    // Preserve the delegation chain (original assignee / acting delegate) on the immutable
+    // workflow_history row so audit consumers can clearly distinguish who held the task vs who
+    // actually completed it. Slice 2 — Task Delegation.
+    String originalAssignee =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.ORIGINAL_ASSIGNEE_USER_ID);
+    String actingDelegate =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.ACTING_DELEGATE_USER_ID);
+    String taskDelegationId =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.TASK_DELEGATION_ID);
+    if (StringUtils.hasText(originalAssignee)) {
+      detail.put("originalAssigneeUserId", originalAssignee);
+    }
+    if (StringUtils.hasText(actingDelegate)) {
+      detail.put("actingDelegateUserId", actingDelegate);
+    }
+    if (StringUtils.hasText(taskDelegationId)) {
+      detail.put("taskDelegationId", taskDelegationId);
+    }
+
+    String workflowDirect =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.WORKFLOW_DIRECT_ASSIGNEE_USER_ID);
+    String actingAssignmentId =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.ACTING_ASSIGNMENT_ID);
+    String actingForAbsent =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.ACTING_FOR_ABSENT_USER_ID);
+    String actingManagerUserId =
+        (String) task.getVariableLocal(CorrespondenceWorkflowVariables.ACTING_MANAGER_USER_ID);
+    if (StringUtils.hasText(workflowDirect)) {
+      detail.put("workflowDirectAssigneeUserId", workflowDirect);
+    }
+    if (StringUtils.hasText(actingAssignmentId)) {
+      detail.put("actingAssignmentId", actingAssignmentId);
+    }
+    if (StringUtils.hasText(actingForAbsent)) {
+      detail.put("actingForAbsentUserId", actingForAbsent);
+    }
+    if (StringUtils.hasText(actingManagerUserId)) {
+      detail.put("actingManagerUserId", actingManagerUserId);
+    }
+    if (StringUtils.hasText(task.getAssignee())) {
+      detail.put("effectiveActorUserId", task.getAssignee().trim());
+    }
+
     history.setDetail(detail);
     if (actorId != null) {
       history.setCreatedBy(actorId);
@@ -151,11 +201,54 @@ public class CorrespondenceWorkflowTaskPersistenceService {
     }
     workflowHistoryRepository.save(history);
 
+    // Immutable workflow_action row for the timeline (was previously skipped — orphan table).
+    workflowInstanceRepository
+        .findByProcessInstanceIdAndDeletedAtIsNull(task.getProcessInstanceId())
+        .ifPresentOrElse(
+            instance -> persistWorkflowAction(instance, correspondence, rule, actor, commentTrimmed, task, decision),
+            () ->
+                log.warn(
+                    "workflow_action skipped: no workflow_instance for processInstanceId={} correspondenceId={}",
+                    task.getProcessInstanceId(),
+                    correspondenceId));
+
     log.info(
         "Recorded workflow task completion correspondenceId={} taskId={} decision={} seq={}",
         correspondenceId,
         task.getId(),
         decision,
         nextSeq);
+  }
+
+  /** Persist the immutable workflow_action row that the timeline UI reads. */
+  private void persistWorkflowAction(
+      WorkflowInstanceEntity instance,
+      CorrespondenceEntity correspondence,
+      WorkflowActionTypeEntity rule,
+      AppUserEntity actor,
+      String commentTrimmed,
+      DelegateTask task,
+      String decision) {
+    WorkflowActionEntity action = new WorkflowActionEntity();
+    action.setWorkflowInstance(instance);
+    action.setCorrespondence(correspondence);
+    action.setActionType(rule);
+    action.setActor(actor);
+    action.setCommentText(commentTrimmed);
+    action.setCamundaTaskId(task.getId());
+    action.setCamundaActivityId(task.getTaskDefinitionKey());
+    action.setPayload(toJsonPayload(task, decision));
+    if (actor != null) {
+      action.setCreatedBy(actor.getId());
+      action.setUpdatedBy(actor.getId());
+    }
+    workflowActionRepository.save(action);
+  }
+
+  private static String toJsonPayload(DelegateTask task, String decision) {
+    String safeName = task.getName() == null ? "" : task.getName().replace("\"", "\\\"");
+    String key = task.getTaskDefinitionKey() == null ? "" : task.getTaskDefinitionKey();
+    return "{\"taskDefinitionKey\":\"" + key + "\",\"taskName\":\""
+        + safeName + "\",\"wfDecision\":\"" + decision + "\"}";
   }
 }

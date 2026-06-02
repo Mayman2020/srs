@@ -1,0 +1,180 @@
+.public-verify {
+  font-family: system-ui, sans-serif;
+  background: #f4f5f8;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  color: #1f2937;
+}
+
+.card {
+  max-width: 38rem;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #e3e6eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  border-bottom: 1px solid #eef0f3;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0.25rem 0 0.25rem;
+    font-size: 1.35rem;
+  }
+
+  .muted {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.92rem;
+  }
+}
+
+.badge {
+  display: inline-block;
+  background: #ecfdf5;
+  color: #047857;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.state-msg {
+  margin: 1rem 0;
+}
+
+.state-block {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-top: 0.5rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.05rem;
+  }
+  p {
+    margin: 0;
+    color: #4b5563;
+  }
+
+  &.err {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    h2 {
+      color: #991b1b;
+    }
+  }
+  &.warn {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    h2 {
+      color: #92400e;
+    }
+  }
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.kv dt {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.kv dd {
+  margin: 0;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.code {
+  background: #f4f4f5;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+.signatures {
+  margin-top: 1.25rem;
+
+  h2 {
+    font-size: 1rem;
+    margin: 0 0 0.5rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.sig-item {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #eef0f3;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.sig-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.6rem;
+
+  .signer {
+    font-weight: 600;
+  }
+
+  .meta {
+    color: #6b7280;
+    font-size: 0.85rem;
+  }
+}
+
+.sig-status {
+  margin-top: 0.25rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  background: #e5e7eb;
+  color: #374151;
+
+  &.tag-ok {
+    background: #ecfdf5;
+    color: #047857;
+  }
+  &.tag-warn {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  &.tag-fail {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+}
+
+.footnote {
+  margin-top: 1rem;
+  color: #6b7280;
+  font-size: 0.8rem;
+}

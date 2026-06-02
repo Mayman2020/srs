@@ -41,4 +41,35 @@ public class AttachmentVersionEntity extends SoftDeletableEntity {
 
   @Column(name = "checksum_sha256")
   private String checksumSha256;
+
+  // ---------------------------------------------------------------------------
+  // Slice 5 — at-rest encryption metadata. NULL on legacy (pre-V18) rows.
+  // ---------------------------------------------------------------------------
+
+  /** {@code AES_256_GCM} when the blob on disk is encrypted; NULL = legacy plaintext. */
+  @Column(name = "encryption_algo")
+  private String encryptionAlgo;
+
+  /** KEK identifier used to wrap {@link #encryptionWrappedDek}. */
+  @Column(name = "encryption_key_ref")
+  private String encryptionKeyRef;
+
+  /** DEK wrapped by the KEK (32-byte raw AES key, wrapped to 48 bytes for AES-GCM). */
+  @Column(name = "encryption_wrapped_dek")
+  private byte[] encryptionWrappedDek;
+
+  /** 12-byte GCM nonce for the ciphertext. */
+  @Column(name = "encryption_iv")
+  private byte[] encryptionIv;
+
+  /** SHA-256 of the on-disk ciphertext, hex-encoded (tamper-detection of storage). */
+  @Column(name = "ciphertext_sha256")
+  private String ciphertextSha256;
+
+  /**
+   * SHA-256 of the canonical plaintext, hex-encoded. Digital signatures bind to this value;
+   * matches {@link #checksumSha256} for legacy rows when set.
+   */
+  @Column(name = "plaintext_sha256")
+  private String plaintextSha256;
 }

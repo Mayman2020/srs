@@ -1,0 +1,12 @@
+{
+  "name": "srs-word-docs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node generate-docx.mjs"
+  },
+  "dependencies": {
+    "docx": "^9.6.1"
+  }
+}

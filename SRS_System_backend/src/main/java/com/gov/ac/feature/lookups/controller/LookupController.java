@@ -5,6 +5,7 @@ import com.gov.ac.feature.lookups.dto.LookupItemDto;
 import com.gov.ac.feature.lookups.service.LookupService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/lookups")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class LookupController {
 
   private final LookupService lookupService;

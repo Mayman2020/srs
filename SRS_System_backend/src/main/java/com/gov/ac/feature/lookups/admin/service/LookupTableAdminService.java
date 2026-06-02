@@ -516,6 +516,7 @@ public class LookupTableAdminService {
     a.setDescription(req.description());
     a.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
     a.setActive(req.active() != null ? req.active() : true);
+    applyWfActionFlags(a, req);
     a.setCreatedBy(uid);
     a.setUpdatedBy(uid);
     return workflowActionTypeRepository.save(a);
@@ -536,8 +537,19 @@ public class LookupTableAdminService {
     a.setDescription(req.description());
     a.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
     a.setActive(req.active() != null ? req.active() : true);
+    applyWfActionFlags(a, req);
     a.setUpdatedBy(uid);
     return workflowActionTypeRepository.save(a);
+  }
+
+  /** Slice 5 — admin-editable boolean gates on {@code workflow_action_type}. */
+  private static void applyWfActionFlags(WorkflowActionTypeEntity a, LookupUpsertRequestDto req) {
+    if (req.requiresComment() != null) {
+      a.setRequiresComment(req.requiresComment());
+    }
+    if (req.requiresSignature() != null) {
+      a.setRequiresSignature(req.requiresSignature());
+    }
   }
 
   private WorkflowHistoryEventTypeEntity createWfEvent(LookupUpsertRequestDto req, UUID uid) {

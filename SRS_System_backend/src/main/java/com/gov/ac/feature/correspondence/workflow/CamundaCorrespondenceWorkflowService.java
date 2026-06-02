@@ -30,10 +30,12 @@ public class CamundaCorrespondenceWorkflowService {
       UUID actorUserId,
       UUID correspondenceId,
       UUID wfFirstAssigneeUserId,
-      String wfFirstCandidateGroup) {
+      String wfFirstCandidateGroup,
+      Long originatorDepartmentId,
+      Long targetDepartmentId) {
     Map<String, Object> variables = new HashMap<>();
     variables.put(CorrespondenceWorkflowVariables.INITIATOR, actorUserId.toString());
-    variables.put("correspondenceId", correspondenceId.toString());
+    variables.put(CorrespondenceWorkflowVariables.CORRESPONDENCE_ID, correspondenceId.toString());
     variables.put("referenceNumber", businessKey);
     if (wfFirstAssigneeUserId != null) {
       variables.put(
@@ -44,6 +46,13 @@ public class CamundaCorrespondenceWorkflowService {
       variables.put(
           CorrespondenceWorkflowVariables.WF_FIRST_CANDIDATE_GROUP,
           wfFirstCandidateGroup.trim());
+    }
+    if (originatorDepartmentId != null) {
+      variables.put(
+          CorrespondenceWorkflowVariables.ORIGINATOR_DEPARTMENT_ID, originatorDepartmentId);
+    }
+    if (targetDepartmentId != null) {
+      variables.put(CorrespondenceWorkflowVariables.TARGET_DEPARTMENT_ID, targetDepartmentId);
     }
 
     try {

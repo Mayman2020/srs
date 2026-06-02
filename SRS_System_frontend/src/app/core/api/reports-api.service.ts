@@ -5,7 +5,8 @@ import { API_BASE_URL } from './api-url';
 import {
   DashboardBucketDto,
   DepartmentSlaRowDto,
-  ReportMonthlyPointDto
+  ReportMonthlyPointDto,
+  WorkflowSlaPointDto
 } from './api-types';
 import { AppConstants, apiPath } from '../constants/app-constants';
 
@@ -22,6 +23,23 @@ export class ReportsApiService {
 
   priorityDistribution(): Observable<DashboardBucketDto[]> {
     return this.http.get<DashboardBucketDto[]>(`${this.reportsUrl}/priority-distribution`);
+  }
+
+  orgLevelDistribution(): Observable<DashboardBucketDto[]> {
+    return this.http.get<DashboardBucketDto[]>(`${this.reportsUrl}/org-level-distribution`);
+  }
+
+  confidentialityDistribution(): Observable<DashboardBucketDto[]> {
+    return this.http.get<DashboardBucketDto[]>(`${this.reportsUrl}/confidentiality-distribution`);
+  }
+
+  workflowSlaTrend(from?: string, to?: string): Observable<WorkflowSlaPointDto[]> {
+    let p = new HttpParams();
+    if (from) p = p.set('from', from);
+    if (to) p = p.set('to', to);
+    return this.http.get<WorkflowSlaPointDto[]>(`${this.reportsUrl}/workflow-sla-trend`, {
+      params: p
+    });
   }
 
   monthlyTrend(from?: string, to?: string): Observable<ReportMonthlyPointDto[]> {

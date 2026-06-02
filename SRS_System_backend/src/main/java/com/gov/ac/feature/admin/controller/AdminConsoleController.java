@@ -29,7 +29,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
-@PreAuthorize("@effectivePermission.has(authentication, 'user.manage')")
+@PreAuthorize("@effectivePermission.has('ADMIN_USER_MANAGE')")
 public class AdminConsoleController {
 
   private final AdminConsoleService adminConsoleService;

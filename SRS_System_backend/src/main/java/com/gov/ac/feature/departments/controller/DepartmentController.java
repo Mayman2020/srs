@@ -28,19 +28,20 @@ public class DepartmentController {
   private final DepartmentService departmentService;
 
   @GetMapping
+  @PreAuthorize("isAuthenticated()")
   public List<DepartmentFlatDto> list() {
     return departmentService.listActive();
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("@effectivePermission.has(authentication, 'lookup.manage')")
+  @PreAuthorize("@effectivePermission.has('ADMIN_LOOKUP_MANAGE')")
   public DepartmentFlatDto create(@Valid @RequestBody UpsertDepartmentRequestDto request) {
     return departmentService.create(SecurityUtils.requireCurrentUserId(), request);
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("@effectivePermission.has(authentication, 'lookup.manage')")
+  @PreAuthorize("@effectivePermission.has('ADMIN_LOOKUP_MANAGE')")
   public DepartmentFlatDto update(
       @PathVariable long id, @Valid @RequestBody UpsertDepartmentRequestDto request) {
     return departmentService.update(SecurityUtils.requireCurrentUserId(), id, request);
@@ -48,7 +49,7 @@ public class DepartmentController {
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("@effectivePermission.has(authentication, 'lookup.manage')")
+  @PreAuthorize("@effectivePermission.has('ADMIN_LOOKUP_MANAGE')")
   public void delete(@PathVariable long id) {
     departmentService.delete(SecurityUtils.requireCurrentUserId(), id);
   }

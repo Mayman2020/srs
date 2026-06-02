@@ -263,7 +263,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   openReportRow(tx: Transaction): void {
     localStorage.setItem('gov-selected-tx', tx.id);
-    this.router.navigate(['/transactions', tx.id]);
+    this.router.navigate(['/correspondence', tx.id]);
   }
 
   private buildFilterParams(): Omit<CorrespondenceListParams, 'page' | 'size' | 'sort'> {

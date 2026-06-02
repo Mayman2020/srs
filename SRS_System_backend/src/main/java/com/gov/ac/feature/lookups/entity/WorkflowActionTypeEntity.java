@@ -57,6 +57,13 @@ public class WorkflowActionTypeEntity extends SoftDeletableEntity {
   @Column(name = "requires_comment", nullable = false)
   private Boolean requiresComment = false;
 
+  /**
+   * Slice 5 — when TRUE, completing this action requires a VALID+VERIFIED
+   * {@code document_signature} on the latest version of every active attachment by the actor.
+   */
+  @Column(name = "requires_signature", nullable = false)
+  private Boolean requiresSignature = false;
+
   @Column(name = "show_in_task_decision_ui", nullable = false)
   private Boolean showInTaskDecisionUi = false;
 

@@ -8,6 +8,8 @@ import com.gov.ac.feature.shared.notification.NotificationEventCodes;
 import com.gov.ac.feature.shared.notification.NotificationMessageKeys;
 import com.gov.ac.feature.users.repository.AppUserRepository;
 import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
+import com.gov.ac.feature.notification.channel.NotificationOutboxService;
+import com.gov.ac.feature.notification.channel.NotificationRoutingProperties;
 import com.gov.ac.feature.notification.inbox.repository.InAppNotificationRepository;
 import com.gov.ac.feature.lookups.repository.NotificationEventTypeRepository;
 import java.util.HashMap;
@@ -33,6 +35,8 @@ public class NotificationService {
   private final CorrespondenceNotificationRecipientResolver recipientResolver;
   private final CorrespondenceRepository correspondenceRepository;
   private final AppUserRepository appUserRepository;
+  private final NotificationOutboxService notificationOutboxService;
+  private final NotificationRoutingProperties notificationRoutingProperties;
 
   @Transactional
   public void notifyCorrespondenceCreated(CorrespondenceEntity correspondence, AppUserEntity actor) {
@@ -191,6 +195,25 @@ public class NotificationService {
       CorrespondenceEntity correspondence,
       String messageKey,
       Map<String, Object> messageParams) {
+    if (notificationRoutingProperties.isOutbox()) {
+      for (UUID recipientId : recipientIds) {
+        notificationOutboxService.enqueueInApp(
+            recipientId,
+            eventType.getCode(),
+            correspondence.getId(),
+            messageKey,
+            messageParams);
+        notificationOutboxService.enqueueEmailIfPreferred(
+            recipientId,
+            eventType.getCode(),
+            correspondence.getId(),
+            messageKey,
+            messageParams);
+      }
+      notificationOutboxService.enqueueIntegrationChannels(
+          eventType.getCode(), correspondence.getId(), messageKey, messageParams);
+      return;
+    }
     for (UUID recipientId : recipientIds) {
       InAppNotificationEntity notification = new InAppNotificationEntity();
       notification.setRecipient(appUserRepository.getReferenceById(recipientId));

@@ -19,6 +19,7 @@ import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.ForbiddenException;
 import com.gov.ac.common.api.NotFoundException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +100,7 @@ public class CorrespondenceAttachmentMutationService {
     version.setByteSize(form.getByteSize());
     version.setMimeType(trimToNull(form.getMimeType()));
     version.setChecksumSha256(trimToNull(form.getChecksumSha256()));
+    applyEncryptionMetadata(version, form);
     version.setCreatedBy(actorUserId);
     version.setUpdatedBy(actorUserId);
     version = attachmentVersionRepository.saveAndFlush(version);
@@ -138,5 +140,51 @@ public class CorrespondenceAttachmentMutationService {
       return null;
     }
     return s.trim();
+  }
+
+  /**
+   * Slice 5: copy the at-rest encryption envelope (algo + wrapped DEK + IV + digests) from the
+   * upload response onto the freshly created {@link AttachmentVersionEntity}. The fields are
+   * optional so legacy clients that skip the upload encryption path still work — but if any one
+   * of {@code encryptionAlgo} / {@code encryptionWrappedDekB64} / {@code encryptionIvB64} is
+   * provided, all three must be present and well-formed.
+   */
+  private static void applyEncryptionMetadata(
+      AttachmentVersionEntity version, CorrespondenceAttachmentFormDto form) {
+    boolean any =
+        StringUtils.hasText(form.getEncryptionAlgo())
+            || StringUtils.hasText(form.getEncryptionWrappedDekB64())
+            || StringUtils.hasText(form.getEncryptionIvB64());
+    if (!any) {
+      if (StringUtils.hasText(form.getPlaintextSha256())) {
+        version.setPlaintextSha256(form.getPlaintextSha256().trim());
+      }
+      return;
+    }
+    if (!StringUtils.hasText(form.getEncryptionAlgo())
+        || !StringUtils.hasText(form.getEncryptionWrappedDekB64())
+        || !StringUtils.hasText(form.getEncryptionIvB64())) {
+      throw new BadRequestException(
+          "encryptionAlgo, encryptionWrappedDekB64 and encryptionIvB64 must all be provided");
+    }
+    Base64.Decoder b64 = Base64.getDecoder();
+    byte[] wrapped;
+    byte[] iv;
+    try {
+      wrapped = b64.decode(form.getEncryptionWrappedDekB64());
+      iv = b64.decode(form.getEncryptionIvB64());
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException("Invalid Base64 in encryption envelope");
+    }
+    version.setEncryptionAlgo(form.getEncryptionAlgo().trim());
+    version.setEncryptionKeyRef(trimToNull(form.getEncryptionKeyRef()));
+    version.setEncryptionWrappedDek(wrapped);
+    version.setEncryptionIv(iv);
+    version.setCiphertextSha256(trimToNull(form.getCiphertextSha256()));
+    String plaintextHash =
+        StringUtils.hasText(form.getPlaintextSha256())
+            ? form.getPlaintextSha256().trim()
+            : trimToNull(form.getChecksumSha256());
+    version.setPlaintextSha256(plaintextHash);
   }
 }

@@ -7,67 +7,100 @@
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   id="Definitions_Inbound"
                   targetNamespace="http://ac.gov/bpmn"
-                  exporter="Cursor"
-                  exporterVersion="1.0">
-  <bpmn:process id="inbound-correspondence" name="Inbound Correspondence" isExecutable="true" camunda:historyTimeToLive="180">
-    <bpmn:startEvent id="StartEvent_1" name="Started"/>
-    <bpmn:userTask id="Task_register" name="Register inbound" camunda:assignee="${initiator}">
+                  exporter="SRS"
+                  exporterVersion="2.0">
+  <bpmn:process id="inbound-correspondence"
+                name="Inbound Correspondence (Q/L/K/S routed)"
+                isExecutable="true"
+                camunda:historyTimeToLive="180">
+
+    <!-- ============================= Start ============================= -->
+    <bpmn:startEvent id="StartEvent_Inbound" name="Inbound received">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${routingChainDelegate}" event="start"/>
+      </bpmn:extensionElements>
+    </bpmn:startEvent>
+
+    <!-- ============================= Register ============================ -->
+    <bpmn:userTask id="Task_Register"
+                   name="Register inbound correspondence"
+                   camunda:assignee="${initiator}">
       <bpmn:extensionElements>
         <camunda:taskListener delegateExpression="${correspondenceTaskAssignmentListener}" event="create"/>
         <camunda:taskListener delegateExpression="${correspondenceWorkflowPersistenceTaskListener}" event="complete"/>
         <camunda:taskListener delegateExpression="${correspondenceWorkflowNotificationTaskListener}" event="complete"/>
       </bpmn:extensionElements>
     </bpmn:userTask>
-    <bpmn:exclusiveGateway id="Gateway_decision" name="Outcome" default="Flow_default_ok"/>
-    <bpmn:endEvent id="EndEvent_1" name="End"/>
-    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_register"/>
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_register" targetRef="Gateway_decision"/>
-    <bpmn:sequenceFlow id="Flow_reject" sourceRef="Gateway_decision" targetRef="EndEvent_1">
+
+    <!-- ===================== Multi-instance routing chain ===================== -->
+    <!-- One user task per routing stop produced by routingChainDelegate. -->
+    <bpmn:subProcess id="Sub_RoutingChain" name="Routing chain">
+      <bpmn:multiInstanceLoopCharacteristics isSequential="true"
+                                             camunda:collection="${routingStops}"
+                                             camunda:elementVariable="routingStop">
+        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:completionCondition>
+      </bpmn:multiInstanceLoopCharacteristics>
+
+      <bpmn:startEvent id="Start_Stop"/>
+
+      <bpmn:userTask id="Task_Stop_Action"
+                     name="Act on correspondence (${routingStop.levelCode})">
+        <bpmn:extensionElements>
+          <camunda:taskListener delegateExpression="${routingStopAssignmentListener}" event="create"/>
+          <camunda:taskListener delegateExpression="${correspondenceWorkflowPersistenceTaskListener}" event="complete"/>
+          <camunda:taskListener delegateExpression="${correspondenceWorkflowNotificationTaskListener}" event="complete"/>
+        </bpmn:extensionElements>
+      </bpmn:userTask>
+
+      <!-- Boundary timer: SLA escalation after configurable timeout (PT2H by default). -->
+      <bpmn:boundaryEvent id="Timer_Escalate" attachedToRef="Task_Stop_Action" cancelActivity="false">
+        <bpmn:timerEventDefinition>
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</bpmn:timeDuration>
+        </bpmn:timerEventDefinition>
+      </bpmn:boundaryEvent>
+
+      <bpmn:endEvent id="End_Stop"/>
+
+      <bpmn:sequenceFlow id="Flow_Stop_1" sourceRef="Start_Stop" targetRef="Task_Stop_Action"/>
+      <bpmn:sequenceFlow id="Flow_Stop_2" sourceRef="Task_Stop_Action" targetRef="End_Stop"/>
+      <bpmn:sequenceFlow id="Flow_Stop_Escalate" sourceRef="Timer_Escalate" targetRef="End_Stop"/>
+    </bpmn:subProcess>
+
+    <!-- ============================ Outcome gateway ============================ -->
+    <bpmn:exclusiveGateway id="Gateway_Outcome" name="Outcome" default="Flow_Complete"/>
+
+    <bpmn:endEvent id="EndEvent_Rejected" name="Rejected">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${finalStatusExecutionListener}" event="end"/>
+      </bpmn:extensionElements>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="EndEvent_Returned" name="Returned">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${finalStatusExecutionListener}" event="end"/>
+      </bpmn:extensionElements>
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="EndEvent_Completed" name="Completed">
+      <bpmn:extensionElements>
+        <camunda:executionListener delegateExpression="${finalStatusExecutionListener}" event="end"/>
+      </bpmn:extensionElements>
+    </bpmn:endEvent>
+
+    <!-- ============================ Sequence flows ============================ -->
+    <bpmn:sequenceFlow id="Flow_Start_Register" sourceRef="StartEvent_Inbound" targetRef="Task_Register"/>
+    <bpmn:sequenceFlow id="Flow_Register_Chain" sourceRef="Task_Register" targetRef="Sub_RoutingChain"/>
+    <bpmn:sequenceFlow id="Flow_Chain_Gateway" sourceRef="Sub_RoutingChain" targetRef="Gateway_Outcome"/>
+
+    <bpmn:sequenceFlow id="Flow_Reject" sourceRef="Gateway_Outcome" targetRef="EndEvent_Rejected">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_return" sourceRef="Gateway_decision" targetRef="EndEvent_1">
+
+    <bpmn:sequenceFlow id="Flow_Return" sourceRef="Gateway_Outcome" targetRef="EndEvent_Returned">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'RETURN'}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_default_ok" sourceRef="Gateway_decision" targetRef="EndEvent_1"/>
+
+    <bpmn:sequenceFlow id="Flow_Complete" sourceRef="Gateway_Outcome" targetRef="EndEvent_Completed"/>
+
   </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="inbound-correspondence">
-      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="StartEvent_1">
-        <dc:Bounds x="152" y="102" width="36" height="36"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Shape_Task" bpmnElement="Task_register">
-        <dc:Bounds x="240" y="80" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Shape_Gw" bpmnElement="Gateway_decision" isMarkerVisible="true">
-        <dc:Bounds x="385" y="95" width="50" height="50"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Shape_End" bpmnElement="EndEvent_1">
-        <dc:Bounds x="482" y="102" width="36" height="36"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Edge_1" bpmnElement="Flow_1">
-        <di:waypoint x="188" y="120"/>
-        <di:waypoint x="240" y="120"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Edge_2" bpmnElement="Flow_2">
-        <di:waypoint x="340" y="120"/>
-        <di:waypoint x="385" y="120"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Edge_rej" bpmnElement="Flow_reject">
-        <di:waypoint x="410" y="95"/>
-        <di:waypoint x="410" y="40"/>
-        <di:waypoint x="500" y="40"/>
-        <di:waypoint x="500" y="102"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Edge_ret" bpmnElement="Flow_return">
-        <di:waypoint x="435" y="120"/>
-        <di:waypoint x="482" y="120"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Edge_def" bpmnElement="Flow_default_ok">
-        <di:waypoint x="410" y="145"/>
-        <di:waypoint x="410" y="200"/>
-        <di:waypoint x="500" y="200"/>
-        <di:waypoint x="500" y="138"/>
-      </bpmndi:BPMNEdge>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
 </bpmn:definitions>

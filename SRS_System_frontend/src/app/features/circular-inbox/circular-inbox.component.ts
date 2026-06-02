@@ -4,7 +4,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AuthTokenService } from '../../core/auth/auth-token.service';
 import {
   PlatformCircularApiService,
   PlatformCircularInboxRowDto,
@@ -37,7 +36,6 @@ export class CircularInboxComponent implements OnInit {
 
   constructor(
     private circularApi: PlatformCircularApiService,
-    private auth: AuthTokenService,
     private i18n: I18nService,
     private notification: NotificationService,
     private readonly cdr: ChangeDetectorRef
@@ -48,18 +46,11 @@ export class CircularInboxComponent implements OnInit {
   }
 
   load(): void {
-    const userId = this.auth.getUserId();
-    if (!userId?.trim()) {
-      this.errorText = this.i18n.instant('circularInbox.noUserId');
-      this.rows = [];
-      this.cdr.detectChanges();
-      return;
-    }
     this.errorText = null;
     subscribePageLoad({
       cdr: this.cdr,
       setLoading: (v) => (this.loading = v),
-      source: this.circularApi.inbox(userId.trim()),
+      source: this.circularApi.inbox(),
       next: (list) => {
         this.rows = list ?? [];
       },
@@ -73,12 +64,7 @@ export class CircularInboxComponent implements OnInit {
   }
 
   markRead(row: PlatformCircularInboxRowDto): void {
-    const userId = this.auth.getUserId()?.trim();
-    if (!userId) {
-      this.notification.warningRaw(this.i18n.instant('circularInbox.noUserId'));
-      return;
-    }
-    this.circularApi.markRead(row.id, { userId }).subscribe({
+    this.circularApi.markRead(row.id).subscribe({
       next: () => this.load(),
       error: (err: HttpErrorResponse & { userMessage?: string }) => {
         const msg = err.userMessage ?? this.i18n.instant('circularInbox.loadError');

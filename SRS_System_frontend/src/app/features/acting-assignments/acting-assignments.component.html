@@ -1,0 +1,160 @@
+<div class="page-wrapper">
+  <div class="page-header">
+    <h2>{{ 'acting.pageTitle' | t }}</h2>
+    <p class="muted">{{ 'acting.subtitle' | t }}</p>
+  </div>
+
+  <div class="card form-card" *ngIf="canCreate">
+    <h3>{{ 'acting.formTitle' | t }}</h3>
+    <app-erp-auto-reference-field [value]="lastCreatedId" />
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label *ngIf="canAdmin">
+        <span>{{ 'acting.absentUser' | t }}</span>
+        <select formControlName="absentUserId">
+          <option value="">{{ 'acting.selectUser' | t }}</option>
+          <option *ngFor="let u of users" [value]="u.id">{{ userLabel(u) }}</option>
+        </select>
+      </label>
+      <p class="hint" *ngIf="!canAdmin">{{ 'acting.absentSelfHint' | t }}</p>
+
+      <label>
+        <span>{{ 'acting.actingUser' | t }}</span>
+        <select formControlName="actingUserId">
+          <option value="">{{ 'acting.selectUser' | t }}</option>
+          <option *ngFor="let u of users" [value]="u.id">{{ userLabel(u) }}</option>
+        </select>
+      </label>
+
+      <div class="row-2">
+        <label>
+          <span>{{ 'acting.departmentId' | t }}</span>
+          <input type="text" formControlName="departmentId" />
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" formControlName="includeDepartmentSubtree" />
+          <span>{{ 'acting.includeSubtree' | t }}</span>
+        </label>
+      </div>
+
+      <div class="row-2">
+        <label>
+          <span>{{ 'acting.processKey' | t }}</span>
+          <input type="text" formControlName="processDefinitionKey" />
+        </label>
+        <label>
+          <span>{{ 'acting.taskKey' | t }}</span>
+          <input type="text" formControlName="taskDefinitionKey" />
+        </label>
+      </div>
+
+      <div class="row-2">
+        <label>
+          <span>{{ 'acting.validFrom' | t }}</span>
+          <input type="date" formControlName="validFrom" />
+        </label>
+        <label>
+          <span>{{ 'acting.validTo' | t }}</span>
+          <input type="date" formControlName="validTo" />
+        </label>
+      </div>
+
+      <label>
+        <span>{{ 'acting.notes' | t }}</span>
+        <textarea rows="2" formControlName="notes"></textarea>
+      </label>
+
+      <button type="submit" class="btn primary" [disabled]="form.invalid || submitting">
+        {{ 'acting.submit' | t }}
+      </button>
+    </form>
+  </div>
+
+  <div class="card" *ngIf="!loading">
+    <div class="tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'absent'"
+        (click)="setTab('absent')">
+        {{ 'acting.tabAbsent' | t }}
+        <span class="badge">{{ list.asAbsent.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'acting'"
+        (click)="setTab('acting')">
+        {{ 'acting.tabActing' | t }}
+        <span class="badge">{{ list.asActing.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'upcoming'"
+        (click)="setTab('upcoming')">
+        {{ 'acting.tabUpcoming' | t }}
+        <span class="badge">{{ list.upcoming.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'inactive'"
+        (click)="setTab('inactive')">
+        {{ 'acting.tabInactive' | t }}
+        <span class="badge">{{ list.inactive.length }}</span>
+      </button>
+      <button
+        *ngIf="canViewAudit"
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'audit'"
+        (click)="setTab('audit')">
+        {{ 'acting.tabAudit' | t }}
+        <span class="badge">{{ auditRows.length }}</span>
+      </button>
+    </div>
+
+    <p *ngIf="activeTab === 'audit' && auditLoading" class="loading">{{ 'common.loading' | t }}</p>
+
+    <div class="table-scroll srs-table-shell" *ngIf="!auditLoading && currentRows().length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'acting.colAbsent' | t }}</th>
+            <th>{{ 'acting.colActing' | t }}</th>
+            <th>{{ 'acting.colScope' | t }}</th>
+            <th>{{ 'acting.colFrom' | t }}</th>
+            <th>{{ 'acting.colTo' | t }}</th>
+            <th>{{ 'acting.colStatus' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of currentRows()">
+            <td>{{ r.absentUsername }}</td>
+            <td>{{ r.actingUsername }}</td>
+            <td><small class="csv">{{ scopeSummary(r) }}</small></td>
+            <td>{{ r.validFrom }}</td>
+            <td>{{ r.validTo }}</td>
+            <td>{{ lifecycleLabel(r) }}</td>
+            <td class="actions">
+              <div class="actions-modern" *ngIf="canRevoke(r)">
+                <button
+                  type="button"
+                  class="action-btn delete"
+                  (click)="confirmRevoke(r)"
+                  [attr.title]="'acting.revoke' | t"
+                  [attr.aria-label]="'acting.revoke' | t">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty" *ngIf="!auditLoading && !currentRows().length">{{ 'acting.emptyTab' | t }}</p>
+  </div>
+
+  <p *ngIf="loading" class="loading">{{ 'common.loading' | t }}</p>
+</div>

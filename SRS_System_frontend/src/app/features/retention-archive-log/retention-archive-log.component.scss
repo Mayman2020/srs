@@ -1,0 +1,145 @@
+.page {
+  padding: 1.5rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.page-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.muted {
+  color: #5b6573;
+}
+
+.err {
+  color: #b00020;
+}
+
+.state-msg {
+  margin: 0.5rem 0;
+}
+
+.toolbar {
+  margin-bottom: 0.75rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e3e6eb;
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.45rem 0.6rem;
+    text-align: start;
+    border-bottom: 1px solid #eef0f3;
+    vertical-align: middle;
+  }
+
+  thead th {
+    background: #f7f8fa;
+    font-weight: 600;
+  }
+
+  tbody tr {
+    cursor: pointer;
+    &:hover {
+      background: #f9fafb;
+    }
+    &.selected {
+      background: #eff6ff;
+    }
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 600;
+}
+
+.code {
+  background: #f4f4f5;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.5rem;
+  border-top: 1px solid #eef0f3;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.btn-link {
+  background: transparent;
+  color: #2563eb;
+}
+
+.details {
+  margin-top: 1rem;
+  background: #fff;
+  border: 1px solid #e3e6eb;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.json-pane {
+  margin: 0;
+  background: #0b1020;
+  color: #e5e7eb;
+  padding: 0.75rem 0.9rem;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  max-height: 18rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

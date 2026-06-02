@@ -1,5 +1,8 @@
 package com.gov.ac.feature.correspondence.service;
 
+import com.gov.ac.feature.attachment.entity.AttachmentEntity;
+import com.gov.ac.feature.attachment.repository.AttachmentRepository;
+import com.gov.ac.feature.attachment.signature.DocumentSignatureService;
 import com.gov.ac.feature.correspondence.security.CorrespondenceViewAuthorization;
 import com.gov.ac.feature.correspondence.workflow.CorrespondenceCamundaTaskSupport;
 import com.gov.ac.feature.correspondence.workflow.CorrespondenceWorkflowTaskPersistenceService;
@@ -34,6 +37,8 @@ public class CorrespondenceWorkflowActionService {
   private final WorkflowService workflowService;
   private final CorrespondenceCamundaTaskSupport camundaTaskSupport;
   private final WorkflowActionResolutionService workflowActionResolution;
+  private final AttachmentRepository attachmentRepository;
+  private final DocumentSignatureService documentSignatureService;
 
   @Transactional
   public void completeActiveAssigneeTask(
@@ -89,6 +94,10 @@ public class CorrespondenceWorkflowActionService {
 
     if (Boolean.TRUE.equals(rule.getRequiresComment()) && !StringUtils.hasText(comment)) {
       throw new BadRequestException("Comment is required for this workflow action");
+    }
+
+    if (Boolean.TRUE.equals(rule.getRequiresSignature())) {
+      assertActorSignedAllAttachments(correspondenceId, viewerId);
     }
 
     Task task = tasks.get(0);
@@ -160,5 +169,28 @@ public class CorrespondenceWorkflowActionService {
       workflowService.claimTask(task.getId(), assignee);
     }
     workflowService.delegateTask(task.getId(), delegateeUserId.toString());
+  }
+
+  /**
+   * Slice 5 — gate for {@code requires_signature=true} actions. The actor must hold a VALID +
+   * VERIFIED {@code document_signature} on the latest version of every active attachment of the
+   * correspondence. Correspondences with zero attachments are allowed to proceed (the flag is
+   * meaningful only when there is something to sign).
+   */
+  private void assertActorSignedAllAttachments(UUID correspondenceId, UUID actorUserId) {
+    List<AttachmentEntity> attachments =
+        attachmentRepository.findAllForDetailByCorrespondenceId(correspondenceId);
+    if (attachments.isEmpty()) {
+      return;
+    }
+    for (AttachmentEntity a : attachments) {
+      Long versionId = a.getCurrentVersionId();
+      if (versionId == null) {
+        continue;
+      }
+      if (!documentSignatureService.hasValidSignatureByUser(versionId, actorUserId)) {
+        throw new BadRequestException("Sign required attachments before completing this action");
+      }
+    }
   }
 }

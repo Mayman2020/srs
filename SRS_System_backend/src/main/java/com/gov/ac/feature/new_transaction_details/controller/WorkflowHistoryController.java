@@ -5,6 +5,7 @@ import com.gov.ac.feature.new_transaction_details.service.WorkflowHistoryService
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/correspondence/{correspondenceId}/workflow-history")
 @RequiredArgsConstructor
+@PreAuthorize("@effectivePermission.has('CORRESPONDENCE_VIEW')")
 public class WorkflowHistoryController {
 
   private final WorkflowHistoryService workflowHistoryService;

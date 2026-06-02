@@ -15,4 +15,8 @@ public record LookupUpsertRequestDto(
     Boolean restrictsExport,
     Boolean requiresClearance,
     /** {@code correspondence_status} only: success, danger, warning, info, secondary, neutral. */
-    String uiVariant) {}
+    String uiVariant,
+    /** {@code workflow_action_type} only — admin-editable comment requirement. */
+    Boolean requiresComment,
+    /** {@code workflow_action_type} only — Slice 5 signature requirement. */
+    Boolean requiresSignature) {}

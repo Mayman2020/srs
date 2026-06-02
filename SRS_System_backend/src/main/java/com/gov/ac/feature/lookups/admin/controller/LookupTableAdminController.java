@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/lookup-tables")
 @RequiredArgsConstructor
-@PreAuthorize("@effectivePermission.has(authentication, 'lookup.manage')")
+@PreAuthorize("@effectivePermission.has('ADMIN_LOOKUP_MANAGE')")
 public class LookupTableAdminController {
 
   private final LookupTableAdminService lookupTableAdminService;

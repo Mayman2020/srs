@@ -94,8 +94,8 @@ public class CorrespondenceCreateService {
     if (!Boolean.TRUE.equals(actor.getActive())) {
       throw new BadRequestException("Inactive user cannot create correspondence");
     }
-    if (!effectiveUserPermissionService.hasActivePermission(actorUserId, "CREATE_TRANSACTION")) {
-      throw new ForbiddenException("Missing CREATE_TRANSACTION permission");
+    if (!effectiveUserPermissionService.hasActivePermission(actorUserId, "CORRESPONDENCE_CREATE")) {
+      throw new ForbiddenException("Missing CORRESPONDENCE_CREATE permission");
     }
 
     var type = lookups.requireActiveCorrespondenceType(form.getCorrespondenceTypeCode());
@@ -182,9 +182,23 @@ public class CorrespondenceCreateService {
             ? form.getWorkflowFirstCandidateGroup().trim()
             : null;
 
+    Long originatorDepartmentId =
+        actor != null && actor.getDepartment() != null ? actor.getDepartment().getId() : null;
+    Long targetDepartmentId =
+        correspondence.getOwnerDepartment() != null
+            ? correspondence.getOwnerDepartment().getId()
+            : null;
+
     StartedProcess started =
         camundaWorkflow.startCorrespondenceProcess(
-            processKey, referenceNumber, actorUserId, correspondence.getId(), wfAssignee, wfGroup);
+            processKey,
+            referenceNumber,
+            actorUserId,
+            correspondence.getId(),
+            wfAssignee,
+            wfGroup,
+            originatorDepartmentId,
+            targetDepartmentId);
 
     WorkflowInstanceStatusEntity running =
         workflowInstanceStatusRepository
@@ -203,6 +217,8 @@ public class CorrespondenceCreateService {
     instance.setStatus(running);
     instance.setStartedAt(now);
     instance.setBusinessKey(referenceNumber);
+    instance.setOriginatorDepartmentId(originatorDepartmentId);
+    instance.setTargetDepartmentId(targetDepartmentId);
     instance.setCreatedBy(actorUserId);
     instance.setUpdatedBy(actorUserId);
     instance = workflowInstanceRepository.save(instance);

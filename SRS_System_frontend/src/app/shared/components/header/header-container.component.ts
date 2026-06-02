@@ -155,7 +155,7 @@ export class HeaderContainerComponent {
 
     this.notificationsOpen = false;
     if (item.correspondenceId) {
-      void this.router.navigate(['/transactions', item.correspondenceId]);
+      void this.router.navigate(['/correspondence', item.correspondenceId]);
       return;
     }
     void this.router.navigate(['/notifications']);

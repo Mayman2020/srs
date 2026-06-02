@@ -127,7 +127,7 @@ export class CorrespondenceSearchComponent implements OnInit {
   }
 
   openRow(row: CorrespondenceListItemDto): void {
-    void this.router.navigate(['/transactions', row.id]);
+    void this.router.navigate(['/correspondence', row.id]);
   }
 
   totalPages(): number {

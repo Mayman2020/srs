@@ -1,0 +1,52 @@
+<section class="page" aria-labelledby="ret-title">
+  <header class="page-header">
+    <h1 id="ret-title">{{ 'retention.policiesPageTitle' | t }}</h1>
+    <p class="muted">{{ 'retention.policies.subtitle' | t }}</p>
+  </header>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'common.loading' | t }}</p>
+  <p *ngIf="error()" class="state-msg err" role="alert">{{ error()! | t }}</p>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <p *ngIf="rows().length === 0" class="state-msg muted">
+      {{ 'retention.policies.empty' | t }}
+    </p>
+
+    <div *ngIf="rows().length > 0" class="card">
+      <table class="rows">
+        <thead>
+          <tr>
+            <th>{{ 'retention.policies.code' | t }}</th>
+            <th>{{ 'retention.policies.name' | t }}</th>
+            <th>{{ 'retention.policies.appliesTo' | t }}</th>
+            <th>{{ 'retention.policies.retainForDays' | t }}</th>
+            <th>{{ 'retention.policies.actionAfter' | t }}</th>
+            <th>{{ 'retention.policies.enabled' | t }}</th>
+            <th class="actions-col">{{ 'common.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows()">
+            <td><code class="code">{{ row.code }}</code></td>
+            <td>{{ policyLabel(row) }}</td>
+            <td><code class="code">{{ row.appliesTo }}</code></td>
+            <td class="num">{{ row.retainForDays ?? '—' }}</td>
+            <td>{{ actionLabel(row.actionAfter) | t }}</td>
+            <td>
+              <span class="badge" [class.badge-on]="row.enabled" [class.badge-off]="!row.enabled">
+                {{ row.enabled ? ('retention.policies.statusOn' | t) : ('retention.policies.statusOff' | t) }}
+              </span>
+            </td>
+            <td class="actions-col">
+              <button type="button" class="btn btn-link" (click)="toggle(row)">
+                {{ row.enabled ? ('retention.policies.disable' | t) : ('retention.policies.enable' | t) }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="muted small">{{ 'retention.policies.lifecycleHint' | t }}</p>
+  </ng-container>
+</section>

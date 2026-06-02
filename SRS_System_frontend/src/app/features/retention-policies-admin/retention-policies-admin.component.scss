@@ -1,0 +1,109 @@
+.page {
+  padding: 1.5rem;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.page-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.muted {
+  color: #5b6573;
+}
+
+.small {
+  font-size: 0.82rem;
+  margin-top: 0.75rem;
+}
+
+.err {
+  color: #b00020;
+}
+
+.state-msg {
+  margin: 0.5rem 0;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e3e6eb;
+  border-radius: 10px;
+  padding: 0.5rem;
+}
+
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.5rem 0.6rem;
+    text-align: start;
+    border-bottom: 1px solid #eef0f3;
+    vertical-align: middle;
+  }
+
+  thead th {
+    background: #f7f8fa;
+    font-weight: 600;
+  }
+
+  .num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .actions-col {
+    width: 10rem;
+    white-space: nowrap;
+  }
+}
+
+.code {
+  background: #f4f4f5;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  &.badge-on {
+    background: #ecfdf5;
+    color: #047857;
+  }
+
+  &.badge-off {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-link {
+  background: transparent;
+  color: #2563eb;
+  padding: 0.2rem 0.5rem;
+}

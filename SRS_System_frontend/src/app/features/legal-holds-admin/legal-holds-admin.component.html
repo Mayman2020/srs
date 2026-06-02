@@ -1,0 +1,101 @@
+<section class="page" aria-labelledby="lh-title">
+  <header class="page-header">
+    <h1 id="lh-title">{{ 'retention.legalHoldsPageTitle' | t }}</h1>
+    <p class="muted">{{ 'retention.legalHolds.subtitle' | t }}</p>
+  </header>
+
+  <div class="card">
+    <h3>{{ 'retention.legalHolds.placeTitle' | t }}</h3>
+    <form [formGroup]="form" (ngSubmit)="place()" novalidate>
+      <label>
+        <span>{{ 'retention.legalHolds.correspondenceId' | t }}</span>
+        <input
+          type="text"
+          formControlName="correspondenceId"
+          placeholder="00000000-0000-0000-0000-000000000000"
+          autocomplete="off" />
+        <small *ngIf="form.get('correspondenceId')?.touched && form.get('correspondenceId')?.invalid" class="err">
+          {{ 'retention.legalHolds.correspondenceIdInvalid' | t }}
+        </small>
+      </label>
+
+      <label>
+        <span>{{ 'retention.legalHolds.reason' | t }}</span>
+        <textarea formControlName="reason" rows="2" maxlength="500"></textarea>
+        <small *ngIf="form.get('reason')?.touched && form.get('reason')?.invalid" class="err">
+          {{ 'retention.legalHolds.reasonInvalid' | t }}
+        </small>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="submitting() || form.invalid">
+          {{ 'retention.legalHolds.place' | t }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <p *ngIf="loading()" class="state-msg" role="status">{{ 'common.loading' | t }}</p>
+  <p *ngIf="error()" class="state-msg err" role="alert">{{ error()! | t }}</p>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <p *ngIf="rows().length === 0" class="state-msg muted">
+      {{ 'retention.legalHolds.emptyActive' | t }}
+    </p>
+
+    <div *ngIf="rows().length > 0" class="card">
+      <h3>{{ 'retention.legalHolds.activeTitle' | t }}</h3>
+      <table class="rows">
+        <thead>
+          <tr>
+            <th>{{ 'retention.legalHolds.correspondenceId' | t }}</th>
+            <th>{{ 'retention.legalHolds.reason' | t }}</th>
+            <th>{{ 'retention.legalHolds.placedAt' | t }}</th>
+            <th class="actions-col">{{ 'common.actions' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let row of rows()">
+            <tr>
+              <td><code class="code">{{ row.correspondenceId }}</code></td>
+              <td class="reason-cell">{{ row.reason }}</td>
+              <td>{{ row.placedAt | date: 'short' }}</td>
+              <td class="actions-col">
+                <button
+                  *ngIf="releasingId !== row.id"
+                  type="button"
+                  class="btn btn-link warn"
+                  (click)="startRelease(row)">
+                  {{ 'retention.legalHolds.release' | t }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="releasingId === row.id" class="release-row">
+              <td colspan="4">
+                <div class="release-form">
+                  <label>
+                    <span>{{ 'retention.legalHolds.releaseReason' | t }}</span>
+                    <input
+                      type="text"
+                      [(ngModel)]="releaseReason"
+                      [ngModelOptions]="{ standalone: true }"
+                      maxlength="500"
+                      [attr.aria-label]="'retention.legalHolds.releaseReason' | t" />
+                  </label>
+                  <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" (click)="cancelRelease()">
+                      {{ 'common.cancel' | t }}
+                    </button>
+                    <button type="button" class="btn btn-primary warn" (click)="confirmRelease(row)">
+                      {{ 'retention.legalHolds.confirmRelease' | t }}
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</section>

@@ -17,6 +17,11 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
+  flyway:
+    # Local-only overlay: production / staging / test profiles inherit only `classpath:db/migration`
+    # from application.yml so the demo seed never lands in real environments. Demo migrations live
+    # under `classpath:db/demo` and are numbered Vx9xx so they always sort after schema migrations.
+    locations: classpath:db/migration,classpath:db/demo
   # Flyway: do not use ignore-missing-migrations — it hides history/classpath drift; run docs/db/srs_system_full_clean_reset.sql instead.
   jpa:
     hibernate:
