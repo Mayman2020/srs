@@ -547,7 +547,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
         dialogTitle: this.i18n.instant('transactionDetails.addRelated'),
         labelKey: 'transactionDetails.linkedCorrespondenceId',
         confirmKey: 'common.apply',
-        required: true
+        required: true,
+        multiline: false,
       } satisfies TextInputDialogData
     });
     ref

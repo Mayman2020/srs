@@ -23,6 +23,7 @@ import { DashboardApiService } from '../../core/api/dashboard-api.service';
 import { DashboardBucketDto, DashboardResponseDto } from '../../core/api/api-types';
 import { TransactionService } from '../../core/services/transaction.service';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { UiFormatService } from '../../core/i18n/ui-format.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';

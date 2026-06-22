@@ -15,6 +15,7 @@ import {
   CreateSlaEscalationStepRequestDto,
   CreateSlaPolicyRequestDto,
   SlaBreachEventDto,
+  SlaEscalationActionCode,
   SlaEscalationActionTypeDto,
   SlaPolicyDto
 } from '../../core/api/api-types';

@@ -32,6 +32,7 @@ import {
 import { TransactionService } from '../../core/services/transaction.service';
 import { Transaction } from '../../core/models/transaction.model';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { UiFormatService } from '../../core/i18n/ui-format.service';
 import { chartColorForUiVariant, chartThemeColors } from '../../core/util/chart-ui-variant-colors';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';

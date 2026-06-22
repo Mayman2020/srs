@@ -10,6 +10,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { MfaOtpDialogComponent } from '../../../shared/dialogs/mfa-otp-dialog.component';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { catchError, of } from 'rxjs';
 import { TextInputDialogComponent, TextInputDialogData } from '../../../shared/dialogs/text-input-dialog.component';
 import { take } from 'rxjs/operators';
@@ -196,7 +197,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
         dialogTitle: this.i18n.instant('auth.forgotPasswordTitle'),
         labelKey: 'admin.colUsername',
         confirmKey: 'common.apply',
-        required: true
+        required: true,
+        multiline: false,
       } satisfies TextInputDialogData
     });
     ref

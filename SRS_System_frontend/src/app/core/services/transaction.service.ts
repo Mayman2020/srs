@@ -105,11 +105,18 @@ export class TransactionService {
 
   workflowAction(
     id: string,
-    opts?: { action?: string | null; comment?: string | null }
+    opts?: {
+      action?: string | null;
+      comment?: string | null;
+      targetUserId?: string | null;
+      targetDepartmentId?: number | null;
+    }
   ): Observable<void> {
     return this.correspondenceApi.workflowAction(id, {
       action: opts?.action,
-      comment: opts?.comment ?? undefined
+      comment: opts?.comment ?? undefined,
+      targetUserId: opts?.targetUserId ?? undefined,
+      targetDepartmentId: opts?.targetDepartmentId ?? undefined,
     });
   }
 
