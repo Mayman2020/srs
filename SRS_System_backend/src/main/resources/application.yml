@@ -118,6 +118,11 @@ ac:
   auth:
     refresh-ttl-seconds: ${AUTH_REFRESH_TTL_SECONDS:604800}
     mfa-otp-ttl-seconds: ${MFA_OTP_TTL_SECONDS:300}
+    password-reset-ttl-seconds: ${AUTH_PASSWORD_RESET_TTL_SECONDS:3600}
+    password-reset-frontend-base-url: ${AUTH_PASSWORD_RESET_FRONTEND_URL:http://localhost:4200}
+    lockout:
+      max-failed-attempts: ${AUTH_LOCKOUT_MAX_ATTEMPTS:5}
+      lock-minutes: ${AUTH_LOCKOUT_MINUTES:15}
   workflow:
     escalation:
       unassigned-after-minutes: ${WF_ESCALATION_MINUTES:120}
@@ -170,6 +175,10 @@ ac:
       signing-secret: ${AC_NOTIFICATION_WEBHOOK_SECRET:}
     teams:
       default-target-code: ${AC_NOTIFICATION_TEAMS_TARGET:}
+    sms:
+      gateway-url: ${AC_SMS_GATEWAY_URL:}
+      api-key-header: ${AC_SMS_API_KEY_HEADER:X-Api-Key}
+      api-key: ${AC_SMS_API_KEY:}
 
 logging:
   level:

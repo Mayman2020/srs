@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { withSilentSuccess } from '../interceptors/http-notification-context';
 import { API_BASE_URL } from './api-url';
-import { SpringPage, UserDetailDto, UserListDto } from './api-types';
+import { SpringPage, UserDetailDto, UserListDto, LookupItemDto } from './api-types';
 import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,11 @@ export class UserDirectoryApiService {
     return this.http.get<UserDetailDto>(apiPathWithId(this.base, AppConstants.API.USERS, userId));
   }
 
+  /** Role picker for user admin (same ADMIN_USER_MANAGE gate as user CRUD). */
+  listRoles(): Observable<LookupItemDto[]> {
+    return this.http.get<LookupItemDto[]>(`${apiPath(this.base, AppConstants.API.USERS)}/roles`);
+  }
+
   create(body: {
     username: string;
     password: string;
@@ -34,6 +39,7 @@ export class UserDirectoryApiService {
     fullNameEn: string;
     email: string;
     departmentId: number;
+    securityClearanceId?: number | null;
   }): Observable<UserDetailDto> {
     return this.http.post<UserDetailDto>(apiPath(this.base, AppConstants.API.USERS), body, {
       context: withSilentSuccess()
@@ -49,6 +55,7 @@ export class UserDirectoryApiService {
       departmentId: number;
       active: boolean;
       password?: string | null;
+      securityClearanceId?: number | null;
     }
   ): Observable<UserDetailDto> {
     return this.http.put<UserDetailDto>(

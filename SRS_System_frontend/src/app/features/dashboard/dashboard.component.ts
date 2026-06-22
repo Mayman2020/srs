@@ -28,7 +28,7 @@ import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { LookupCode } from '../../core/lookup/lookup-code';
 import { ThemeService } from '../../core/services/theme.service';
-import { UiFormatService } from '../../core/i18n/ui-format.service';
+import { chartColorForUiVariant, chartThemeColors } from '../../core/util/chart-ui-variant-colors';
 
 export type DashboardRecentRow = {
   id: string;
@@ -192,12 +192,18 @@ export class DashboardComponent implements OnInit {
     return 'linear-gradient(90deg, var(--sla-danger), var(--gov-primary))';
   }
 
-  private bucketSeries(buckets: DashboardBucketDto[]): { labels: string[]; data: number[] } {
+  private bucketSeries(buckets: DashboardBucketDto[]): {
+    labels: string[];
+    data: number[];
+    colors: string[];
+  } {
     const lang = this.i18n.currentLang();
+    const theme = chartThemeColors();
     const sorted = [...(buckets ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     return {
       labels: sorted.map((b) => (lang === 'en' ? b.nameEn : b.nameAr)),
-      data: sorted.map((b) => b.count)
+      data: sorted.map((b) => b.count),
+      colors: sorted.map((b) => chartColorForUiVariant(b.uiVariant, theme))
     };
   }
 
@@ -206,14 +212,11 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const colors = this.chartColors();
+    const colors = chartThemeColors();
     const status = this.bucketSeries(this.dash.byStatus);
     const priorities = this.bucketSeries(this.dash.byPriority);
 
     const countAxisLabel = this.i18n.instant('dashboard.chart.count');
-
-    const statusPalette = ['#0da1eb', '#F59E0B', '#eb0808', '#10B981', '#6366F1', '#EC4899', '#14B8A6'];
-    const priorityPalette = ['#0B6E4F', '#10B981', '#34D399', '#86EFAC', '#22C55E'];
 
     const doughnutOpts = {
       responsive: true,
@@ -242,7 +245,7 @@ export class DashboardComponent implements OnInit {
           datasets: [
             {
               data: status.data,
-              backgroundColor: status.labels.map((_, i) => statusPalette[i % statusPalette.length]),
+              backgroundColor: status.colors,
               borderColor: colors.surface,
               borderWidth: 3,
               hoverOffset: 10
@@ -263,7 +266,7 @@ export class DashboardComponent implements OnInit {
             {
               label: countAxisLabel,
               data: priorities.data,
-              backgroundColor: priorities.labels.map((_, i) => priorityPalette[i % priorityPalette.length]),
+              backgroundColor: priorities.colors,
               borderColor: colors.surface,
               borderWidth: 2,
               borderRadius: 8
@@ -298,7 +301,7 @@ export class DashboardComponent implements OnInit {
           datasets: [
             {
               data: status.data,
-              backgroundColor: status.labels.map((_, i) => statusPalette[i % statusPalette.length]),
+              backgroundColor: status.colors,
               borderColor: colors.surface,
               borderWidth: 3
             }
@@ -322,7 +325,7 @@ export class DashboardComponent implements OnInit {
             {
               label: this.i18n.instant('dashboard.chart.priorityAxis'),
               data: priorities.data,
-              backgroundColor: priorities.labels.map((_, i) => priorityPalette[i % priorityPalette.length]),
+              backgroundColor: priorities.colors,
               borderRadius: 8
             }
           ]
@@ -351,16 +354,9 @@ export class DashboardComponent implements OnInit {
     return this.formatUi.formatNumber(n);
   }
 
-  private chartColors(): { primary: string; warning: string; info: string; text: string; grid: string; surface: string } {
-    const styles = getComputedStyle(document.documentElement);
-    return {
-      primary: styles.getPropertyValue('--primary-color').trim() || '#0b6e4f',
-      warning: styles.getPropertyValue('--warning-color').trim() || '#d97706',
-      info: styles.getPropertyValue('--info-color').trim() || '#2563eb',
-      text: styles.getPropertyValue('--text-secondary').trim() || '#475569',
-      grid: styles.getPropertyValue('--border-color').trim() || '#d9e3ef',
-      surface: styles.getPropertyValue('--surface-elevated').trim() || '#ffffff'
-    };
+  private chartColors(): { text: string; grid: string; surface: string } {
+    const theme = chartThemeColors();
+    return { text: theme.text, grid: theme.grid, surface: theme.surface };
   }
 
   openTransctions(): void {

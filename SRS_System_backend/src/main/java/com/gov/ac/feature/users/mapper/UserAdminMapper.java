@@ -20,6 +20,7 @@ public final class UserAdminMapper {
         department != null ? department.getCode() : null,
         department != null ? department.getId() : null,
         user.getActive(),
-        roleIds);
+        roleIds,
+        user.getSecurityClearanceId());
   }
 }

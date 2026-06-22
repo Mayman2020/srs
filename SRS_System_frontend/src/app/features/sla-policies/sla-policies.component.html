@@ -86,7 +86,7 @@
             <label>
               <span>{{ 'sla.step.action' | t }}</span>
               <select formControlName="actionCode">
-                <option *ngFor="let a of actionCodes" [value]="a">{{ actionLabel(a) }}</option>
+                <option *ngFor="let a of actionCodes" [value]="a.code">{{ actionLabel(a) }}</option>
               </select>
             </label>
             <label>

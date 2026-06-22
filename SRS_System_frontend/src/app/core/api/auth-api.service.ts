@@ -122,4 +122,18 @@ export class AuthApiService {
   logout(): void {
     this.tokens.clear();
   }
+
+  forgotPassword(username: string): Observable<void> {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<void>(`${auth}/forgot-password`, { username }, {
+      context: withSilentNotifications()
+    });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    const auth = apiPath(this.base, AppConstants.API.AUTH);
+    return this.http.post<void>(`${auth}/reset-password`, { token, newPassword }, {
+      context: withSilentNotifications()
+    });
+  }
 }

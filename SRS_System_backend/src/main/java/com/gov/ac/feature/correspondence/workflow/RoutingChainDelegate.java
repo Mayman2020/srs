@@ -46,6 +46,8 @@ public class RoutingChainDelegate implements JavaDelegate {
   private final AppUserRepository appUserRepository;
   private final OrgRoutingService orgRoutingService;
   private final WorkflowInstanceRepository workflowInstanceRepository;
+  private final WorkflowSlaDurationResolver slaDurationResolver;
+  private final WorkflowCamundaVariablesBootstrap camundaVariablesBootstrap;
   private final ObjectMapper objectMapper;
 
   @Override
@@ -78,17 +80,19 @@ public class RoutingChainDelegate implements JavaDelegate {
           correspondenceId);
       execution.setVariable(CorrespondenceWorkflowVariables.ROUTING_STOPS, List.of());
       execution.setVariable(CorrespondenceWorkflowVariables.ROUTING_CHAIN_JSON, "[]");
+      camundaVariablesBootstrap.apply(execution);
       return;
     }
 
     RoutingChainDto chain =
         orgRoutingService.computeChain(originatorDepartmentId, targetDepartmentId);
 
-    List<Map<String, Object>> stopMaps = toStopMaps(chain.stops());
+    List<Map<String, Object>> stopMaps = toStopMaps(chain.stops(), correspondence);
     String chainJson = writeJson(stopMaps);
 
     execution.setVariable(CorrespondenceWorkflowVariables.ROUTING_STOPS, new ArrayList<>(stopMaps));
     execution.setVariable(CorrespondenceWorkflowVariables.ROUTING_CHAIN_JSON, chainJson);
+    camundaVariablesBootstrap.apply(execution);
 
     // Mirror the snapshot on the bridge table so reports/dashboard can filter without parsing JSON.
     workflowInstanceRepository
@@ -168,7 +172,8 @@ public class RoutingChainDelegate implements JavaDelegate {
     return null;
   }
 
-  private List<Map<String, Object>> toStopMaps(List<RoutingStopDto> stops) {
+  private List<Map<String, Object>> toStopMaps(
+      List<RoutingStopDto> stops, CorrespondenceEntity correspondence) {
     List<Map<String, Object>> out = new ArrayList<>(stops.size());
     int seq = 0;
     for (RoutingStopDto stop : stops) {
@@ -181,6 +186,7 @@ public class RoutingChainDelegate implements JavaDelegate {
       m.put("levelCode", stop.levelCode());
       m.put("roleCode", stop.roleCode());
       m.put("reasonKey", stop.reasonKey());
+      m.put("slaIso", slaDurationResolver.resolveSlaIso(correspondence, stop.levelCode()));
       out.add(m);
     }
     return out;

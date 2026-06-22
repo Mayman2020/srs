@@ -31,4 +31,6 @@ public interface CorrespondenceStatusRepository extends JpaRepository<Correspond
 
   /** The single lifecycle row that user cancel transitions into ({@code cancel_outcome} in Flyway V28). */
   Optional<CorrespondenceStatusEntity> findByCancelOutcomeTrueAndActiveTrueAndDeletedAtIsNull();
+
+  Optional<CorrespondenceStatusEntity> findByProcessCompleteOutcomeTrueAndActiveTrueAndDeletedAtIsNull();
 }

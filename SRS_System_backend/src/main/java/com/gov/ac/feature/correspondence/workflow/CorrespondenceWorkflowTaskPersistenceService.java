@@ -21,6 +21,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateTask;
+import org.camunda.bpm.engine.task.Task;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -48,6 +49,7 @@ public class CorrespondenceWorkflowTaskPersistenceService {
   private final WorkflowInstanceRepository workflowInstanceRepository;
   private final LookupResolutionService lookups;
   private final AppUserRepository appUserRepository;
+  private final WorkflowCamundaTaskMetaService workflowCamundaTaskMetaService;
 
   @Transactional
   public void recordUserTaskCompleted(DelegateTask task) {
@@ -110,6 +112,8 @@ public class CorrespondenceWorkflowTaskPersistenceService {
       correspondence.setCorrespondenceStatus(newStatus);
     }
 
+    advanceRoutingCursor(task);
+
     UUID actorId = null;
     if (StringUtils.hasText(task.getAssignee())) {
       try {
@@ -146,6 +150,9 @@ public class CorrespondenceWorkflowTaskPersistenceService {
     history.setPriorityAtEvent(correspondence.getPriority());
     history.setCamundaTaskId(task.getId());
     history.setCamundaActivityId(task.getTaskDefinitionKey());
+    workflowInstanceRepository
+        .findByProcessInstanceIdAndDeletedAtIsNull(task.getProcessInstanceId())
+        .ifPresent(history::setWorkflowInstance);
     Map<String, Object> detail = new HashMap<>();
     detail.put("taskDefinitionKey", task.getTaskDefinitionKey());
     detail.put("taskName", task.getName());
@@ -220,6 +227,78 @@ public class CorrespondenceWorkflowTaskPersistenceService {
         nextSeq);
   }
 
+  /** REFER: audit row without completing the Camunda task (task is reassigned instead). */
+  @Transactional
+  public void recordReferWithoutComplete(
+      Task task,
+      UUID actorUserId,
+      UUID targetUserId,
+      String comment,
+      CorrespondenceEntity correspondence,
+      WorkflowActionTypeEntity rule) {
+    if (correspondence.getCorrespondenceStatus() == null || rule == null) {
+      return;
+    }
+
+    AppUserEntity actor =
+        actorUserId != null
+            ? appUserRepository.findByIdAndDeletedAtIsNull(actorUserId).orElse(null)
+            : null;
+    AppUserEntity target =
+        appUserRepository.findByIdAndDeletedAtIsNull(targetUserId).orElse(null);
+
+    WorkflowHistoryEventTypeEntity eventType = lookups.requireActiveHistoryEventType(EVENT_TASK_COMPLETED);
+    int nextSeq = workflowHistoryRepository.maxSequenceNo(correspondence.getId()) + 1;
+
+    WorkflowHistoryEntity history = new WorkflowHistoryEntity();
+    history.setCorrespondence(correspondence);
+    history.setEventType(eventType);
+    history.setWorkflowActionType(rule);
+    history.setActor(actor);
+    history.setOccurredAt(Instant.now());
+    history.setSequenceNo(nextSeq);
+    history.setPrimaryCommentText(StringUtils.hasText(comment) ? comment.trim() : null);
+    history.setPreviousCorrespondenceStatus(correspondence.getCorrespondenceStatus());
+    history.setNewCorrespondenceStatus(correspondence.getCorrespondenceStatus());
+    history.setPriorityAtEvent(correspondence.getPriority());
+    history.setCamundaTaskId(task.getId());
+    history.setCamundaActivityId(task.getTaskDefinitionKey());
+    workflowInstanceRepository
+        .findByProcessInstanceIdAndDeletedAtIsNull(task.getProcessInstanceId())
+        .ifPresent(history::setWorkflowInstance);
+
+    Map<String, Object> detail = new HashMap<>();
+    detail.put("wfDecision", rule.getCode());
+    detail.put("taskDefinitionKey", task.getTaskDefinitionKey());
+    detail.put("taskName", task.getName());
+    detail.put("referredToUserId", targetUserId.toString());
+    if (target != null) {
+      detail.put("referredToUserName", target.getFullNameAr());
+    }
+    history.setDetail(detail);
+    if (actorUserId != null) {
+      history.setCreatedBy(actorUserId);
+      history.setUpdatedBy(actorUserId);
+    }
+    workflowHistoryRepository.save(history);
+
+    workflowInstanceRepository
+        .findByProcessInstanceIdAndDeletedAtIsNull(task.getProcessInstanceId())
+        .ifPresent(
+            instance ->
+                persistWorkflowActionFromTask(
+                    instance,
+                    correspondence,
+                    rule,
+                    actor,
+                    StringUtils.hasText(comment) ? comment.trim() : null,
+                    task.getId(),
+                    task.getTaskDefinitionKey(),
+                    task.getName(),
+                    rule.getCode(),
+                    actorUserId));
+  }
+
   /** Persist the immutable workflow_action row that the timeline UI reads. */
   private void persistWorkflowAction(
       WorkflowInstanceEntity instance,
@@ -229,26 +308,70 @@ public class CorrespondenceWorkflowTaskPersistenceService {
       String commentTrimmed,
       DelegateTask task,
       String decision) {
+    persistWorkflowActionFromTask(
+        instance, correspondence, rule, actor, commentTrimmed, task.getId(),
+        task.getTaskDefinitionKey(), task.getName(), decision, actor != null ? actor.getId() : null);
+  }
+
+  private void persistWorkflowActionFromTask(
+      WorkflowInstanceEntity instance,
+      CorrespondenceEntity correspondence,
+      WorkflowActionTypeEntity rule,
+      AppUserEntity actor,
+      String commentTrimmed,
+      String taskId,
+      String taskDefinitionKey,
+      String taskName,
+      String decision,
+      UUID actorId) {
     WorkflowActionEntity action = new WorkflowActionEntity();
     action.setWorkflowInstance(instance);
     action.setCorrespondence(correspondence);
     action.setActionType(rule);
     action.setActor(actor);
     action.setCommentText(commentTrimmed);
-    action.setCamundaTaskId(task.getId());
-    action.setCamundaActivityId(task.getTaskDefinitionKey());
-    action.setPayload(toJsonPayload(task, decision));
-    if (actor != null) {
-      action.setCreatedBy(actor.getId());
-      action.setUpdatedBy(actor.getId());
+    action.setCamundaTaskId(taskId);
+    action.setCamundaActivityId(taskDefinitionKey);
+    action.setPayload(toJsonPayload(taskDefinitionKey, taskName, decision));
+    if (actorId != null) {
+      action.setCreatedBy(actorId);
+      action.setUpdatedBy(actorId);
     }
     workflowActionRepository.save(action);
   }
 
   private static String toJsonPayload(DelegateTask task, String decision) {
-    String safeName = task.getName() == null ? "" : task.getName().replace("\"", "\\\"");
-    String key = task.getTaskDefinitionKey() == null ? "" : task.getTaskDefinitionKey();
+    return toJsonPayload(task.getTaskDefinitionKey(), task.getName(), decision);
+  }
+
+  private static String toJsonPayload(String taskDefinitionKey, String taskName, String decision) {
+    String safeName = taskName == null ? "" : taskName.replace("\"", "\\\"");
+    String key = taskDefinitionKey == null ? "" : taskDefinitionKey;
     return "{\"taskDefinitionKey\":\"" + key + "\",\"taskName\":\""
         + safeName + "\",\"wfDecision\":\"" + decision + "\"}";
+  }
+
+  private void advanceRoutingCursor(DelegateTask task) {
+    if (!workflowCamundaTaskMetaService.advancesRoutingCursor(task.getTaskDefinitionKey())) {
+      return;
+    }
+    Object stopRaw = task.getVariable(CorrespondenceWorkflowVariables.ROUTING_STOP);
+    if (!(stopRaw instanceof Map<?, ?> stop)) {
+      return;
+    }
+    workflowInstanceRepository
+        .findByProcessInstanceIdAndDeletedAtIsNull(task.getProcessInstanceId())
+        .ifPresent(
+            wi -> {
+              Object level = stop.get("levelCode");
+              if (level != null) {
+                wi.setCurrentLevelCode(level.toString());
+              }
+              Object deptId = stop.get("departmentId");
+              if (deptId instanceof Number n) {
+                wi.setCurrentDepartmentId(n.longValue());
+              }
+              workflowInstanceRepository.save(wi);
+            });
   }
 }

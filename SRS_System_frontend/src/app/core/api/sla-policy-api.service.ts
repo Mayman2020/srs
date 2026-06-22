@@ -5,6 +5,7 @@ import { API_BASE_URL } from './api-url';
 import {
   CreateSlaPolicyRequestDto,
   SlaBreachEventDto,
+  SlaEscalationActionTypeDto,
   SlaPolicyDto
 } from './api-types';
 import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
@@ -55,6 +56,12 @@ export class SlaPolicyApiService {
   listBreaches(onlyActive = true): Observable<SlaBreachEventDto[]> {
     return this.http.get<SlaBreachEventDto[]>(
       `${apiPath(this.base, AppConstants.API.SLA_BREACHES_ADMIN)}?onlyActive=${onlyActive}`
+    );
+  }
+
+  listEscalationActions(): Observable<SlaEscalationActionTypeDto[]> {
+    return this.http.get<SlaEscalationActionTypeDto[]>(
+      `${apiPath(this.base, AppConstants.API.SLA_POLICIES_ADMIN)}/escalation-actions`
     );
   }
 }

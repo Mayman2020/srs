@@ -1,6 +1,7 @@
 package com.gov.ac.feature.sla.controller;
 
 import com.gov.ac.feature.sla.dto.CreateSlaPolicyRequestDto;
+import com.gov.ac.feature.sla.dto.SlaEscalationActionTypeDto;
 import com.gov.ac.feature.sla.dto.SlaPolicyDto;
 import com.gov.ac.feature.sla.service.SlaPolicyManagementService;
 import com.gov.ac.security.SecurityUtils;
@@ -63,5 +64,11 @@ public class SlaPolicyAdminController {
   @PreAuthorize("@effectivePermission.has('SLA_POLICY_MANAGE')")
   public void delete(@PathVariable Long id) {
     slaPolicyManagementService.delete(id, SecurityUtils.requireCurrentUserId());
+  }
+
+  @GetMapping("/escalation-actions")
+  @PreAuthorize("@effectivePermission.has('SLA_POLICY_VIEW')")
+  public List<SlaEscalationActionTypeDto> listEscalationActions() {
+    return slaPolicyManagementService.listEscalationActionTypes();
   }
 }

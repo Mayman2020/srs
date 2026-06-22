@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   id="Definitions_Inbound"
                   targetNamespace="http://ac.gov/bpmn"
                   exporter="SRS"
-                  exporterVersion="2.0">
+                  exporterVersion="2.1">
   <bpmn:process id="inbound-correspondence"
                 name="Inbound Correspondence (Q/L/K/S routed)"
                 isExecutable="true"
                 camunda:historyTimeToLive="180">
 
-    <!-- ============================= Start ============================= -->
-    <bpmn:startEvent id="StartEvent_Inbound" name="Inbound received">
-      <bpmn:extensionElements>
-        <camunda:executionListener delegateExpression="${routingChainDelegate}" event="start"/>
-      </bpmn:extensionElements>
-    </bpmn:startEvent>
+    <bpmn:startEvent id="StartEvent_Inbound" name="Inbound received"/>
 
-    <!-- ============================= Register ============================ -->
+    <bpmn:serviceTask id="Task_BuildRoutingChain"
+                      name="Build routing chain"
+                      camunda:delegateExpression="${routingChainDelegate}"/>
+
     <bpmn:userTask id="Task_Register"
                    name="Register inbound correspondence"
                    camunda:assignee="${initiator}">
@@ -32,13 +27,11 @@
       </bpmn:extensionElements>
     </bpmn:userTask>
 
-    <!-- ===================== Multi-instance routing chain ===================== -->
-    <!-- One user task per routing stop produced by routingChainDelegate. -->
     <bpmn:subProcess id="Sub_RoutingChain" name="Routing chain">
       <bpmn:multiInstanceLoopCharacteristics isSequential="true"
                                              camunda:collection="${routingStops}"
                                              camunda:elementVariable="routingStop">
-        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:completionCondition>
+        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${chainExitDecisionCodes != null &amp;&amp; chainExitDecisionCodes.contains(wfDecision)}</bpmn:completionCondition>
       </bpmn:multiInstanceLoopCharacteristics>
 
       <bpmn:startEvent id="Start_Stop"/>
@@ -52,21 +45,24 @@
         </bpmn:extensionElements>
       </bpmn:userTask>
 
-      <!-- Boundary timer: SLA escalation after configurable timeout (PT2H by default). -->
       <bpmn:boundaryEvent id="Timer_Escalate" attachedToRef="Task_Stop_Action" cancelActivity="false">
         <bpmn:timerEventDefinition>
-          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</bpmn:timeDuration>
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${routingStop.slaIso != null ? routingStop.slaIso : defaultSlaIso}</bpmn:timeDuration>
         </bpmn:timerEventDefinition>
       </bpmn:boundaryEvent>
+
+      <bpmn:serviceTask id="Task_SlaEscalate"
+                        name="SLA escalation"
+                        camunda:delegateExpression="${workflowTimerEscalationDelegate}"/>
 
       <bpmn:endEvent id="End_Stop"/>
 
       <bpmn:sequenceFlow id="Flow_Stop_1" sourceRef="Start_Stop" targetRef="Task_Stop_Action"/>
       <bpmn:sequenceFlow id="Flow_Stop_2" sourceRef="Task_Stop_Action" targetRef="End_Stop"/>
-      <bpmn:sequenceFlow id="Flow_Stop_Escalate" sourceRef="Timer_Escalate" targetRef="End_Stop"/>
+      <bpmn:sequenceFlow id="Flow_Stop_Escalate" sourceRef="Timer_Escalate" targetRef="Task_SlaEscalate"/>
+      <bpmn:sequenceFlow id="Flow_SlaEscalate_End" sourceRef="Task_SlaEscalate" targetRef="End_Stop"/>
     </bpmn:subProcess>
 
-    <!-- ============================ Outcome gateway ============================ -->
     <bpmn:exclusiveGateway id="Gateway_Outcome" name="Outcome" default="Flow_Complete"/>
 
     <bpmn:endEvent id="EndEvent_Rejected" name="Rejected">
@@ -87,17 +83,17 @@
       </bpmn:extensionElements>
     </bpmn:endEvent>
 
-    <!-- ============================ Sequence flows ============================ -->
-    <bpmn:sequenceFlow id="Flow_Start_Register" sourceRef="StartEvent_Inbound" targetRef="Task_Register"/>
+    <bpmn:sequenceFlow id="Flow_Start_BuildChain" sourceRef="StartEvent_Inbound" targetRef="Task_BuildRoutingChain"/>
+    <bpmn:sequenceFlow id="Flow_BuildChain_Register" sourceRef="Task_BuildRoutingChain" targetRef="Task_Register"/>
     <bpmn:sequenceFlow id="Flow_Register_Chain" sourceRef="Task_Register" targetRef="Sub_RoutingChain"/>
     <bpmn:sequenceFlow id="Flow_Chain_Gateway" sourceRef="Sub_RoutingChain" targetRef="Gateway_Outcome"/>
 
     <bpmn:sequenceFlow id="Flow_Reject" sourceRef="Gateway_Outcome" targetRef="EndEvent_Rejected">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rejectDecisionCodes != null &amp;&amp; rejectDecisionCodes.contains(wfDecision)}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
 
     <bpmn:sequenceFlow id="Flow_Return" sourceRef="Gateway_Outcome" targetRef="EndEvent_Returned">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'RETURN'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${returnDecisionCodes != null &amp;&amp; returnDecisionCodes.contains(wfDecision)}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
 
     <bpmn:sequenceFlow id="Flow_Complete" sourceRef="Gateway_Outcome" targetRef="EndEvent_Completed"/>

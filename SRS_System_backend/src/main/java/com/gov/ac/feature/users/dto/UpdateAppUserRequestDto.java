@@ -9,4 +9,5 @@ public record UpdateAppUserRequestDto(
     @NotNull @Email String email,
     @NotNull Long departmentId,
     @NotNull Boolean active,
-    String password) {}
+    String password,
+    Long securityClearanceId) {}

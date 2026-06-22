@@ -1,8 +1,6 @@
 package com.gov.ac.feature.correspondence.security;
 
-import com.gov.ac.feature.roles.repository.RoleRepository;
-import com.gov.ac.security.rbac.RbacRoleCodes;
-import java.util.List;
+import com.gov.ac.security.permission.EffectiveUserPermissionService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,10 +9,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CorrespondencePrivilegedRoleChecker {
 
-  private final RoleRepository roleRepository;
+  private final EffectiveUserPermissionService effectiveUserPermissionService;
 
   public boolean hasPrivilegedViewRole(UUID userId) {
-    List<String> codes = roleRepository.findActiveRoleCodesByUserId(userId);
-    return codes.stream().anyMatch(RbacRoleCodes.CORRESPONDENCE_VIEW_ANY::contains);
+    return effectiveUserPermissionService.hasActivePermission(userId, "CORRESPONDENCE_VIEW_ANY");
   }
 }

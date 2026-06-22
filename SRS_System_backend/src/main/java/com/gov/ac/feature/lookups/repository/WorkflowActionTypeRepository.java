@@ -67,4 +67,21 @@ public interface WorkflowActionTypeRepository extends JpaRepository<WorkflowActi
       """)
   List<WorkflowActionTypeEntity> findTaskDecisionActionsForStatusAndRoles(
       @Param("statusId") Long statusId, @Param("roleIds") List<Long> roleIds);
+
+  @Query(
+      """
+      SELECT UPPER(TRIM(w.code)) FROM WorkflowActionTypeEntity w
+      WHERE w.deletedAt IS NULL AND w.active = true AND w.terminatesRoutingChain = true
+      ORDER BY w.sortOrder ASC, w.id ASC
+      """)
+  List<String> findActiveCodesTerminatingRoutingChain();
+
+  @Query(
+      """
+      SELECT UPPER(TRIM(w.code)) FROM WorkflowActionTypeEntity w
+      JOIN w.nextCorrespondenceStatus s
+      WHERE w.deletedAt IS NULL AND w.active = true AND UPPER(s.code) = UPPER(:statusCode)
+      ORDER BY w.sortOrder ASC, w.id ASC
+      """)
+  List<String> findActiveCodesWithNextStatusCode(@Param("statusCode") String statusCode);
 }

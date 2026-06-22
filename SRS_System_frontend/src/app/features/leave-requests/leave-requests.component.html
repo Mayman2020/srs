@@ -73,7 +73,7 @@
             <td>{{ (r.startDate | date : 'mediumDate') | latinDigits }}</td>
             <td>{{ (r.endDate | date : 'mediumDate') | latinDigits }}</td>
             <td>
-              <span class="type-badge" [ngClass]="statusBadgeClass(r.statusCode)">
+              <span class="type-badge badge-{{ statusBadgeClass(r) }}">
                 {{ statusLabel(r.statusCode) }}
               </span>
             </td>
@@ -119,28 +119,24 @@
             <td>{{ (r.startDate | date : 'mediumDate') | latinDigits }}</td>
             <td>{{ (r.endDate | date : 'mediumDate') | latinDigits }}</td>
             <td>
-              <span class="type-badge" [ngClass]="statusBadgeClass(r.statusCode)">
+              <span class="type-badge badge-{{ statusBadgeClass(r) }}">
                 {{ statusLabel(r.statusCode) }}
               </span>
             </td>
             <td>
-              <div class="actions-modern" *ngIf="r.statusCode === 'PENDING'">
+              <div class="actions-modern" *ngIf="r.statusCode === initialStatusCode()">
                 <button
                   type="button"
-                  class="action-btn edit"
-                  (click)="decide(r, 'APPROVED')"
-                  [attr.title]="'leave.approve' | t">
-                  <i class="fa-solid fa-check"></i>
-                </button>
-                <button
-                  type="button"
-                  class="action-btn delete"
-                  (click)="decide(r, 'REJECTED')"
-                  [attr.title]="'leave.reject' | t">
-                  <i class="fa-solid fa-xmark"></i>
+                  class="action-btn"
+                  [class.edit]="decisionButtonClass(s) === 'edit'"
+                  [class.delete]="decisionButtonClass(s) === 'delete'"
+                  *ngFor="let s of decisionStatuses()"
+                  (click)="decide(r, s.code)"
+                  [attr.title]="lookupLabels.displayName(s)">
+                  <i class="fa-solid" [ngClass]="decisionIconClass(s)"></i>
                 </button>
               </div>
-              <span *ngIf="r.statusCode !== 'PENDING'" class="muted">—</span>
+              <span *ngIf="r.statusCode !== initialStatusCode()" class="muted">—</span>
             </td>
           </tr>
           <tr *ngIf="filteredAdminRows().length === 0">

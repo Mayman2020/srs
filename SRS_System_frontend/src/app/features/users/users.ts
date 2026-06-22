@@ -5,7 +5,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { UserDirectoryApiService } from '../../core/api/user-directory-api.service';
 import { DepartmentApiService } from '../../core/api/department-api.service';
-import { RoleApiService } from '../../core/api/role-api.service';
+import { LookupService } from '../../core/api/lookup.service';
+import { LookupCode } from '../../core/lookup/lookup-code';
 import {
   DepartmentFlatDto,
   LookupItemDto,
@@ -44,6 +45,7 @@ export class UsersComponent implements OnInit {
   filteredUsers: UserListDto[] = [];
   departments: DepartmentFlatDto[] = [];
   rolesLookup: LookupItemDto[] = [];
+  clearanceOptions: LookupItemDto[] = [];
 
   searchQuery = '';
   filterStatus: 'all' | 'active' | 'suspended' = 'all';
@@ -62,6 +64,7 @@ export class UsersComponent implements OnInit {
     email: string;
     departmentId: number | null;
     active: boolean;
+    securityClearanceId: number | null;
   } = this.emptyUserForm();
 
   assignRoleIds: number[] = [];
@@ -70,7 +73,7 @@ export class UsersComponent implements OnInit {
   constructor(
     private userApi: UserDirectoryApiService,
     private deptApi: DepartmentApiService,
-    private roleApi: RoleApiService,
+    private lookupApi: LookupService,
     private i18n: I18nService,
     private notification: NotificationService,
     private readonly cdr: ChangeDetectorRef
@@ -81,15 +84,18 @@ export class UsersComponent implements OnInit {
       cdr: this.cdr,
       source: forkJoin({
         depts: this.deptApi.list(),
-        roles: this.roleApi.list()
+        roles: this.userApi.listRoles(),
+        clearances: this.lookupApi.getByCode(LookupCode.Confidentiality)
       }),
-      next: ({ depts, roles }) => {
+      next: ({ depts, roles, clearances }) => {
         this.departments = depts ?? [];
         this.rolesLookup = roles ?? [];
+        this.clearanceOptions = clearances ?? [];
       },
       error: () => {
         this.departments = [];
         this.rolesLookup = [];
+        this.clearanceOptions = [];
       }
     });
     this.loadUsers();
@@ -226,7 +232,8 @@ export class UsersComponent implements OnInit {
           fullNameAr: this.userForm.fullNameAr.trim(),
           fullNameEn: this.userForm.fullNameEn.trim(),
           email: this.userForm.email.trim(),
-          departmentId: this.userForm.departmentId!
+          departmentId: this.userForm.departmentId!,
+          securityClearanceId: this.userForm.securityClearanceId
         })
         .subscribe({
           next: () => {
@@ -246,7 +253,8 @@ export class UsersComponent implements OnInit {
           email: this.userForm.email.trim(),
           departmentId: this.userForm.departmentId!,
           active: this.userForm.active,
-          password: this.userForm.password?.trim() || undefined
+          password: this.userForm.password?.trim() || undefined,
+          securityClearanceId: this.userForm.securityClearanceId
         })
         .subscribe({
           next: () => {
@@ -307,7 +315,8 @@ export class UsersComponent implements OnInit {
             fullNameEn: d.fullNameEn,
             email: d.email,
             departmentId: d.departmentId,
-            active: !d.active
+            active: !d.active,
+            securityClearanceId: d.securityClearanceId ?? null
           })
           .subscribe({
             next: () => {
@@ -346,8 +355,15 @@ export class UsersComponent implements OnInit {
       fullNameEn: '',
       email: '',
       departmentId: null as number | null,
-      active: true
+      active: true,
+      securityClearanceId: null as number | null
     };
+  }
+
+  clearanceLabel(item: LookupItemDto): string {
+    return this.i18n.currentLang() === 'en'
+      ? item.nameEn?.trim() || item.code
+      : item.nameAr?.trim() || item.code;
   }
 
   private patchUserFormFromDetail(d: UserDetailDto, viewOnly: boolean): void {
@@ -359,7 +375,8 @@ export class UsersComponent implements OnInit {
       fullNameEn: d.fullNameEn,
       email: d.email,
       departmentId: d.departmentId,
-      active: d.active
+      active: d.active,
+      securityClearanceId: d.securityClearanceId ?? null
     };
     this.userModal = viewOnly ? 'view' : 'edit';
   }

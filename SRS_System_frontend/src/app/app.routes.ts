@@ -23,10 +23,19 @@ export const routes: Routes = [
   },
 
   {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent
+      )
+  },
+
+  {
     path: 'verify/:token',
     loadComponent: () =>
-      import('./features/public-verify/public-verify.component').then((m) => m.PublicVerifyComponent),
-    data: { titleKey: 'verify.pageTitle' }
+      import('./features/public-verify/public-verify.component').then(
+        (m) => m.PublicVerifyComponent
+      )
   },
 
   {
@@ -225,6 +234,15 @@ export const routes: Routes = [
         data: { titleKey: 'lookupAdmin.pageTitle', permission: 'ADMIN_LOOKUP_MANAGE' }
       },
       {
+        path: 'admin/letter-templates',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/letter-template-admin/letter-template-admin.component').then(
+            (m) => m.LetterTemplateAdminComponent
+          ),
+        data: { titleKey: 'letterTemplates.pageTitle', permission: 'LETTER_TEMPLATE_MANAGE' }
+      },
+      {
         path: 'admin-communications-main',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
@@ -235,7 +253,7 @@ export const routes: Routes = [
           defaultAdminTab: 'users',
           titleKey: 'admin.pageTitle',
           subtitleKey: 'admin.pageSubtitle',
-          permission: 'ADMIN_LOOKUP_MANAGE'
+          permission: 'ADMIN_USER_MANAGE'
         }
       },
       {

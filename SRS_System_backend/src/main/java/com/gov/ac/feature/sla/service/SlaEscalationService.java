@@ -9,6 +9,7 @@ import com.gov.ac.feature.departments.entity.DepartmentEntity;
 import com.gov.ac.feature.departments.repository.DepartmentRepository;
 import com.gov.ac.feature.organization.entity.OrganizationalUnitLevelEntity;
 import com.gov.ac.feature.organization.repository.OrganizationalUnitLevelRepository;
+import com.gov.ac.feature.organization.service.OrgLevelRoleResolver;
 import com.gov.ac.feature.sla.entity.SlaBreachEventEntity;
 import com.gov.ac.feature.sla.entity.SlaEscalationStepEntity;
 import com.gov.ac.feature.sla.metrics.SlaMetrics;
@@ -62,6 +63,7 @@ public class SlaEscalationService {
   private final AuthorityDelegationRepository authorityDelegationRepository;
   private final DepartmentRepository departmentRepository;
   private final OrganizationalUnitLevelRepository organizationalUnitLevelRepository;
+  private final OrgLevelRoleResolver orgLevelRoleResolver;
   private final UserRoleRepository userRoleRepository;
   private final SlaBreachEventRepository slaBreachEventRepository;
   private final SlaClearanceFilter slaClearanceFilter;
@@ -262,7 +264,7 @@ public class SlaEscalationService {
       log.debug("[SLA] escalateToHigherLevel: no higher department resolvable from {}", deptId);
       return true;
     }
-    String roleForLevel = defaultRoleForLevel(higher.getLevelCode());
+    String roleForLevel = orgLevelRoleResolver.resolveRoleCode(higher.getLevelCode());
     Set<UUID> candidates =
         new LinkedHashSet<>(
             userRoleRepository.findActiveUserIdsByRoleCodeAndDepartmentId(
@@ -326,18 +328,6 @@ public class SlaEscalationService {
     OrganizationalUnitLevelEntity level =
         organizationalUnitLevelRepository.findActiveByCode(levelCode).orElse(null);
     return level == null ? null : level.getRankOrder();
-  }
-
-  private static String defaultRoleForLevel(String levelCode) {
-    if (levelCode == null) {
-      return ROLE_STAFF;
-    }
-    return switch (levelCode.toUpperCase()) {
-      case "Q" -> ROLE_HQ_OFFICER;
-      case "L" -> ROLE_BRIGADE_OFFICER;
-      case "K" -> ROLE_DEPT_MANAGER;
-      default -> ROLE_STAFF;
-    };
   }
 
   private void auditStepExecuted(SlaBreachEventEntity breach, SlaEscalationStepEntity step) {

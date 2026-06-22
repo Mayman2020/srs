@@ -9,7 +9,7 @@ import com.gov.ac.feature.correspondence.workflow.CamundaCorrespondenceWorkflowS
 import com.gov.ac.feature.correspondence.workflow.CamundaCorrespondenceWorkflowService.StartedProcess;
 import com.gov.ac.feature.correspondence.CorrespondenceAggregateLimits;
 import com.gov.ac.feature.correspondence.CorrespondenceLookupCodes;
-import com.gov.ac.feature.correspondence.workflow.CorrespondenceProcessDefinitionKeys;
+import com.gov.ac.feature.correspondence.workflow.WorkflowInstanceRoutingSyncService;
 import com.gov.ac.feature.attachment.entity.AttachmentEntity;
 import com.gov.ac.feature.attachment.entity.AttachmentVersionEntity;
 import com.gov.ac.feature.correspondence.entity.CorrespondenceEntity;
@@ -76,6 +76,7 @@ public class CorrespondenceCreateService {
   private final RoleRepository roleRepository;
   private final ServiceWorkflowRouteRepository serviceWorkflowRouteRepository;
   private final EffectiveUserPermissionService effectiveUserPermissionService;
+  private final WorkflowInstanceRoutingSyncService routingSyncService;
 
   /**
    * Creates correspondence, attachments, Camunda process, {@code workflow_instance}, and first
@@ -222,6 +223,8 @@ public class CorrespondenceCreateService {
     instance.setCreatedBy(actorUserId);
     instance.setUpdatedBy(actorUserId);
     instance = workflowInstanceRepository.save(instance);
+
+    routingSyncService.syncFromEngine(started.processInstanceId());
 
     int nextSeq = workflowHistoryRepository.maxSequenceNo(correspondence.getId()) + 1;
     var eventType =
@@ -409,8 +412,8 @@ public class CorrespondenceCreateService {
     if (def != null) {
       return new ResolvedWorkflow(def.getProcessDefinitionKey(), def, "AUTO");
     }
-    String fallback = CorrespondenceProcessDefinitionKeys.forCorrespondenceTypeCode(type.getCode());
-    return new ResolvedWorkflow(fallback, null, "AUTO");
+    throw new BadRequestException(
+        "No default workflow route configured for correspondence type: " + type.getCode());
   }
 
   private record ResolvedWorkflow(

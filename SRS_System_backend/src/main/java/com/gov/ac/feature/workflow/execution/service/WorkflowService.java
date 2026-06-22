@@ -48,6 +48,11 @@ public class WorkflowService {
   }
 
   @Transactional
+  public void setAssignee(String taskId, String userId) {
+    taskService.setAssignee(taskId, userId);
+  }
+
+  @Transactional
   public void deleteProcessInstance(String processInstanceId, String reason) {
     runtimeService.deleteProcessInstance(processInstanceId, reason);
   }

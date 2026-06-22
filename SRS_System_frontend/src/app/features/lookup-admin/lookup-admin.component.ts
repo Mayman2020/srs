@@ -52,7 +52,8 @@ export class LookupAdminComponent implements OnInit {
       slaDays: [null as number | null],
       restrictsExport: [false],
       requiresClearance: [false],
-      uiVariant: ['neutral' as string]
+      uiVariant: ['neutral' as string],
+      initial: [false]
     });
   }
 
@@ -92,7 +93,8 @@ export class LookupAdminComponent implements OnInit {
       slaDays: null,
       restrictsExport: false,
       requiresClearance: false,
-      uiVariant: 'neutral'
+      uiVariant: 'neutral',
+      initial: false
     });
     this.loadRows();
     this.loadParentOptions();
@@ -163,7 +165,8 @@ export class LookupAdminComponent implements OnInit {
       slaDays: null,
       restrictsExport: false,
       requiresClearance: false,
-      uiVariant: 'neutral'
+      uiVariant: 'neutral',
+      initial: false
     });
   }
 
@@ -181,7 +184,8 @@ export class LookupAdminComponent implements OnInit {
       slaDays: row.slaDays,
       restrictsExport: !!row.restrictsExport,
       requiresClearance: !!row.requiresClearance,
-      uiVariant: row.uiVariant ?? 'neutral'
+      uiVariant: row.uiVariant ?? 'neutral',
+      initial: !!row.initial
     });
   }
 
@@ -205,13 +209,22 @@ export class LookupAdminComponent implements OnInit {
       sortOrder: Number(v.sortOrder) || 0,
       active: !!v.active,
       parentId: v.parentId != null ? Number(v.parentId) : null,
-      terminal: this.selectedCode === 'correspondence_status' ? !!v.terminal : null,
+      terminal:
+        this.selectedCode === 'correspondence_status' || this.selectedCode === 'leave_status'
+          ? !!v.terminal
+          : null,
       slaDays: this.selectedCode === 'priority' ? (v.slaDays != null ? Number(v.slaDays) : null) : null,
       restrictsExport:
         this.selectedCode === 'confidentiality' ? !!v.restrictsExport : null,
       requiresClearance:
         this.selectedCode === 'confidentiality' ? !!v.requiresClearance : null,
-      uiVariant: this.selectedCode === 'correspondence_status' ? (v.uiVariant ?? 'neutral') : null
+      uiVariant:
+        this.selectedCode === 'correspondence_status' ||
+        this.selectedCode === 'priority' ||
+        this.selectedCode === 'leave_status'
+          ? (v.uiVariant ?? 'neutral')
+          : null,
+      initial: this.selectedCode === 'leave_status' ? !!v.initial : null
     };
     const req = this.editing
       ? this.api.update(this.selectedCode, this.editing.id, body)
@@ -258,11 +271,19 @@ export class LookupAdminComponent implements OnInit {
   }
 
   showTerminal(): boolean {
-    return this.selectedCode === 'correspondence_status';
+    return this.selectedCode === 'correspondence_status' || this.selectedCode === 'leave_status';
+  }
+
+  showInitial(): boolean {
+    return this.selectedCode === 'leave_status';
   }
 
   showStatusUiVariant(): boolean {
-    return this.selectedCode === 'correspondence_status';
+    return (
+      this.selectedCode === 'correspondence_status' ||
+      this.selectedCode === 'priority' ||
+      this.selectedCode === 'leave_status'
+    );
   }
 
   statusUiVariantOptions(): readonly string[] {

@@ -14,6 +14,7 @@ public record LeaveRequestDto(
     LocalDate endDate,
     String reason,
     String statusCode,
+    String statusUiVariant,
     UUID decidedBy,
     Instant decidedAt,
     String decisionNote,

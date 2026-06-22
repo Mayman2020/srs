@@ -46,14 +46,8 @@ public class OrgRoutingService {
   public static final String LEVEL_S = "S";
 
   /** Default role expected per level (overridable later by org admin). */
-  private static final Map<String, String> DEFAULT_ROLE_PER_LEVEL =
-      Map.of(
-          LEVEL_Q, "HQ_OFFICER",
-          LEVEL_L, "BRIGADE_OFFICER",
-          LEVEL_K, "DEPT_MANAGER",
-          LEVEL_S, "STAFF");
-
   private final DepartmentRepository departmentRepository;
+  private final OrgLevelRoleResolver orgLevelRoleResolver;
 
   @Transactional(readOnly = true)
   public RoutingChainDto computeChain(Long originatorDepartmentId, Long targetDepartmentId) {
@@ -152,9 +146,9 @@ public class OrgRoutingService {
     return node != null && level.equalsIgnoreCase(node.getLevelCode());
   }
 
-  private static RoutingStopDto toStop(DepartmentEntity dept, String levelOverride) {
+  private RoutingStopDto toStop(DepartmentEntity dept, String levelOverride) {
     String level = levelOverride != null ? levelOverride : dept.getLevelCode();
-    String role = DEFAULT_ROLE_PER_LEVEL.getOrDefault(level, "STAFF");
+    String role = orgLevelRoleResolver.resolveRoleCode(level);
     return new RoutingStopDto(
         dept.getId(),
         dept.getCode(),

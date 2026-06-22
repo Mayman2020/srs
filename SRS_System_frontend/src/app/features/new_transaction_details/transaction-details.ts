@@ -11,11 +11,13 @@ import {
   CorrespondenceNonarchivedItemDto,
   CorrespondenceReadReceiptDto,
   CorrespondenceReadStatusSummaryDto,
+  AttachmentAccessLogDto,
   WorkflowActionAvailableDto,
   WorkflowHistoryEntryDto
 } from '../../core/api/api-types';
 import { CorrespondenceApiService } from '../../core/api/correspondence-api.service';
 import { CorrespondenceReadTrackingApiService } from '../../core/api/correspondence-read-tracking-api.service';
+import { AttachmentAccessLogApiService } from '../../core/api/attachment-access-log-api.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { PlatformWorkflowApiService } from '../../core/api/platform-workflow-api.service';
 import { AttachmentApiService } from '../../core/api/attachment-api.service';
@@ -90,6 +92,7 @@ export interface TransactionNote {
 }
 
 export interface RelatedTransaction {
+  linkId: number;
   id: string;
   subject: string;
   referenceNumber?: string;
@@ -180,6 +183,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   transaction!: Transaction;
   relatedTransactions: RelatedTransaction[] = [];
   nonarchivedItems: CorrespondenceNonarchivedItemDto[] = [];
+  accessLogEntries: AttachmentAccessLogDto[] = [];
+  accessLogLoading = false;
   /** Backend attachment id → index rows */
   indexEntriesByAttachmentId: Record<number, AttachmentIndexEntryDto[]> = {};
   correspondenceUuid = '';
@@ -197,6 +202,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   ackInProgress = false;
   /** Permission codes for Slice 1 panels (kept as literals, only ever compared to API codes). */
   readonly READ_STATUS_VIEW_PERMISSION = 'CORRESPONDENCE_READ_STATUS_VIEW';
+  readonly ACCESS_LOG_VIEW_PERMISSION = 'ATTACHMENT_ACCESS_LOG_VIEW';
+  readonly CORRESPONDENCE_UPDATE_PERMISSION = 'CORRESPONDENCE_UPDATE';
 
   // ── UI State ────────────────────────────────
   activeIndex = 2;
@@ -239,6 +246,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private signatureApi: DocumentSignatureApiService,
     private correspondenceApi: CorrespondenceApiService,
     private readTrackingApi: CorrespondenceReadTrackingApiService,
+    private accessLogApi: AttachmentAccessLogApiService,
     private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private i18n: I18nService,
@@ -457,6 +465,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ({ links, na }) => {
           this.relatedTransactions = (links ?? []).map((l) => ({
+            linkId: l.id,
             id: l.linkedCorrespondenceId,
             subject: l.linkedSubject,
             referenceNumber: l.linkedReferenceNumber,
@@ -489,6 +498,143 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.indexEntriesByAttachmentId[r.id] = r.rows;
         }
       });
+  }
+
+  canEditGuide(): boolean {
+    return this.cap.can(this.CORRESPONDENCE_UPDATE_PERMISSION);
+  }
+
+  canViewAccessLog(): boolean {
+    return this.cap.can(this.ACCESS_LOG_VIEW_PERMISSION);
+  }
+
+  onTabChange(tab: string): void {
+    this.activeTab = tab;
+    if (tab === 'accesslog' && this.canViewAccessLog()) {
+      this.loadAccessLog();
+    }
+  }
+
+  private loadAccessLog(): void {
+    const id = this.correspondenceUuid;
+    if (!id) {
+      return;
+    }
+    this.accessLogLoading = true;
+    this.accessLogApi
+      .forCorrespondence(id)
+      .pipe(takeUntil(this.destroy$), take(1))
+      .subscribe({
+        next: (rows) => {
+          this.accessLogEntries = rows ?? [];
+          this.accessLogLoading = false;
+        },
+        error: () => {
+          this.accessLogEntries = [];
+          this.accessLogLoading = false;
+        }
+      });
+  }
+
+  addRelatedLink(): void {
+    if (!this.canEditGuide() || !this.correspondenceUuid) {
+      return;
+    }
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(480px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        dialogTitle: this.i18n.instant('transactionDetails.addRelated'),
+        labelKey: 'transactionDetails.linkedCorrespondenceId',
+        confirmKey: 'common.apply',
+        required: true
+      } satisfies TextInputDialogData
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((linkedId) => {
+        const id = String(linkedId ?? '').trim();
+        if (!id) {
+          return;
+        }
+        this.correspondenceApi
+          .addLink(this.correspondenceUuid, { linkedCorrespondenceId: id, linkKind: 'RELATED' })
+          .subscribe({
+            next: () => {
+              this.toast(this.i18n.instant('transactionDetails.relatedAdded'), 'success');
+              this.loadGuideData();
+            },
+            error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+          });
+      });
+  }
+
+  deleteRelatedLink(rel: RelatedTransaction, event: Event): void {
+    event.stopPropagation();
+    if (!this.canEditGuide() || !this.correspondenceUuid) {
+      return;
+    }
+    this.correspondenceApi.deleteLink(this.correspondenceUuid, rel.linkId).subscribe({
+      next: () => {
+        this.toast(this.i18n.instant('transactionDetails.relatedDeleted'), 'success');
+        this.loadGuideData();
+      },
+      error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+    });
+  }
+
+  addNonarchivedItem(): void {
+    if (!this.canEditGuide() || !this.correspondenceUuid) {
+      return;
+    }
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(480px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        dialogTitle: this.i18n.instant('transactionDetails.addNonarchived'),
+        labelKey: 'transactionDetails.colDescription',
+        confirmKey: 'common.apply',
+        required: true,
+        multiline: true
+      } satisfies TextInputDialogData
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((description) => {
+        const text = String(description ?? '').trim();
+        if (!text) {
+          return;
+        }
+        this.correspondenceApi
+          .addNonarchived(this.correspondenceUuid, {
+            itemType: 'OTHER',
+            descriptionText: text,
+            quantity: 1,
+            sortOrder: this.nonarchivedItems.length
+          })
+          .subscribe({
+            next: () => {
+              this.toast(this.i18n.instant('transactionDetails.nonarchivedAdded'), 'success');
+              this.loadGuideData();
+            },
+            error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+          });
+      });
+  }
+
+  deleteNonarchivedItem(item: CorrespondenceNonarchivedItemDto): void {
+    if (!this.canEditGuide() || !this.correspondenceUuid) {
+      return;
+    }
+    this.correspondenceApi.deleteNonarchived(this.correspondenceUuid, item.id).subscribe({
+      next: () => {
+        this.toast(this.i18n.instant('transactionDetails.nonarchivedDeleted'), 'success');
+        this.loadGuideData();
+      },
+      error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+    });
   }
 
   private checkOverdue(): void {
@@ -570,6 +716,14 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       this.toast(this.i18n.instant('attachments.signRequiredTooltip'), 'warning');
       return;
     }
+    if (a.requiresTargetUser) {
+      this.promptReferAction(a);
+      return;
+    }
+    if (a.requiresTargetDepartment) {
+      this.promptForwardAction(a);
+      return;
+    }
     if (a.requiresComment) {
       const ref = this.dialog.open(TextInputDialogComponent, {
         width: 'min(480px, 94vw)',
@@ -600,17 +754,109 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     this.runWorkflowAction(a.code);
   }
 
-  private runWorkflowAction(action: string, comment?: string | null): void {
+  private runWorkflowAction(
+    action: string,
+    comment?: string | null,
+    targetUserId?: string | null,
+    targetDepartmentId?: number | null
+  ): void {
     if (!this.correspondenceUuid) {
       return;
     }
     this.transactionService
-      .workflowAction(this.correspondenceUuid, { action, comment })
+      .workflowAction(this.correspondenceUuid, {
+        action,
+        comment,
+        targetUserId,
+        targetDepartmentId
+      })
       .subscribe({
         next: () => this.loadTransaction(),
         error: (err: HttpErrorResponse & { userMessage?: string }) => {
           this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
         },
+      });
+  }
+
+  private promptReferAction(a: WorkflowActionAvailableDto): void {
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(480px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        dialogTitle: this.workflowActionLabel(a),
+        labelKey: 'transactionDetails.workflowReferUserPrompt',
+        confirmKey: 'common.apply',
+        required: true,
+        multiline: false,
+      } satisfies TextInputDialogData,
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((targetUserId) => {
+        if (!targetUserId?.trim()) {
+          return;
+        }
+        if (a.requiresComment) {
+          this.promptCommentThenRun(a.code, targetUserId.trim());
+          return;
+        }
+        this.runWorkflowAction(a.code, null, targetUserId.trim());
+      });
+  }
+
+  private promptForwardAction(a: WorkflowActionAvailableDto): void {
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(480px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        dialogTitle: this.workflowActionLabel(a),
+        labelKey: 'transactionDetails.workflowForwardDeptPrompt',
+        confirmKey: 'common.apply',
+        required: true,
+        multiline: false,
+      } satisfies TextInputDialogData,
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((deptRaw) => {
+        const deptId = Number(String(deptRaw ?? '').trim());
+        if (!Number.isFinite(deptId) || deptId <= 0) {
+          return;
+        }
+        if (a.requiresComment) {
+          this.promptCommentThenRun(a.code, undefined, deptId);
+          return;
+        }
+        this.runWorkflowAction(a.code, null, null, deptId);
+      });
+  }
+
+  private promptCommentThenRun(
+    action: string,
+    targetUserId?: string,
+    targetDepartmentId?: number
+  ): void {
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(480px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        labelKey: 'transactionDetails.workflowCommentPrompt',
+        confirmKey: 'common.apply',
+        required: true,
+        multiline: true,
+      } satisfies TextInputDialogData,
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((comment) => {
+        if (!String(comment ?? '').trim()) {
+          this.toast(this.i18n.instant('transactionDetails.workflowCommentRequired'), 'warning');
+          return;
+        }
+        this.runWorkflowAction(action, String(comment).trim(), targetUserId, targetDepartmentId);
       });
   }
 

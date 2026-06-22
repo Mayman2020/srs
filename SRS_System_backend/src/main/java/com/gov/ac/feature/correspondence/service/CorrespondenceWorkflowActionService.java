@@ -5,6 +5,8 @@ import com.gov.ac.feature.attachment.repository.AttachmentRepository;
 import com.gov.ac.feature.attachment.signature.DocumentSignatureService;
 import com.gov.ac.feature.correspondence.security.CorrespondenceViewAuthorization;
 import com.gov.ac.feature.correspondence.workflow.CorrespondenceCamundaTaskSupport;
+import com.gov.ac.feature.correspondence.workflow.CorrespondenceReferForwardService;
+import com.gov.ac.security.permission.EffectiveUserPermissionService;
 import com.gov.ac.feature.correspondence.workflow.CorrespondenceWorkflowTaskPersistenceService;
 import com.gov.ac.feature.correspondence.workflow.WorkflowActionResolutionService;
 import com.gov.ac.feature.correspondence.entity.CorrespondenceEntity;
@@ -36,13 +38,20 @@ public class CorrespondenceWorkflowActionService {
   private final CorrespondenceViewAuthorization correspondenceViewAuthorization;
   private final WorkflowService workflowService;
   private final CorrespondenceCamundaTaskSupport camundaTaskSupport;
+  private final CorrespondenceReferForwardService referForwardService;
+  private final EffectiveUserPermissionService effectiveUserPermissionService;
   private final WorkflowActionResolutionService workflowActionResolution;
   private final AttachmentRepository attachmentRepository;
   private final DocumentSignatureService documentSignatureService;
 
   @Transactional
   public void completeActiveAssigneeTask(
-      UUID correspondenceId, UUID viewerId, String action, String comment) {
+      UUID correspondenceId,
+      UUID viewerId,
+      String action,
+      String comment,
+      UUID targetUserId,
+      Long targetDepartmentId) {
     AppUserEntity viewer =
         appUserRepository
             .findByIdAndDeletedAtIsNull(viewerId)
@@ -92,6 +101,8 @@ public class CorrespondenceWorkflowActionService {
             .resolveTransition(decision, correspondence.getCorrespondenceStatus().getId())
             .orElseThrow(() -> new BadRequestException("Invalid workflow action"));
 
+    assertActionPermission(viewerId, rule);
+
     if (Boolean.TRUE.equals(rule.getRequiresComment()) && !StringUtils.hasText(comment)) {
       throw new BadRequestException("Comment is required for this workflow action");
     }
@@ -112,12 +123,43 @@ public class CorrespondenceWorkflowActionService {
       workflowService.claimTask(task.getId(), assignee);
     }
 
+    if (Boolean.TRUE.equals(rule.getKeepsTaskOpen())) {
+      if (targetUserId == null) {
+        throw new BadRequestException("targetUserId is required for this workflow action");
+      }
+      referForwardService.referActiveTask(
+          task, viewerId, targetUserId, comment, correspondence, rule);
+      return;
+    }
+
+    if (Boolean.TRUE.equals(rule.getRequiresTargetDepartment())) {
+      if (targetDepartmentId == null) {
+        throw new BadRequestException("targetDepartmentId is required for this workflow action");
+      }
+      referForwardService.prepareForward(task, targetDepartmentId, correspondence);
+    }
+
     HashMap<String, Object> vars = new HashMap<>();
     vars.put(CorrespondenceWorkflowTaskPersistenceService.VAR_WF_DECISION, rule.getCode().toUpperCase());
     if (StringUtils.hasText(comment)) {
       vars.put(CorrespondenceWorkflowTaskPersistenceService.VAR_ACTION_COMMENT, comment.trim());
     }
+    if (targetDepartmentId != null) {
+      vars.put("targetDepartmentId", targetDepartmentId);
+    }
     workflowService.completeTask(task.getId(), vars);
+  }
+
+  private void assertActionPermission(UUID userId, WorkflowActionTypeEntity rule) {
+    if (rule.getRequiredPermission() != null
+        && StringUtils.hasText(rule.getRequiredPermission().getCode())
+        && effectiveUserPermissionService.hasActivePermission(
+            userId, rule.getRequiredPermission().getCode())) {
+      return;
+    }
+    if (!effectiveUserPermissionService.hasActivePermission(userId, "WORKFLOW_TASK_ACTION")) {
+      throw new ForbiddenException("Missing permission for workflow action: " + rule.getCode());
+    }
   }
 
   @Transactional

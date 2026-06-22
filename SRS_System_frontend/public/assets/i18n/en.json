@@ -792,6 +792,7 @@
     "fieldParent": "Parent (id)",
     "parentNone": "— none —",
     "fieldTerminal": "Terminal status",
+    "fieldInitial": "Initial status on create",
     "fieldStatusUiVariant": "Status badge style",
     "colStatusUiVariant": "Badge",
     "fieldSlaDays": "SLA days (optional)",
@@ -815,6 +816,19 @@
     "deleteConfirm": "Delete",
     "yes": "Yes",
     "no": "No"
+  },
+  "letterTemplates": {
+    "pageTitle": "Letter templates",
+    "add": "Add template",
+    "edit": "Edit template",
+    "bodyHtml": "HTML body",
+    "filePath": "Template file path (optional)",
+    "loadFailed": "Could not load templates.",
+    "saveFailed": "Could not save template.",
+    "saved": "Template saved.",
+    "deleted": "Template deleted.",
+    "deleteTitle": "Delete template",
+    "deleteConfirm": "Soft-delete this letter template?"
   },
   "transactions": {
     "createButton": "Create transaction",
@@ -940,7 +954,9 @@
       "suspend": "Suspend account",
       "activate": "Activate account"
     },
-    "pagerLabel": "Users: {{n}}"
+    "pagerLabel": "Users: {{n}}",
+    "securityClearance": "Security clearance",
+    "securityClearanceNone": "Default (lowest)"
   },
   "notifications": {
     "pageTitle": "Notifications",
@@ -1151,6 +1167,20 @@
     "relatedEmpty": "No linked correspondences.",
     "nonarchivedTitle": "Non-archived items",
     "nonarchivedEmpty": "No items recorded.",
+    "addRelated": "Link correspondence",
+    "addNonarchived": "Add item",
+    "linkedCorrespondenceId": "Linked correspondence ID (UUID)",
+    "relatedAdded": "Link added.",
+    "relatedDeleted": "Link removed.",
+    "nonarchivedAdded": "Item added.",
+    "nonarchivedDeleted": "Item removed.",
+    "tabAccessLog": "Access log",
+    "accessLogTitle": "Attachment access log",
+    "accessLogEmpty": "No access events recorded.",
+    "accessLogAction": "Action",
+    "accessLogUser": "User",
+    "accessLogWhen": "When",
+    "accessLogSuccess": "Success",
     "colQuantity": "Qty",
     "colDescription": "Description",
     "indexTitle": "Attachment index",
@@ -1211,6 +1241,8 @@
     "visualCurrentHandler": "Current handler",
     "workflowDelegate": "Delegate task",
     "workflowDelegatePrompt": "Enter the user ID (UUID) to delegate your current task to:",
+    "workflowReferUserPrompt": "Enter the user ID (UUID) to refer this task to:",
+    "workflowForwardDeptPrompt": "Enter the target department ID to forward this correspondence to:",
     "workflowDelegateSuccess": "Task delegated.",
     "dialogReturnTitle": "Return transaction",
     "dialogReferralTitle": "Referral — reason or notes",
@@ -1353,7 +1385,17 @@
     "mfaVerifySubmit": "Verify and sign in",
     "mfaBack": "Back to sign-in",
     "mfaCodeSent": "Verification code sent.",
-    "mfaSendFailed": "Could not send the verification code."
+    "mfaSendFailed": "Could not send the verification code.",
+    "forgotPasswordSent": "If the account exists, a reset link was sent to the registered email.",
+    "resetPasswordTitle": "Set a new password",
+    "resetPasswordNew": "New password",
+    "resetPasswordConfirm": "Confirm password",
+    "resetPasswordSubmit": "Update password",
+    "resetPasswordSuccess": "Password updated. You can sign in now.",
+    "resetPasswordFailed": "Could not reset the password. The link may have expired.",
+    "resetPasswordMismatch": "Passwords do not match.",
+    "resetPasswordMissingToken": "Reset link is invalid or missing.",
+    "accountLocked": "Account is temporarily locked after too many failed attempts."
   },
   "topbar": {
     "themeSwitchLight": "Switch to light mode",

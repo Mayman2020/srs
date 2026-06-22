@@ -79,6 +79,11 @@
               <span>{{ 'lookupAdmin.fieldTerminal' | t }}</span>
             </label>
 
+            <label class="lookup-page__check" *ngIf="showInitial()">
+              <input type="checkbox" formControlName="initial" />
+              <span>{{ 'lookupAdmin.fieldInitial' | t }}</span>
+            </label>
+
             <label class="lookup-page__field" *ngIf="showStatusUiVariant()">
               <span>{{ 'lookupAdmin.fieldStatusUiVariant' | t }}</span>
               <select formControlName="uiVariant">

@@ -10,7 +10,8 @@ import com.gov.ac.feature.lookups.entity.OrgVisualNodeStatusEntity;
 import com.gov.ac.feature.lookups.entity.PriorityEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowActionTypeEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowHistoryEventTypeEntity;
-import com.gov.ac.feature.lookups.entity.LookupCatalogEntity;
+import com.gov.ac.feature.leave.entity.LeaveStatusEntity;
+import com.gov.ac.feature.leave.repository.LeaveStatusRepository;
 import com.gov.ac.feature.lookups.entity.ClassificationEntity;
 import com.gov.ac.feature.lookups.admin.dto.LookupCatalogDto;
 import com.gov.ac.feature.lookups.admin.dto.LookupRowAdminDto;
@@ -47,7 +48,8 @@ public class LookupTableAdminService {
           "classification",
           "workflow_action_type",
           "workflow_history_event_type",
-          "org_visual_node_status");
+          "org_visual_node_status",
+          "leave_status");
 
   private final LookupCatalogRepository lookupCatalogRepository;
   private final CorrespondenceTypeRepository correspondenceTypeRepository;
@@ -58,6 +60,7 @@ public class LookupTableAdminService {
   private final WorkflowActionTypeRepository workflowActionTypeRepository;
   private final WorkflowHistoryEventTypeRepository workflowHistoryEventTypeRepository;
   private final OrgVisualNodeStatusRepository orgVisualNodeStatusRepository;
+  private final LeaveStatusRepository leaveStatusRepository;
 
   @Transactional(readOnly = true)
   public List<LookupCatalogDto> listCatalog() {
@@ -102,6 +105,10 @@ public class LookupTableAdminService {
           orgVisualNodeStatusRepository.findByDeletedAtIsNullOrderBySortOrderAsc().stream()
               .map(s -> LookupTableAdminMapper.mapOrgVisualNode(s, lookupCode))
               .toList();
+      case "leave_status" ->
+          leaveStatusRepository.findByDeletedAtIsNullOrderBySortOrderAsc().stream()
+              .map(s -> LookupTableAdminMapper.mapLeaveStatus(s, lookupCode))
+              .toList();
       default -> throw new NotFoundException("Unknown lookup");
     };
   }
@@ -123,6 +130,8 @@ public class LookupTableAdminService {
           LookupTableAdminMapper.mapWfEvent(createWfEvent(req, uid), lookupCode);
       case "org_visual_node_status" ->
           LookupTableAdminMapper.mapOrgVisualNode(createOrgVisualNode(req, uid), lookupCode);
+      case "leave_status" ->
+          LookupTableAdminMapper.mapLeaveStatus(createLeaveStatus(req, uid), lookupCode);
       default -> throw new NotFoundException("Unknown lookup");
     };
   }
@@ -144,6 +153,8 @@ public class LookupTableAdminService {
           LookupTableAdminMapper.mapWfEvent(updateWfEvent(id, req, uid), lookupCode);
       case "org_visual_node_status" ->
           LookupTableAdminMapper.mapOrgVisualNode(updateOrgVisualNode(id, req, uid), lookupCode);
+      case "leave_status" ->
+          LookupTableAdminMapper.mapLeaveStatus(updateLeaveStatus(id, req, uid), lookupCode);
       default -> throw new NotFoundException("Unknown lookup");
     };
   }
@@ -210,6 +221,13 @@ public class LookupTableAdminService {
       case "org_visual_node_status" ->
           markDeleted(
               orgVisualNodeStatusRepository
+                  .findByIdAndDeletedAtIsNull(id)
+                  .orElseThrow(() -> new NotFoundException("Row not found")),
+              uid,
+              now);
+      case "leave_status" ->
+          markDeleted(
+              leaveStatusRepository
                   .findByIdAndDeletedAtIsNull(id)
                   .orElseThrow(() -> new NotFoundException("Row not found")),
               uid,
@@ -367,6 +385,7 @@ public class LookupTableAdminService {
     p.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
     p.setActive(req.active() != null ? req.active() : true);
     p.setSlaDays(req.slaDays());
+    p.setUiVariant(normalizeCorrespondenceStatusUiVariant(req.uiVariant()));
     p.setCreatedBy(uid);
     p.setUpdatedBy(uid);
     return priorityRepository.save(p);
@@ -386,6 +405,7 @@ public class LookupTableAdminService {
     p.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
     p.setActive(req.active() != null ? req.active() : true);
     p.setSlaDays(req.slaDays());
+    p.setUiVariant(normalizeCorrespondenceStatusUiVariant(req.uiVariant()));
     p.setUpdatedBy(uid);
     return priorityRepository.save(p);
   }
@@ -613,6 +633,62 @@ public class LookupTableAdminService {
     s.setDescription(req.description());
     s.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
     s.setActive(req.active() != null ? req.active() : true);
+  }
+
+  private LeaveStatusEntity createLeaveStatus(LookupUpsertRequestDto req, UUID uid) {
+    String code = req.code().trim();
+    if (leaveStatusRepository.existsByCodeIgnoreCaseAndDeletedAtIsNull(code)) {
+      throw new BadRequestException("Duplicate code");
+    }
+    LeaveStatusEntity s = new LeaveStatusEntity();
+    s.setCode(code);
+    applyLeaveStatusFields(s, req);
+    if (Boolean.TRUE.equals(s.getInitial())) {
+      clearOtherLeaveInitials(null);
+    }
+    s.setCreatedBy(uid);
+    s.setUpdatedBy(uid);
+    return leaveStatusRepository.save(s);
+  }
+
+  private LeaveStatusEntity updateLeaveStatus(Long id, LookupUpsertRequestDto req, UUID uid) {
+    LeaveStatusEntity s =
+        leaveStatusRepository
+            .findByIdAndDeletedAtIsNull(id)
+            .orElseThrow(() -> new NotFoundException("Row not found"));
+    String code = req.code().trim();
+    if (leaveStatusRepository.existsByCodeIgnoreCaseAndIdNotAndDeletedAtIsNull(code, id)) {
+      throw new BadRequestException("Duplicate code");
+    }
+    s.setCode(code);
+    applyLeaveStatusFields(s, req);
+    if (Boolean.TRUE.equals(s.getInitial())) {
+      clearOtherLeaveInitials(id);
+    }
+    s.setUpdatedBy(uid);
+    return leaveStatusRepository.save(s);
+  }
+
+  private static void applyLeaveStatusFields(LeaveStatusEntity s, LookupUpsertRequestDto req) {
+    s.setNameAr(req.nameAr().trim());
+    s.setNameEn(req.nameEn().trim());
+    s.setDescription(req.description());
+    s.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
+    s.setActive(req.active() != null ? req.active() : true);
+    s.setTerminal(req.terminal() != null ? req.terminal() : false);
+    s.setInitial(req.initial() != null ? req.initial() : false);
+    s.setUiVariant(normalizeCorrespondenceStatusUiVariant(req.uiVariant()));
+  }
+
+  private void clearOtherLeaveInitials(Long keepId) {
+    for (LeaveStatusEntity row : leaveStatusRepository.findByDeletedAtIsNullOrderBySortOrderAsc()) {
+      if (keepId != null && keepId.equals(row.getId())) {
+        continue;
+      }
+      if (Boolean.TRUE.equals(row.getInitial())) {
+        row.setInitial(false);
+      }
+    }
   }
 
   private static void applyCommon(CorrespondenceTypeEntity t, LookupUpsertRequestDto req, UUID uid) {

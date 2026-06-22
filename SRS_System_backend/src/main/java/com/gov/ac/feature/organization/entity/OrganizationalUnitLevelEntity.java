@@ -43,4 +43,8 @@ public class OrganizationalUnitLevelEntity extends SoftDeletableEntity {
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;
+
+  /** Default {@code role.code} for routing stops at this org level (V26). */
+  @Column(name = "default_role_code", length = 64)
+  private String defaultRoleCode;
 }

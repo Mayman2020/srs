@@ -40,6 +40,11 @@ public class LeaveRequestEntity extends SoftDeletableEntity {
   @Column(columnDefinition = "text")
   private String reason;
 
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "leave_status_id", nullable = false)
+  private LeaveStatusEntity status;
+
+  /** Legacy mirror of {@link #status}; kept in sync on write for reporting indexes. */
   @Column(name = "status_code", nullable = false, length = 64)
   private String statusCode = "PENDING";
 

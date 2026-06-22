@@ -8,6 +8,7 @@ import com.gov.ac.feature.lookups.repository.ClassificationRepository;
 import com.gov.ac.feature.lookups.repository.ConfidentialityRepository;
 import com.gov.ac.feature.lookups.repository.CorrespondenceStatusRepository;
 import com.gov.ac.feature.lookups.repository.CorrespondenceTypeRepository;
+import com.gov.ac.feature.leave.repository.LeaveStatusRepository;
 import com.gov.ac.feature.lookups.repository.LookupCatalogRepository;
 import com.gov.ac.feature.lookups.repository.OrgVisualNodeStatusRepository;
 import com.gov.ac.feature.lookups.repository.PriorityRepository;
@@ -31,6 +32,7 @@ public class LookupService {
   private final WorkflowActionTypeRepository workflowActionTypeRepository;
   private final WorkflowHistoryEventTypeRepository workflowHistoryEventTypeRepository;
   private final OrgVisualNodeStatusRepository orgVisualNodeStatusRepository;
+  private final LeaveStatusRepository leaveStatusRepository;
   private final LookupCatalogRepository lookupCatalogRepository;
 
   @Transactional(readOnly = true)
@@ -90,6 +92,9 @@ public class LookupService {
           LookupDtoMapper.mapOrgVisualNodeStatuses(
               orgVisualNodeStatusRepository
                   .findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc());
+      case LookupCodes.LEAVE_STATUS ->
+          LookupDtoMapper.mapLeaveStatuses(
+              leaveStatusRepository.findByActiveTrueAndDeletedAtIsNullOrderBySortOrderAsc());
       default -> byParentCode(normalized);
     };
   }

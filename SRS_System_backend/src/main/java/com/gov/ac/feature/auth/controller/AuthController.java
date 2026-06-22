@@ -1,10 +1,12 @@
 package com.gov.ac.feature.auth.controller;
 
+import com.gov.ac.feature.auth.dto.ForgotPasswordRequestDto;
 import com.gov.ac.feature.auth.dto.LoginRequestDto;
 import com.gov.ac.feature.auth.dto.LoginResponseDto;
 import com.gov.ac.feature.auth.dto.MfaChallengeRequestDto;
 import com.gov.ac.feature.auth.dto.MfaVerifyRequestDto;
 import com.gov.ac.feature.auth.dto.RefreshRequestDto;
+import com.gov.ac.feature.auth.dto.ResetPasswordRequestDto;
 import com.gov.ac.feature.auth.dto.SwitchRoleRequestDto;
 import com.gov.ac.feature.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -56,5 +58,17 @@ public class AuthController {
   @PreAuthorize("permitAll()")
   public LoginResponseDto mfaVerify(@Valid @RequestBody MfaVerifyRequestDto request) {
     return authService.verifyMfaAndLogin(request.username(), request.password(), request.code());
+  }
+
+  @PostMapping("/forgot-password")
+  @PreAuthorize("permitAll()")
+  public void forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
+    authService.requestPasswordReset(request.username());
+  }
+
+  @PostMapping("/reset-password")
+  @PreAuthorize("permitAll()")
+  public void resetPassword(@Valid @RequestBody ResetPasswordRequestDto request) {
+    authService.resetPassword(request.token(), request.newPassword());
   }
 }

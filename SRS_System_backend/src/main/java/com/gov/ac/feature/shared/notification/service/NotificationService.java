@@ -1,6 +1,9 @@
 package com.gov.ac.feature.shared.notification.service;
 
 import com.gov.ac.feature.correspondence.entity.CorrespondenceEntity;
+import com.gov.ac.feature.correspondence.workflow.CorrespondenceWorkflowVariables;
+import com.gov.ac.feature.lookups.entity.WorkflowActionTypeEntity;
+import com.gov.ac.feature.lookups.repository.WorkflowActionTypeRepository;
 import com.gov.ac.feature.lookups.entity.NotificationEventTypeEntity;
 import com.gov.ac.feature.notification.inbox.entity.InAppNotificationEntity;
 import com.gov.ac.feature.users.entity.AppUserEntity;
@@ -37,6 +40,7 @@ public class NotificationService {
   private final AppUserRepository appUserRepository;
   private final NotificationOutboxService notificationOutboxService;
   private final NotificationRoutingProperties notificationRoutingProperties;
+  private final WorkflowActionTypeRepository workflowActionTypeRepository;
 
   @Transactional
   public void notifyCorrespondenceCreated(CorrespondenceEntity correspondence, AppUserEntity actor) {
@@ -120,7 +124,12 @@ public class NotificationService {
     String taskKey =
         delegateTask.getTaskDefinitionKey() != null ? delegateTask.getTaskDefinitionKey() : "";
     String taskName = delegateTask.getName() != null ? delegateTask.getName() : "";
-    String eventCode = mapTaskToNotificationEventCode(taskKey, taskName);
+    String wfDecision = (String) delegateTask.getVariable(CorrespondenceWorkflowVariables.WF_DECISION);
+    String eventCode = resolveNotificationEventCode(wfDecision);
+    if (!StringUtils.hasText(eventCode)) {
+      log.debug("Workflow notification skipped: no notification_event_type for wfDecision={}", wfDecision);
+      return;
+    }
 
     Optional<NotificationEventTypeEntity> eventTypeOpt =
         notificationEventTypeRepository.findByCodeIgnoreCaseAndActiveTrueAndDeletedAtIsNull(
@@ -164,18 +173,16 @@ public class NotificationService {
         params);
   }
 
-  static String mapTaskToNotificationEventCode(String taskDefinitionKey, String taskName) {
-    String blob = (taskName + " " + taskDefinitionKey).toLowerCase();
-    if (blob.contains("approve")) {
-      return NotificationEventCodes.APPROVED;
+  private String resolveNotificationEventCode(String wfDecision) {
+    if (!StringUtils.hasText(wfDecision)) {
+      return NotificationEventCodes.ASSIGNED;
     }
-    if (blob.contains("reject")) {
-      return NotificationEventCodes.REJECTED;
-    }
-    if (blob.contains("return")) {
-      return NotificationEventCodes.RETURNED;
-    }
-    return NotificationEventCodes.ASSIGNED;
+    return workflowActionTypeRepository.findWildcardRulesForCode(wfDecision.trim()).stream()
+        .findFirst()
+        .map(WorkflowActionTypeEntity::getNotificationEventType)
+        .filter(event -> event != null && StringUtils.hasText(event.getCode()))
+        .map(event -> event.getCode())
+        .orElse(null);
   }
 
   private Map<String, Object> baseCorrespondenceParams(CorrespondenceEntity correspondence) {

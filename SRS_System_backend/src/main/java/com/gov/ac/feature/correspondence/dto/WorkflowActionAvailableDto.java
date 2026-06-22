@@ -8,10 +8,34 @@ public record WorkflowActionAvailableDto(
     String nameEn,
     boolean requiresComment,
     boolean requiresSignature,
+    boolean requiresTargetUser,
+    boolean requiresTargetDepartment,
     int sortOrder,
     String uiVariant) {
 
-  /** Legacy 7-arg overload kept for pre-Slice-5 callers; no signature requirement. */
+  /** Legacy overloads for tests. */
+  public WorkflowActionAvailableDto(
+      long id,
+      String code,
+      String nameAr,
+      String nameEn,
+      boolean requiresComment,
+      boolean requiresSignature,
+      int sortOrder,
+      String uiVariant) {
+    this(
+        id,
+        code,
+        nameAr,
+        nameEn,
+        requiresComment,
+        requiresSignature,
+        false,
+        false,
+        sortOrder,
+        uiVariant);
+  }
+
   public WorkflowActionAvailableDto(
       long id,
       String code,
@@ -20,6 +44,6 @@ public record WorkflowActionAvailableDto(
       boolean requiresComment,
       int sortOrder,
       String uiVariant) {
-    this(id, code, nameAr, nameEn, requiresComment, false, sortOrder, uiVariant);
+    this(id, code, nameAr, nameEn, requiresComment, false, false, false, sortOrder, uiVariant);
   }
 }

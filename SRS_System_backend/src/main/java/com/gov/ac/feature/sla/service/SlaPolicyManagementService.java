@@ -9,10 +9,12 @@ import com.gov.ac.feature.lookups.repository.WorkflowActionTypeRepository;
 import com.gov.ac.feature.organization.repository.OrganizationalUnitLevelRepository;
 import com.gov.ac.feature.sla.dto.CreateSlaEscalationStepRequestDto;
 import com.gov.ac.feature.sla.dto.CreateSlaPolicyRequestDto;
+import com.gov.ac.feature.sla.dto.SlaEscalationActionTypeDto;
 import com.gov.ac.feature.sla.dto.SlaPolicyDto;
 import com.gov.ac.feature.sla.entity.SlaEscalationStepEntity;
 import com.gov.ac.feature.sla.entity.SlaPolicyEntity;
 import com.gov.ac.feature.sla.mapper.SlaPolicyMapper;
+import com.gov.ac.feature.sla.repository.SlaEscalationActionTypeRepository;
 import com.gov.ac.feature.sla.repository.SlaEscalationStepRepository;
 import com.gov.ac.feature.sla.repository.SlaPolicyRepository;
 import java.time.Instant;
@@ -37,18 +39,22 @@ public class SlaPolicyManagementService {
 
   private final SlaPolicyRepository slaPolicyRepository;
   private final SlaEscalationStepRepository slaEscalationStepRepository;
+  private final SlaEscalationActionTypeRepository slaEscalationActionTypeRepository;
   private final CorrespondenceTypeRepository correspondenceTypeRepository;
   private final PriorityRepository priorityRepository;
   private final ConfidentialityRepository confidentialityRepository;
   private final WorkflowActionTypeRepository workflowActionTypeRepository;
   private final OrganizationalUnitLevelRepository organizationalUnitLevelRepository;
 
-  private static final Set<String> ALLOWED_ACTIONS =
-      Set.of(
-          SlaEscalationStepEntity.ACTION_NOTIFY_MANAGER,
-          SlaEscalationStepEntity.ACTION_REASSIGN_TO_DELEGATE,
-          SlaEscalationStepEntity.ACTION_ESCALATE_TO_HIGHER_LEVEL,
-          SlaEscalationStepEntity.ACTION_NOTIFY_AUDIT_ADMIN);
+  @Transactional(readOnly = true)
+  public List<SlaEscalationActionTypeDto> listEscalationActionTypes() {
+    return slaEscalationActionTypeRepository.findByActiveTrueOrderBySortOrderAsc().stream()
+        .map(
+            row ->
+                new SlaEscalationActionTypeDto(
+                    row.getCode(), row.getNameAr(), row.getNameEn(), row.getSortOrder()))
+        .toList();
+  }
 
   @Transactional(readOnly = true)
   public List<SlaPolicyDto> list() {
@@ -197,7 +203,7 @@ public class SlaPolicyManagementService {
     if (req.steps() != null) {
       Set<Integer> seenOrders = new HashSet<>();
       for (CreateSlaEscalationStepRequestDto step : req.steps()) {
-        if (!ALLOWED_ACTIONS.contains(step.actionCode())) {
+        if (!slaEscalationActionTypeRepository.existsById(step.actionCode())) {
           throw new BadRequestException("Unknown escalation action code: " + step.actionCode());
         }
         if (!seenOrders.add(step.stepOrder())) {

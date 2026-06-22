@@ -1,0 +1,29 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  padding: 1rem;
+}
+
+.editor label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.editor textarea,
+.editor input {
+  width: 100%;
+}
+
+.actions {
+  white-space: nowrap;
+}

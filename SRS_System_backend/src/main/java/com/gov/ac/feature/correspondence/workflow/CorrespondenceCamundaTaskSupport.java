@@ -1,6 +1,7 @@
 package com.gov.ac.feature.correspondence.workflow;
 
 import com.gov.ac.feature.roles.repository.RoleRepository;
+import com.gov.ac.feature.users.repository.AppUserRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class CorrespondenceCamundaTaskSupport {
 
   private final TaskService taskService;
   private final RoleRepository roleRepository;
+  private final AppUserRepository appUserRepository;
 
   public List<Task> findActiveTasksForUser(String businessKey, UUID viewerId) {
     String userId = viewerId.toString();
@@ -33,6 +35,16 @@ public class CorrespondenceCamundaTaskSupport {
       if (StringUtils.hasText(role)) {
         q = q.taskCandidateGroup(role);
       }
+    }
+    String deptGroup =
+        appUserRepository
+            .findByIdAndDeletedAtIsNull(viewerId)
+            .map(u -> u.getDepartment())
+            .filter(dept -> dept != null && dept.getId() != null)
+            .map(dept -> "DEPT_" + dept.getId())
+            .orElse(null);
+    if (StringUtils.hasText(deptGroup)) {
+      q = q.taskCandidateGroup(deptGroup);
     }
     return q.endOr().active().orderByTaskCreateTime().asc().list();
   }

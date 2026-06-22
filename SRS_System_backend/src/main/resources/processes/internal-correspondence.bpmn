@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   id="Definitions_Internal"
                   targetNamespace="http://ac.gov/bpmn"
                   exporter="SRS"
-                  exporterVersion="2.0">
+                  exporterVersion="2.1">
   <bpmn:process id="internal-correspondence"
                 name="Internal Correspondence (Q/L/K/S routed)"
                 isExecutable="true"
                 camunda:historyTimeToLive="180">
 
-    <bpmn:startEvent id="StartEvent_Internal" name="Internal originated">
-      <bpmn:extensionElements>
-        <camunda:executionListener delegateExpression="${routingChainDelegate}" event="start"/>
-      </bpmn:extensionElements>
-    </bpmn:startEvent>
+    <bpmn:startEvent id="StartEvent_Internal" name="Internal originated"/>
+
+    <bpmn:serviceTask id="Task_BuildRoutingChain"
+                      name="Build routing chain"
+                      camunda:delegateExpression="${routingChainDelegate}"/>
 
     <bpmn:userTask id="Task_Compose"
                    name="Compose internal correspondence"
@@ -34,7 +31,7 @@
       <bpmn:multiInstanceLoopCharacteristics isSequential="true"
                                              camunda:collection="${routingStops}"
                                              camunda:elementVariable="routingStop">
-        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:completionCondition>
+        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${chainExitDecisionCodes != null &amp;&amp; chainExitDecisionCodes.contains(wfDecision)}</bpmn:completionCondition>
       </bpmn:multiInstanceLoopCharacteristics>
 
       <bpmn:startEvent id="Start_Internal_Stop"/>
@@ -50,15 +47,20 @@
 
       <bpmn:boundaryEvent id="Timer_Escalate_Internal" attachedToRef="Task_Internal_Stop" cancelActivity="false">
         <bpmn:timerEventDefinition>
-          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</bpmn:timeDuration>
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${routingStop.slaIso != null ? routingStop.slaIso : defaultSlaIso}</bpmn:timeDuration>
         </bpmn:timerEventDefinition>
       </bpmn:boundaryEvent>
+
+      <bpmn:serviceTask id="Task_SlaEscalate_Internal"
+                        name="SLA escalation"
+                        camunda:delegateExpression="${workflowTimerEscalationDelegate}"/>
 
       <bpmn:endEvent id="End_Internal_Stop"/>
 
       <bpmn:sequenceFlow id="Flow_Int_Stop_1" sourceRef="Start_Internal_Stop" targetRef="Task_Internal_Stop"/>
       <bpmn:sequenceFlow id="Flow_Int_Stop_2" sourceRef="Task_Internal_Stop" targetRef="End_Internal_Stop"/>
-      <bpmn:sequenceFlow id="Flow_Int_Stop_Escalate" sourceRef="Timer_Escalate_Internal" targetRef="End_Internal_Stop"/>
+      <bpmn:sequenceFlow id="Flow_Int_Stop_Escalate" sourceRef="Timer_Escalate_Internal" targetRef="Task_SlaEscalate_Internal"/>
+      <bpmn:sequenceFlow id="Flow_Int_SlaEscalate_End" sourceRef="Task_SlaEscalate_Internal" targetRef="End_Internal_Stop"/>
     </bpmn:subProcess>
 
     <bpmn:exclusiveGateway id="Gateway_InternalOutcome" name="Outcome" default="Flow_Internal_Complete"/>
@@ -81,16 +83,17 @@
       </bpmn:extensionElements>
     </bpmn:endEvent>
 
-    <bpmn:sequenceFlow id="Flow_Start_Compose" sourceRef="StartEvent_Internal" targetRef="Task_Compose"/>
+    <bpmn:sequenceFlow id="Flow_Start_BuildChain" sourceRef="StartEvent_Internal" targetRef="Task_BuildRoutingChain"/>
+    <bpmn:sequenceFlow id="Flow_BuildChain_Compose" sourceRef="Task_BuildRoutingChain" targetRef="Task_Compose"/>
     <bpmn:sequenceFlow id="Flow_Compose_Chain" sourceRef="Task_Compose" targetRef="Sub_InternalChain"/>
     <bpmn:sequenceFlow id="Flow_Chain_Gateway_Int" sourceRef="Sub_InternalChain" targetRef="Gateway_InternalOutcome"/>
 
     <bpmn:sequenceFlow id="Flow_Internal_Reject" sourceRef="Gateway_InternalOutcome" targetRef="EndEvent_Internal_Rejected">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rejectDecisionCodes != null &amp;&amp; rejectDecisionCodes.contains(wfDecision)}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
 
     <bpmn:sequenceFlow id="Flow_Internal_Return" sourceRef="Gateway_InternalOutcome" targetRef="EndEvent_Internal_Returned">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'RETURN'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${returnDecisionCodes != null &amp;&amp; returnDecisionCodes.contains(wfDecision)}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
 
     <bpmn:sequenceFlow id="Flow_Internal_Complete" sourceRef="Gateway_InternalOutcome" targetRef="EndEvent_Internal_Completed"/>

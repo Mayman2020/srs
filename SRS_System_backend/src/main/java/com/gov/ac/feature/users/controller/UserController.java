@@ -1,5 +1,7 @@
 package com.gov.ac.feature.users.controller;
 
+import com.gov.ac.feature.roles.dto.RoleOptionDto;
+import com.gov.ac.feature.roles.service.RoleService;
 import com.gov.ac.feature.users.dto.AssignRoleRequestDto;
 import com.gov.ac.feature.users.dto.AssignRolesRequestDto;
 import com.gov.ac.feature.users.dto.CreateAppUserRequestDto;
@@ -9,6 +11,7 @@ import com.gov.ac.feature.users.dto.UserListDto;
 import com.gov.ac.feature.users.service.UserAdminService;
 import com.gov.ac.security.SecurityUtils;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,11 +38,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
   private final UserAdminService userAdminService;
+  private final RoleService roleService;
 
   @GetMapping
   public Page<UserListDto> page(
       @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
     return userAdminService.listUsers(pageable);
+  }
+
+  @GetMapping("/roles")
+  public List<RoleOptionDto> listRolesForAssignment() {
+    return roleService.listActiveOptions();
   }
 
   @GetMapping("/{userId}")

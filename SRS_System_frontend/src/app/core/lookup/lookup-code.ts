@@ -7,6 +7,7 @@ export enum LookupCode {
   WorkflowActionType = 'workflow_action_type',
   WorkflowHistoryEventType = 'workflow_history_event_type',
   OrgVisualNodeStatus = 'org_visual_node_status',
+  LeaveStatus = 'leave_status',
 }
 
 export type LookupTableKey =
@@ -17,7 +18,8 @@ export type LookupTableKey =
   | 'classification'
   | 'workflowActionType'
   | 'workflowHistoryEventType'
-  | 'orgVisualNodeStatus';
+  | 'orgVisualNodeStatus'
+  | 'leaveStatus';
 
 export const LOOKUP_CODE_TO_TABLE_KEY: Record<LookupCode, LookupTableKey> = {
   [LookupCode.CorrespondenceType]: 'correspondenceType',
@@ -28,6 +30,7 @@ export const LOOKUP_CODE_TO_TABLE_KEY: Record<LookupCode, LookupTableKey> = {
   [LookupCode.WorkflowActionType]: 'workflowActionType',
   [LookupCode.WorkflowHistoryEventType]: 'workflowHistoryEventType',
   [LookupCode.OrgVisualNodeStatus]: 'orgVisualNodeStatus',
+  [LookupCode.LeaveStatus]: 'leaveStatus',
 };
 
 export function lookupTableKey(codeOrKey: LookupCode | LookupTableKey | string): string {

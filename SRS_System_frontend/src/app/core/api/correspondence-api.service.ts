@@ -65,7 +65,12 @@ export class CorrespondenceApiService {
 
   workflowAction(
     id: string,
-    body: { action?: string | null; comment?: string | null } = {}
+    body: {
+      action?: string | null;
+      comment?: string | null;
+      targetUserId?: string | null;
+      targetDepartmentId?: number | null;
+    } = {}
   ): Observable<void> {
     return this.http.post<void>(`${this.correspondenceItemUrl(id)}/actions`, body);
   }

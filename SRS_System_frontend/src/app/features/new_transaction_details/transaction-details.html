@@ -121,9 +121,18 @@
   <button
     class="tab-btn"
     [class.active]="activeTab === 'nonarchived'"
-    (click)="activeTab='nonarchived'">
+    (click)="onTabChange('nonarchived')">
     <i class="fa-solid fa-box-open"></i>
     {{ 'transactionDetails.tabNonarchived' | t }}
+  </button>
+
+  <button
+    *ngIf="canViewAccessLog()"
+    class="tab-btn"
+    [class.active]="activeTab === 'accesslog'"
+    (click)="onTabChange('accesslog')">
+    <i class="fa-solid fa-shield-halved"></i>
+    {{ 'transactionDetails.tabAccessLog' | t }}
   </button>
 
 
@@ -877,6 +886,10 @@
           <h3>{{ 'transactionDetails.relatedTitle' | t }}</h3>
           <span class="count-badge">{{ relatedTransactions.length }}</span>
         </div>
+        <button *ngIf="canEditGuide()" type="button" class="btn sm primary" (click)="addRelatedLink()">
+          <i class="fa-solid fa-plus"></i>
+          {{ 'transactionDetails.addRelated' | t }}
+        </button>
       </div>
 
       <div class="related-list" *ngIf="relatedTransactions.length">
@@ -893,6 +906,14 @@
             </span>
           </div>
           <app-status-badge [code]="rel.status" [plain]="true" [uiVariant]="null" size="sm" />
+          <button
+            *ngIf="canEditGuide()"
+            type="button"
+            class="action-btn delete"
+            (click)="deleteRelatedLink(rel, $event)"
+            [attr.title]="'common.delete' | t">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
 
@@ -912,6 +933,10 @@
           <h3>{{ 'transactionDetails.nonarchivedTitle' | t }}</h3>
           <span class="count-badge">{{ nonarchivedItems.length }}</span>
         </div>
+        <button *ngIf="canEditGuide()" type="button" class="btn sm primary" (click)="addNonarchivedItem()">
+          <i class="fa-solid fa-plus"></i>
+          {{ 'transactionDetails.addNonarchived' | t }}
+        </button>
       </div>
       <div class="mini-table-wrap srs-table-shell" *ngIf="nonarchivedItems.length">
         <table class="mini-table">
@@ -921,6 +946,7 @@
               <th>{{ 'transactions.type' | t }}</th>
               <th>{{ 'transactionDetails.colDescription' | t }}</th>
               <th>{{ 'transactionDetails.colQuantity' | t }}</th>
+              <th *ngIf="canEditGuide()"></th>
             </tr>
           </thead>
           <tbody>
@@ -929,12 +955,53 @@
               <td>{{ it.itemType }}</td>
               <td>{{ it.descriptionText || '—' }}</td>
               <td>{{ it.quantity }}</td>
+              <td *ngIf="canEditGuide()">
+                <button type="button" class="action-btn delete" (click)="deleteNonarchivedItem(it)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="empty-state" *ngIf="!nonarchivedItems.length">
         <p>{{ 'transactionDetails.nonarchivedEmpty' | t }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab==='accesslog' && canViewAccessLog()">
+    <div class="card full-width">
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>{{ 'transactionDetails.accessLogTitle' | t }}</h3>
+          <span class="count-badge">{{ accessLogEntries.length }}</span>
+        </div>
+      </div>
+      <p *ngIf="accessLogLoading">{{ 'common.loading' | t }}</p>
+      <div class="mini-table-wrap srs-table-shell" *ngIf="!accessLogLoading && accessLogEntries.length">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>{{ 'transactionDetails.accessLogAction' | t }}</th>
+              <th>{{ 'transactionDetails.accessLogUser' | t }}</th>
+              <th>{{ 'transactionDetails.accessLogWhen' | t }}</th>
+              <th>{{ 'transactionDetails.accessLogSuccess' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of accessLogEntries">
+              <td>{{ row.actionCode }}</td>
+              <td>{{ row.fullNameAr || row.fullNameEn || row.username || '—' }}</td>
+              <td>{{ row.occurredAt | date:'medium' }}</td>
+              <td>{{ row.success ? ('common.yes' | t) : ('common.no' | t) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!accessLogLoading && !accessLogEntries.length">
+        <p>{{ 'transactionDetails.accessLogEmpty' | t }}</p>
       </div>
     </div>
   </div>

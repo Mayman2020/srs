@@ -19,6 +19,7 @@ public final class DashboardMapper {
         (String) r[2],
         (String) r[3],
         ((Number) r[4]).intValue(),
-        ((Number) r[5]).longValue());
+        ((Number) r[5]).longValue(),
+        r.length > 6 && r[6] != null ? r[6].toString() : null);
   }
 }

@@ -13,6 +13,7 @@ import com.gov.ac.feature.users.dto.CreateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UpdateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UserDetailDto;
 import com.gov.ac.feature.users.dto.UserListDto;
+import com.gov.ac.feature.lookups.repository.ConfidentialityRepository;
 import com.gov.ac.feature.users.mapper.UserAdminMapper;
 import com.gov.ac.feature.users.mapper.UserListMapper;
 import com.gov.ac.feature.users.repository.AppUserRepository;
@@ -44,6 +45,7 @@ public class UserAdminService {
   private final RoleRepository roleRepository;
   private final UserRoleRepository userRoleRepository;
   private final PasswordEncoder passwordEncoder;
+  private final ConfidentialityRepository confidentialityRepository;
 
   @Transactional(readOnly = true)
   public Page<UserListDto> listUsers(Pageable pageable) {
@@ -186,6 +188,7 @@ public class UserAdminService {
     u.setDepartment(dept);
     u.setActive(true);
     u.setFailedLoginCount(0);
+    u.setSecurityClearanceId(resolveClearanceId(req.securityClearanceId()));
     u.setCreatedBy(actorId);
     u.setUpdatedBy(actorId);
     appUserRepository.save(u);
@@ -207,6 +210,9 @@ public class UserAdminService {
     u.setEmail(req.email().trim().toLowerCase());
     u.setDepartment(dept);
     u.setActive(req.active());
+    if (req.securityClearanceId() != null) {
+      u.setSecurityClearanceId(resolveClearanceId(req.securityClearanceId()));
+    }
     if (req.password() != null && !req.password().isBlank()) {
       u.setPasswordHash(passwordEncoder.encode(req.password().trim()));
     }
@@ -230,5 +236,15 @@ public class UserAdminService {
   private UserDetailDto detailResponse(AppUserEntity user) {
     List<Long> roleIds = userRoleRepository.findActiveRoleIdsByUserId(user.getId());
     return UserAdminMapper.toDetailDto(user, roleIds);
+  }
+
+  private Long resolveClearanceId(Long clearanceId) {
+    if (clearanceId == null) {
+      return null;
+    }
+    confidentialityRepository
+        .findByIdAndDeletedAtIsNull(clearanceId)
+        .orElseThrow(() -> new NotFoundException("Security clearance not found"));
+    return clearanceId;
   }
 }

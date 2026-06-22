@@ -792,6 +792,7 @@
     "fieldParent": "القيمة الأب (معرّف)",
     "parentNone": "— بدون أب —",
     "fieldTerminal": "حالة نهائية (لا انتقال لاحق)",
+    "fieldInitial": "الحالة الافتراضية عند الإنشاء",
     "fieldStatusUiVariant": "نمط شارة الحالة",
     "colStatusUiVariant": "الشارة",
     "fieldSlaDays": "أيام SLA (اختياري)",
@@ -815,6 +816,19 @@
     "deleteConfirm": "حذف",
     "yes": "نعم",
     "no": "لا"
+  },
+  "letterTemplates": {
+    "pageTitle": "قوالب الخطابات",
+    "add": "إضافة قالب",
+    "edit": "تعديل قالب",
+    "bodyHtml": "محتوى HTML",
+    "filePath": "مسار ملف القالب (اختياري)",
+    "loadFailed": "تعذّر تحميل القوالب.",
+    "saveFailed": "تعذّر حفظ القالب.",
+    "saved": "تم حفظ القالب.",
+    "deleted": "تم حذف القالب.",
+    "deleteTitle": "حذف القالب",
+    "deleteConfirm": "حذف هذا القالب (حذف منطقي)؟"
   },
   "transactions": {
     "createButton": "إنشاء معاملة",
@@ -940,7 +954,9 @@
       "suspend": "تعليق الحساب",
       "activate": "تفعيل الحساب"
     },
-    "pagerLabel": "عدد المستخدمين: {{n}}"
+    "pagerLabel": "عدد المستخدمين: {{n}}",
+    "securityClearance": "التصريح الأمني",
+    "securityClearanceNone": "افتراضي (أدنى مستوى)"
   },
   "notifications": {
     "pageTitle": "الإشعارات",
@@ -1151,6 +1167,20 @@
     "relatedEmpty": "لا توجد معاملات مرتبطة. يمكن ربط المعاملات من الخادم (تبويب الروابط).",
     "nonarchivedTitle": "مراسلات/وسائط غير مؤرشفة",
     "nonarchivedEmpty": "لا توجد بنود مسجّلة.",
+    "addRelated": "ربط معاملة",
+    "addNonarchived": "إضافة بند",
+    "linkedCorrespondenceId": "معرّف المعاملة المرتبطة (UUID)",
+    "relatedAdded": "تمت إضافة الربط.",
+    "relatedDeleted": "تم حذف الربط.",
+    "nonarchivedAdded": "تمت إضافة البند.",
+    "nonarchivedDeleted": "تم حذف البند.",
+    "tabAccessLog": "سجل الوصول",
+    "accessLogTitle": "سجل وصول المرفقات",
+    "accessLogEmpty": "لا توجد أحداث وصول.",
+    "accessLogAction": "الإجراء",
+    "accessLogUser": "المستخدم",
+    "accessLogWhen": "الوقت",
+    "accessLogSuccess": "نجاح",
     "colQuantity": "الكمية",
     "colDescription": "الوصف",
     "indexTitle": "فهرسة المرفق",
@@ -1211,6 +1241,8 @@
     "visualCurrentHandler": "المعالج الحالي",
     "workflowDelegate": "تفويض المهمة",
     "workflowDelegatePrompt": "أدخل معرّف المستخدم (UUID) لتفويض مهمتك الحالية إليه:",
+    "workflowReferUserPrompt": "أدخل معرّف المستخدم (UUID) لإحالة المهمة إليه:",
+    "workflowForwardDeptPrompt": "أدخل معرّف القسم المستهدف لتحويل المعاملة إليه:",
     "workflowDelegateSuccess": "تم تفويض المهمة.",
     "dialogReturnTitle": "إرجاع المعاملة",
     "dialogReferralTitle": "إحالة — السبب أو الملاحظات",
@@ -1353,7 +1385,17 @@
     "mfaVerifySubmit": "تأكيد والدخول",
     "mfaBack": "العودة لتسجيل الدخول",
     "mfaCodeSent": "تم إرسال رمز التحقق.",
-    "mfaSendFailed": "تعذّر إرسال رمز التحقق."
+    "mfaSendFailed": "تعذّر إرسال رمز التحقق.",
+    "forgotPasswordSent": "إذا كان الحساب موجوداً، تم إرسال رابط إعادة التعيين إلى البريد المسجّل.",
+    "resetPasswordTitle": "تعيين كلمة مرور جديدة",
+    "resetPasswordNew": "كلمة المرور الجديدة",
+    "resetPasswordConfirm": "تأكيد كلمة المرور",
+    "resetPasswordSubmit": "تحديث كلمة المرور",
+    "resetPasswordSuccess": "تم تحديث كلمة المرور. يمكنك تسجيل الدخول الآن.",
+    "resetPasswordFailed": "تعذّر إعادة تعيين كلمة المرور. قد يكون الرابط منتهياً.",
+    "resetPasswordMismatch": "كلمتا المرور غير متطابقتين.",
+    "resetPasswordMissingToken": "رابط إعادة التعيين غير صالح أو مفقود.",
+    "accountLocked": "الحساب مقفل مؤقتاً بعد محاولات فاشلة متكررة."
   },
   "topbar": {
     "themeSwitchLight": "التبديل إلى الوضع الفاتح",

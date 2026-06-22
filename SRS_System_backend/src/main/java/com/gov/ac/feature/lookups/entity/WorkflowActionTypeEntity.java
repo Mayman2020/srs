@@ -1,6 +1,7 @@
 package com.gov.ac.feature.lookups.entity;
 
 import com.gov.ac.feature.shared.entity.SoftDeletableEntity;
+import com.gov.ac.feature.roles.entity.PermissionEntity;
 import com.gov.ac.feature.roles.entity.RoleEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -70,4 +71,28 @@ public class WorkflowActionTypeEntity extends SoftDeletableEntity {
   /** Semantic button style for task UI: primary, secondary, danger, warning, success (Flyway V28). */
   @Column(name = "ui_variant", nullable = false, length = 32)
   private String uiVariant = "secondary";
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "required_permission_id")
+  private PermissionEntity requiredPermission;
+
+  @Column(name = "requires_target_user", nullable = false)
+  private Boolean requiresTargetUser = false;
+
+  @Column(name = "requires_target_department", nullable = false)
+  private Boolean requiresTargetDepartment = false;
+
+  @Column(name = "keeps_task_open", nullable = false)
+  private Boolean keepsTaskOpen = false;
+
+  @Column(name = "suppress_process_end_status", nullable = false)
+  private Boolean suppressProcessEndStatus = false;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "notification_event_type_id")
+  private NotificationEventTypeEntity notificationEventType;
+
+  /** When TRUE, multi-instance routing loop exits early (REJECT, RETURN). */
+  @Column(name = "terminates_routing_chain", nullable = false)
+  private Boolean terminatesRoutingChain = false;
 }

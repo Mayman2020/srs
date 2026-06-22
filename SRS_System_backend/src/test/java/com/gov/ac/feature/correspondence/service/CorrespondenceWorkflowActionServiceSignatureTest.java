@@ -19,7 +19,9 @@ import com.gov.ac.feature.correspondence.entity.CorrespondenceEntity;
 import com.gov.ac.feature.correspondence.repository.CorrespondenceRepository;
 import com.gov.ac.feature.correspondence.security.CorrespondenceViewAuthorization;
 import com.gov.ac.feature.correspondence.workflow.CorrespondenceCamundaTaskSupport;
+import com.gov.ac.feature.correspondence.workflow.CorrespondenceReferForwardService;
 import com.gov.ac.feature.correspondence.workflow.WorkflowActionResolutionService;
+import com.gov.ac.security.permission.EffectiveUserPermissionService;
 import com.gov.ac.feature.lookups.entity.CorrespondenceStatusEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowActionTypeEntity;
 import com.gov.ac.feature.users.entity.AppUserEntity;
@@ -47,6 +49,8 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
   @Mock private CorrespondenceViewAuthorization correspondenceViewAuthorization;
   @Mock private WorkflowService workflowService;
   @Mock private CorrespondenceCamundaTaskSupport camundaTaskSupport;
+  @Mock private CorrespondenceReferForwardService referForwardService;
+  @Mock private EffectiveUserPermissionService effectiveUserPermissionService;
   @Mock private WorkflowActionResolutionService workflowActionResolution;
   @Mock private AttachmentRepository attachmentRepository;
   @Mock private DocumentSignatureService documentSignatureService;
@@ -96,6 +100,8 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
         .thenReturn(Optional.of(correspondence));
     when(camundaTaskSupport.findActiveTasksForUser("REF-1", userId)).thenReturn(List.of(task));
     when(workflowActionResolution.resolveTransition("APPROVE", 7L)).thenReturn(Optional.of(rule));
+    when(effectiveUserPermissionService.hasActivePermission(userId, "WORKFLOW_TASK_ACTION"))
+        .thenReturn(true);
   }
 
   @Test
@@ -105,7 +111,7 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
     when(documentSignatureService.hasValidSignatureByUser(202L, userId)).thenReturn(false);
 
     assertThatThrownBy(
-            () -> service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null))
+            () -> service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null, null, null))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Sign required attachments");
 
@@ -118,7 +124,7 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
         .thenReturn(List.of(attachment));
     when(documentSignatureService.hasValidSignatureByUser(202L, userId)).thenReturn(true);
 
-    service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null);
+    service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null, null, null);
 
     verify(workflowService, times(1)).completeTask(eq("task-1"), any());
   }
@@ -127,7 +133,7 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
   void skipsCheckWhenNoAttachments() {
     when(attachmentRepository.findAllForDetailByCorrespondenceId(correspondenceId))
         .thenReturn(List.of());
-    service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null);
+    service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null, null, null);
     verify(documentSignatureService, never()).hasValidSignatureByUser(anyLong(), any());
     verify(workflowService).completeTask(eq("task-1"), any());
   }
@@ -135,7 +141,7 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
   @Test
   void skipsCheckWhenRuleDoesNotRequireSignature() {
     rule.setRequiresSignature(false);
-    service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null);
+    service.completeActiveAssigneeTask(correspondenceId, userId, "APPROVE", null, null, null);
     verify(attachmentRepository, never()).findAllForDetailByCorrespondenceId(any());
     verify(documentSignatureService, never()).hasValidSignatureByUser(anyLong(), any());
     verify(workflowService).completeTask(eq("task-1"), any());

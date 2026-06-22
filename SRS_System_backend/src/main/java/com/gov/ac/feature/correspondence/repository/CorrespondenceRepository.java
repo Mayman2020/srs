@@ -59,11 +59,11 @@ public interface CorrespondenceRepository
    * sortOrder, count — all label fields from the lookup table.
    */
   @Query(
-      "select s.id, s.code, s.nameAr, s.nameEn, s.sortOrder, count(c) "
+      "select s.id, s.code, s.nameAr, s.nameEn, s.sortOrder, count(c), s.uiVariant "
           + "from CorrespondenceEntity c join c.correspondenceStatus s "
           + "where c.deletedAt is null and s.deletedAt is null "
           + "and (:departmentId is null or c.ownerDepartment.id = :departmentId) "
-          + "group by s.id, s.code, s.nameAr, s.nameEn, s.sortOrder "
+          + "group by s.id, s.code, s.nameAr, s.nameEn, s.sortOrder, s.uiVariant "
           + "order by s.sortOrder")
   List<Object[]> aggregateActiveByCorrespondenceStatusScoped(
       @Param("departmentId") Long departmentId);
@@ -73,11 +73,11 @@ public interface CorrespondenceRepository
    * count.
    */
   @Query(
-      "select p.id, p.code, p.nameAr, p.nameEn, p.sortOrder, count(c) "
+      "select p.id, p.code, p.nameAr, p.nameEn, p.sortOrder, count(c), p.uiVariant "
           + "from CorrespondenceEntity c join c.priority p "
           + "where c.deletedAt is null and p.deletedAt is null "
           + "and (:departmentId is null or c.ownerDepartment.id = :departmentId) "
-          + "group by p.id, p.code, p.nameAr, p.nameEn, p.sortOrder "
+          + "group by p.id, p.code, p.nameAr, p.nameEn, p.sortOrder, p.uiVariant "
           + "order by p.sortOrder")
   List<Object[]> aggregateActiveByPriorityScoped(@Param("departmentId") Long departmentId);
 

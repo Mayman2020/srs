@@ -162,6 +162,12 @@
         <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.nameAr }} ({{ d.code }})</option>
       </select>
     </label>
+    <label>{{ 'users.securityClearance' | t }}
+      <select [(ngModel)]="userForm.securityClearanceId">
+        <option [ngValue]="null">{{ 'users.securityClearanceNone' | t }}</option>
+        <option *ngFor="let c of clearanceOptions" [ngValue]="c.id">{{ clearanceLabel(c) }}</option>
+      </select>
+    </label>
     <label *ngIf="userModal === 'edit'">
       <input type="checkbox" [(ngModel)]="userForm.active" /> {{ 'admin.colActive' | t }}
     </label>

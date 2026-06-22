@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   id="Definitions_Outbound"
                   targetNamespace="http://ac.gov/bpmn"
                   exporter="SRS"
-                  exporterVersion="2.0">
+                  exporterVersion="2.1">
   <bpmn:process id="outbound-correspondence"
                 name="Outbound Correspondence (Q/L/K/S routed)"
                 isExecutable="true"
                 camunda:historyTimeToLive="180">
 
-    <bpmn:startEvent id="StartEvent_Outbound" name="Outbound drafted">
-      <bpmn:extensionElements>
-        <camunda:executionListener delegateExpression="${routingChainDelegate}" event="start"/>
-      </bpmn:extensionElements>
-    </bpmn:startEvent>
+    <bpmn:startEvent id="StartEvent_Outbound" name="Outbound drafted"/>
+
+    <bpmn:serviceTask id="Task_BuildRoutingChain"
+                      name="Build routing chain"
+                      camunda:delegateExpression="${routingChainDelegate}"/>
 
     <bpmn:userTask id="Task_Draft"
                    name="Draft outbound correspondence"
@@ -30,12 +27,11 @@
       </bpmn:extensionElements>
     </bpmn:userTask>
 
-    <!-- Approval chain along the Q/L/K/S route. -->
     <bpmn:subProcess id="Sub_ApprovalChain" name="Approval chain (Q/L/K/S)">
       <bpmn:multiInstanceLoopCharacteristics isSequential="true"
                                              camunda:collection="${routingStops}"
                                              camunda:elementVariable="routingStop">
-        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:completionCondition>
+        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${chainExitDecisionCodes != null &amp;&amp; chainExitDecisionCodes.contains(wfDecision)}</bpmn:completionCondition>
       </bpmn:multiInstanceLoopCharacteristics>
 
       <bpmn:startEvent id="Start_Approve"/>
@@ -51,15 +47,20 @@
 
       <bpmn:boundaryEvent id="Timer_Escalate_Approve" attachedToRef="Task_Approve" cancelActivity="false">
         <bpmn:timerEventDefinition>
-          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2H</bpmn:timeDuration>
+          <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${routingStop.slaIso != null ? routingStop.slaIso : defaultSlaIso}</bpmn:timeDuration>
         </bpmn:timerEventDefinition>
       </bpmn:boundaryEvent>
+
+      <bpmn:serviceTask id="Task_SlaEscalate_Approve"
+                        name="SLA escalation"
+                        camunda:delegateExpression="${workflowTimerEscalationDelegate}"/>
 
       <bpmn:endEvent id="End_Approve"/>
 
       <bpmn:sequenceFlow id="Flow_Approve_1" sourceRef="Start_Approve" targetRef="Task_Approve"/>
       <bpmn:sequenceFlow id="Flow_Approve_2" sourceRef="Task_Approve" targetRef="End_Approve"/>
-      <bpmn:sequenceFlow id="Flow_Approve_Escalate" sourceRef="Timer_Escalate_Approve" targetRef="End_Approve"/>
+      <bpmn:sequenceFlow id="Flow_Approve_Escalate" sourceRef="Timer_Escalate_Approve" targetRef="Task_SlaEscalate_Approve"/>
+      <bpmn:sequenceFlow id="Flow_Approve_SlaEscalate_End" sourceRef="Task_SlaEscalate_Approve" targetRef="End_Approve"/>
     </bpmn:subProcess>
 
     <bpmn:exclusiveGateway id="Gateway_OutboundOutcome" name="Outcome" default="Flow_Outbound_Complete"/>
@@ -82,16 +83,17 @@
       </bpmn:extensionElements>
     </bpmn:endEvent>
 
-    <bpmn:sequenceFlow id="Flow_Start_Draft" sourceRef="StartEvent_Outbound" targetRef="Task_Draft"/>
+    <bpmn:sequenceFlow id="Flow_Start_BuildChain" sourceRef="StartEvent_Outbound" targetRef="Task_BuildRoutingChain"/>
+    <bpmn:sequenceFlow id="Flow_BuildChain_Draft" sourceRef="Task_BuildRoutingChain" targetRef="Task_Draft"/>
     <bpmn:sequenceFlow id="Flow_Draft_Chain" sourceRef="Task_Draft" targetRef="Sub_ApprovalChain"/>
     <bpmn:sequenceFlow id="Flow_Chain_Gateway_Out" sourceRef="Sub_ApprovalChain" targetRef="Gateway_OutboundOutcome"/>
 
     <bpmn:sequenceFlow id="Flow_Outbound_Reject" sourceRef="Gateway_OutboundOutcome" targetRef="EndEvent_Outbound_Rejected">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'REJECT'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${rejectDecisionCodes != null &amp;&amp; rejectDecisionCodes.contains(wfDecision)}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
 
     <bpmn:sequenceFlow id="Flow_Outbound_Return" sourceRef="Gateway_OutboundOutcome" targetRef="EndEvent_Outbound_Returned">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${wfDecision == 'RETURN'}</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${returnDecisionCodes != null &amp;&amp; returnDecisionCodes.contains(wfDecision)}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
 
     <bpmn:sequenceFlow id="Flow_Outbound_Complete" sourceRef="Gateway_OutboundOutcome" targetRef="EndEvent_Outbound_Dispatched"/>

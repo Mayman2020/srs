@@ -11,7 +11,8 @@ import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 import { MfaOtpDialogComponent } from '../../../shared/dialogs/mfa-otp-dialog.component';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
 import { catchError, of } from 'rxjs';
-import { NotificationService } from '../../../core/services/notification.service';
+import { TextInputDialogComponent, TextInputDialogData } from '../../../shared/dialogs/text-input-dialog.component';
+import { take } from 'rxjs/operators';
 
 declare var particlesJS: unknown;
 
@@ -24,6 +25,17 @@ function isMfaRequired(err: HttpErrorResponse): boolean {
     return true;
   }
   return typeof body === 'string' && body.trim() === 'MFA_REQUIRED';
+}
+
+function isAccountLocked(err: HttpErrorResponse): boolean {
+  if (err.status !== 403) {
+    return false;
+  }
+  const body = err.error;
+  if (body === 'ACCOUNT_LOCKED') {
+    return true;
+  }
+  return typeof body === 'string' && body.trim() === 'ACCOUNT_LOCKED';
 }
 
 @Component({
@@ -135,6 +147,14 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
           this.openMfaDialog(u, p);
           return;
         }
+        if (isAccountLocked(err)) {
+          this.showToast(
+            this.i18n.instant('auth.loginErrorTitle'),
+            this.i18n.instant('auth.accountLocked'),
+            'error'
+          );
+          return;
+        }
         const msg = err.userMessage ?? this.i18n.instant('errors.generic');
         this.showToast(this.i18n.instant('auth.loginErrorTitle'), msg, 'error');
       }
@@ -169,11 +189,41 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   forgotPassword(): void {
-    this.showToast(
-      this.i18n.instant('auth.forgotPasswordTitle'),
-      this.i18n.instant('auth.forgotPasswordMessage'),
-      'info'
-    );
+    const ref = this.dialog.open(TextInputDialogComponent, {
+      width: 'min(440px, 94vw)',
+      autoFocus: 'dialog',
+      data: {
+        dialogTitle: this.i18n.instant('auth.forgotPasswordTitle'),
+        labelKey: 'admin.colUsername',
+        confirmKey: 'common.apply',
+        required: true
+      } satisfies TextInputDialogData
+    });
+    ref
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((username) => {
+        const u = String(username ?? '').trim();
+        if (!u) {
+          return;
+        }
+        this.authApi.forgotPassword(u).subscribe({
+          next: () => {
+            this.showToast(
+              this.i18n.instant('auth.forgotPasswordTitle'),
+              this.i18n.instant('auth.forgotPasswordSent'),
+              'success'
+            );
+          },
+          error: () => {
+            this.showToast(
+              this.i18n.instant('auth.forgotPasswordTitle'),
+              this.i18n.instant('auth.forgotPasswordSent'),
+              'info'
+            );
+          }
+        });
+      });
   }
 
   private showToast(

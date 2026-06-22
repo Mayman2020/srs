@@ -26,6 +26,7 @@ public class NotificationOutboxService {
 
   public static final String CHANNEL_IN_APP = "IN_APP";
   public static final String CHANNEL_EMAIL = "EMAIL";
+  public static final String CHANNEL_SMS = "SMS";
   public static final String CHANNEL_WEBHOOK = "WEBHOOK";
   public static final String CHANNEL_TEAMS = "TEAMS";
 
@@ -110,6 +111,50 @@ public class NotificationOutboxService {
         messageKey,
         messageParams,
         correspondenceId);
+  }
+
+  /**
+   * Direct delivery for auth / security flows — bypasses user notification preferences.
+   */
+  @Transactional
+  public void enqueueDirectEmail(UUID userId, String to, String eventTypeCode, String subject, String body) {
+    if (to == null || to.isBlank()) {
+      return;
+    }
+    String idempotencyKey = eventTypeCode + ":EMAIL:DIRECT:" + userId + ":" + Instant.now().toEpochMilli();
+    saveOutboxRow(
+        idempotencyKey,
+        eventTypeCode,
+        CHANNEL_EMAIL,
+        userId,
+        to.trim(),
+        subject,
+        body,
+        null,
+        subject,
+        Map.of("subject", subject != null ? subject : ""),
+        null);
+  }
+
+  /** Direct SMS delivery for auth / security flows — bypasses user notification preferences. */
+  @Transactional
+  public void enqueueDirectSms(UUID userId, String phoneE164, String eventTypeCode, String body) {
+    if (phoneE164 == null || phoneE164.isBlank()) {
+      return;
+    }
+    String idempotencyKey = eventTypeCode + ":SMS:DIRECT:" + userId + ":" + Instant.now().toEpochMilli();
+    saveOutboxRow(
+        idempotencyKey,
+        eventTypeCode,
+        CHANNEL_SMS,
+        userId,
+        phoneE164.trim(),
+        null,
+        body,
+        null,
+        eventTypeCode,
+        Map.of("message", body != null ? body : ""),
+        null);
   }
 
   /**

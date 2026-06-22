@@ -99,7 +99,12 @@ public class CorrespondenceController {
     String action = body != null ? body.action() : null;
     String comment = body != null ? body.comment() : null;
     correspondenceWorkflowActionService.completeActiveAssigneeTask(
-        id, SecurityUtils.requireCurrentUserId(), action, comment);
+        id,
+        SecurityUtils.requireCurrentUserId(),
+        action,
+        comment,
+        body != null ? body.targetUserId() : null,
+        body != null ? body.targetDepartmentId() : null);
   }
 
   @PostMapping("/{id}/workflow-delegate")

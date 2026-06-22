@@ -9,6 +9,7 @@ import com.gov.ac.feature.lookups.entity.PriorityEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowActionTypeEntity;
 import com.gov.ac.feature.lookups.entity.WorkflowHistoryEventTypeEntity;
 import com.gov.ac.feature.lookups.entity.ClassificationEntity;
+import com.gov.ac.feature.leave.entity.LeaveStatusEntity;
 import com.gov.ac.feature.lookups.dto.LookupItemDto;
 import java.util.List;
 
@@ -59,7 +60,17 @@ public final class LookupDtoMapper {
         .map(
             r ->
                 new LookupItemDto(
-                    r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
+                    r.getId(),
+                    r.getCode(),
+                    r.getNameAr(),
+                    r.getNameEn(),
+                    r.getSortOrder(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    r.getUiVariant()))
         .toList();
   }
 
@@ -110,6 +121,25 @@ public final class LookupDtoMapper {
             r ->
                 new LookupItemDto(
                     r.getId(), r.getCode(), r.getNameAr(), r.getNameEn(), r.getSortOrder(), null))
+        .toList();
+  }
+
+  public static List<LookupItemDto> mapLeaveStatuses(List<LeaveStatusEntity> rows) {
+    return rows.stream()
+        .map(
+            r ->
+                new LookupItemDto(
+                    r.getId(),
+                    r.getCode(),
+                    r.getNameAr(),
+                    r.getNameEn(),
+                    r.getSortOrder(),
+                    null,
+                    r.getTerminal(),
+                    null,
+                    r.getInitial(),
+                    null,
+                    r.getUiVariant()))
         .toList();
   }
 

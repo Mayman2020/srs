@@ -40,4 +40,7 @@ public class PriorityEntity extends SoftDeletableEntity {
 
   @Column(name = "is_active", nullable = false)
   private Boolean active = true;
+
+  @Column(name = "ui_variant", nullable = false, length = 32)
+  private String uiVariant = "neutral";
 }

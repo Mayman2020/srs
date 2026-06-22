@@ -23,7 +23,9 @@ public record LookupRowAdminDto(
     /** {@code workflow_action_type} only. */
     Boolean requiresComment,
     /** {@code workflow_action_type} only. */
-    Boolean requiresSignature) {
+    Boolean requiresSignature,
+    /** {@code leave_status} only: default status on new requests. */
+    Boolean initial) {
 
   /** Legacy 14-arg overload kept for callers that don't deal with {@code workflow_action_type}. */
   public LookupRowAdminDto(
@@ -42,6 +44,6 @@ public record LookupRowAdminDto(
       Boolean requiresClearance,
       String uiVariant) {
     this(id, lookupCode, code, nameAr, nameEn, description, sortOrder, active, parentId,
-        terminal, slaDays, restrictsExport, requiresClearance, uiVariant, null, null);
+        terminal, slaDays, restrictsExport, requiresClearance, uiVariant, null, null, null);
   }
 }

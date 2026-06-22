@@ -89,6 +89,8 @@ public class CorrespondenceWorkflowAvailabilityService {
                     w.getNameEn(),
                     Boolean.TRUE.equals(w.getRequiresComment()),
                     Boolean.TRUE.equals(w.getRequiresSignature()),
+                    Boolean.TRUE.equals(w.getRequiresTargetUser()),
+                    Boolean.TRUE.equals(w.getRequiresTargetDepartment()),
                     w.getSortOrder() != null ? w.getSortOrder() : 0,
                     w.getUiVariant() != null ? w.getUiVariant() : "secondary"))
         .toList();

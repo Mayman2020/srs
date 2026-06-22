@@ -19,4 +19,6 @@ public record LookupUpsertRequestDto(
     /** {@code workflow_action_type} only — admin-editable comment requirement. */
     Boolean requiresComment,
     /** {@code workflow_action_type} only — Slice 5 signature requirement. */
-    Boolean requiresSignature) {}
+    Boolean requiresSignature,
+    /** {@code leave_status} only — default status on create. */
+    Boolean initial) {}

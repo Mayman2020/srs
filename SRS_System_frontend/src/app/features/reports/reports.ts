@@ -32,7 +32,7 @@ import {
 import { TransactionService } from '../../core/services/transaction.service';
 import { Transaction } from '../../core/models/transaction.model';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { UiFormatService } from '../../core/i18n/ui-format.service';
+import { chartColorForUiVariant, chartThemeColors } from '../../core/util/chart-ui-variant-colors';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { MatButtonModule } from '@angular/material/button';
@@ -460,6 +460,10 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       : ['—'];
     const statusData = sortedStatus.length ? sortedStatus.map((b) => b.count) : [0];
 
+    const statusColors = sortedStatus.map((b) =>
+      chartColorForUiVariant(b.uiVariant, chartThemeColors())
+    );
+
     this.statusChart?.destroy();
     this.statusChart = new Chart(this.statusCanvas.nativeElement, {
       type: 'doughnut',
@@ -468,7 +472,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [
           {
             data: statusData,
-            backgroundColor: [colors.primary, '#0f6b4d', colors.warning, '#22c55e', '#6366f1', '#ec4899'],
+            backgroundColor: statusColors.length ? statusColors : [colors.primary],
             borderColor: colors.surface
           }
         ]
@@ -487,6 +491,8 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
       : ['—'];
     const priData = sortedPri.length ? sortedPri.map((b) => b.count) : [0];
 
+    const priColors = sortedPri.map((b) => chartColorForUiVariant(b.uiVariant, chartThemeColors()));
+
     this.priorityChart?.destroy();
     this.priorityChart = new Chart(this.priorityCanvas.nativeElement, {
       type: 'doughnut',
@@ -495,7 +501,7 @@ export class ReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         datasets: [
           {
             data: priData,
-            backgroundColor: [colors.primary, '#0f6b4d', colors.warning, '#22c55e', '#6366f1', '#ec4899'],
+            backgroundColor: priColors.length ? priColors : [colors.primary],
             borderColor: colors.surface
           }
         ]

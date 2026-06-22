@@ -221,6 +221,137 @@ async function main() {
     failErr('WORKFLOW action APPROVE', e);
   }
 
+  // --- GUIDE: link + nonarchived CRUD ---
+  try {
+    const second = await api.post('/correspondence', {
+      ...createBody,
+      subject: `API-E2E-LINK ${new Date().toISOString()}`,
+    });
+    ok('GUIDE create second correspondence', second.status === 201 && second.data?.id, second.data?.id);
+    if (second.status === 201 && second.data?.id) {
+      const link = await api.post(`/correspondence/${correspondenceId}/links`, {
+        linkedCorrespondenceId: second.data.id,
+        linkKind: 'RELATED',
+      });
+      ok('GUIDE add link', link.status === 201 && link.data?.id != null, `linkId=${link.data?.id}`);
+      const na = await api.post(`/correspondence/${correspondenceId}/nonarchived-items`, {
+        itemType: 'OTHER',
+        descriptionText: 'E2E non-archived item',
+        quantity: 1,
+        sortOrder: 0,
+      });
+      ok('GUIDE add nonarchived', na.status === 201 && na.data?.id != null, `itemId=${na.data?.id}`);
+      if (link.data?.id) {
+        const delLink = await api.delete(`/correspondence/${correspondenceId}/links/${link.data.id}`);
+        ok('GUIDE delete link', delLink.status === 204);
+      }
+      if (na.data?.id) {
+        const delNa = await api.delete(
+          `/correspondence/${correspondenceId}/nonarchived-items/${na.data.id}`
+        );
+        ok('GUIDE delete nonarchived', delNa.status === 204);
+      }
+    }
+  } catch (e) {
+    failErr('GUIDE CRUD', e);
+  }
+
+  // --- AUTH: forgot password (no enumeration) ---
+  try {
+    const fp = await axios.post(`${BASE}/auth/forgot-password`, { username: USER }, {
+      validateStatus: () => true,
+    });
+    ok('AUTH forgot-password', fp.status === 204 || fp.status === 200, `status=${fp.status}`);
+  } catch (e) {
+    failErr('AUTH forgot-password', e);
+  }
+
+  // --- LETTER TEMPLATES: admin list ---
+  try {
+    const lt = await api.get('/letter-templates/admin');
+    ok(
+      'LETTER TEMPLATES admin list',
+      lt.status === 200 && Array.isArray(lt.data),
+      `count=${lt.data?.length ?? 0}`
+    );
+  } catch (e) {
+    failErr('LETTER TEMPLATES admin list', e);
+  }
+
+  // --- WORKFLOW: history ---
+  try {
+    const hist = await api.get(`/correspondence/${correspondenceId}/workflow-history`);
+    ok(
+      'WORKFLOW history',
+      hist.status === 200 && Array.isArray(hist.data),
+      `entries=${hist.data?.length ?? 0}`
+    );
+  } catch (e) {
+    failErr('WORKFLOW history', e);
+  }
+
+  // --- OUTBOUND: create + register APPROVE ---
+  let outboundId;
+  try {
+    const out = await api.post('/correspondence', {
+      ...createBody,
+      correspondenceTypeCode: 'OUTBOUND',
+      subject: `API-E2E-OUT ${new Date().toISOString()}`,
+    });
+    ok('OUTBOUND create', out.status === 201 && out.data?.id, out.data?.id);
+    outboundId = out.data?.id;
+    if (outboundId) {
+      const reg = await api.post(`/correspondence/${outboundId}/actions`, {
+        action: 'APPROVE',
+        comment: null,
+      });
+      ok('OUTBOUND register APPROVE', reg.status === 204, 'draft approved');
+      const detail = await api.get(`/correspondence/${outboundId}`);
+      const st = detail.data?.status?.code ?? detail.data?.correspondenceStatusCode;
+      ok(
+        'OUTBOUND stays non-terminal after first APPROVE',
+        detail.status === 200 && st !== 'COMPLETED' && st !== 'REJECTED',
+        `status=${st}`
+      );
+    }
+  } catch (e) {
+    failErr('OUTBOUND flow', e);
+  }
+
+  // --- WORKFLOW: REJECT path (separate inbound) ---
+  try {
+    const rej = await api.post('/correspondence', {
+      ...createBody,
+      subject: `API-E2E-REJECT ${new Date().toISOString()}`,
+    });
+    ok('REJECT setup create', rej.status === 201 && rej.data?.id, rej.data?.id);
+    if (rej.status === 201 && rej.data?.id) {
+      await api.post(`/correspondence/${rej.data.id}/actions`, { action: 'APPROVE', comment: null });
+      const r = await api.post(`/correspondence/${rej.data.id}/actions`, {
+        action: 'REJECT',
+        comment: 'API E2E reject',
+      });
+      ok('WORKFLOW action REJECT', r.status === 204, '204');
+      const after = await api.get(`/correspondence/${rej.data.id}`);
+      const st = after.data?.status?.code ?? after.data?.correspondenceStatusCode;
+      ok('REJECT terminal status', after.status === 200 && st === 'REJECTED', `status=${st}`);
+    }
+  } catch (e) {
+    failErr('WORKFLOW REJECT', e);
+  }
+
+  // --- INTERNAL: create smoke ---
+  try {
+    const internal = await api.post('/correspondence', {
+      ...createBody,
+      correspondenceTypeCode: 'INTERNAL',
+      subject: `API-E2E-INT ${new Date().toISOString()}`,
+    });
+    ok('INTERNAL create', internal.status === 201 && internal.data?.id, internal.data?.id);
+  } catch (e) {
+    failErr('INTERNAL create', e);
+  }
+
   // --- ATTACHMENTS: delete ---
   if (attachmentRowId != null) {
     try {
@@ -258,6 +389,45 @@ async function main() {
     }
   } catch (e) {
     failErr('REPORTS export excel', e);
+  }
+
+  // --- LEAVE: lookup + create + decide ---
+  try {
+    const leaveStatuses = await api.get('/lookups/leave_status');
+    ok(
+      'LEAVE lookup',
+      leaveStatuses.status === 200 && Array.isArray(leaveStatuses.data) && leaveStatuses.data.length >= 3,
+      `rows=${leaveStatuses.data?.length}`
+    );
+    const pending = leaveStatuses.data?.find((s) => s.dashboardInboundHighlight);
+    const approved = leaveStatuses.data?.find((s) => s.code === 'APPROVED' && s.terminal);
+    const start = new Date();
+    const end = new Date(start);
+    end.setDate(end.getDate() + 2);
+    const created = await api.post('/leave-requests', {
+      startDate: start.toISOString().slice(0, 10),
+      endDate: end.toISOString().slice(0, 10),
+      reason: 'API E2E leave',
+    });
+    ok('LEAVE create', created.status === 200 && created.data?.id, created.data?.id);
+    if (created.status === 200 && created.data?.id && approved?.code) {
+      ok(
+        'LEAVE pending after create',
+        created.data.statusCode === (pending?.code ?? 'PENDING'),
+        created.data.statusCode
+      );
+      const decided = await api.patch(`/admin/leave-requests/${created.data.id}/decision`, {
+        statusCode: approved.code,
+        decisionNote: 'API E2E approved',
+      });
+      ok(
+        'LEAVE decide',
+        decided.status === 200 && decided.data?.statusCode === approved.code,
+        decided.data?.statusCode
+      );
+    }
+  } catch (e) {
+    failErr('LEAVE flow', e);
   }
 
   console.log(`\n=== Summary: ${pass} PASS, ${fail} FAIL ===\n`);

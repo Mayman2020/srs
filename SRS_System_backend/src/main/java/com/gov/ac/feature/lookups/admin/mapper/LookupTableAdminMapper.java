@@ -1,5 +1,6 @@
 package com.gov.ac.feature.lookups.admin.mapper;
 
+import com.gov.ac.feature.leave.entity.LeaveStatusEntity;
 import com.gov.ac.feature.lookups.admin.dto.LookupCatalogDto;
 import com.gov.ac.feature.lookups.admin.dto.LookupRowAdminDto;
 import com.gov.ac.feature.lookups.entity.ClassificationEntity;
@@ -40,6 +41,9 @@ public final class LookupTableAdminMapper {
         null,
         null,
         null,
+        null,
+        null,
+        null,
         null);
   }
 
@@ -58,7 +62,10 @@ public final class LookupTableAdminMapper {
         null,
         null,
         null,
-        status.getUiVariant());
+        status.getUiVariant(),
+        null,
+        null,
+        null);
   }
 
   public static LookupRowAdminDto mapPriority(PriorityEntity priority, String lookupCode) {
@@ -74,6 +81,9 @@ public final class LookupTableAdminMapper {
         null,
         null,
         priority.getSlaDays(),
+        null,
+        null,
+        priority.getUiVariant(),
         null,
         null,
         null);
@@ -94,6 +104,9 @@ public final class LookupTableAdminMapper {
         null,
         confidentiality.getRestrictsExport(),
         confidentiality.getRequiresClearance(),
+        null,
+        null,
+        null,
         null);
   }
 
@@ -108,6 +121,9 @@ public final class LookupTableAdminMapper {
         classification.getSortOrder(),
         classification.getActive(),
         classification.getParent() != null ? classification.getParent().getId() : null,
+        null,
+        null,
+        null,
         null,
         null,
         null,
@@ -132,7 +148,8 @@ public final class LookupTableAdminMapper {
         null,
         null,
         actionType.getRequiresComment(),
-        actionType.getRequiresSignature());
+        actionType.getRequiresSignature(),
+        null);
   }
 
   public static LookupRowAdminDto mapWfEvent(WorkflowHistoryEventTypeEntity eventType, String lookupCode) {
@@ -145,6 +162,9 @@ public final class LookupTableAdminMapper {
         eventType.getDescription(),
         eventType.getSortOrder(),
         eventType.getActive(),
+        null,
+        null,
+        null,
         null,
         null,
         null,
@@ -169,6 +189,30 @@ public final class LookupTableAdminMapper {
         null,
         null,
         null,
+        null,
+        null,
+        null,
         null);
+  }
+
+  public static LookupRowAdminDto mapLeaveStatus(LeaveStatusEntity status, String lookupCode) {
+    return new LookupRowAdminDto(
+        status.getId(),
+        lookupCode,
+        status.getCode(),
+        status.getNameAr(),
+        status.getNameEn(),
+        status.getDescription(),
+        status.getSortOrder(),
+        status.getActive(),
+        null,
+        status.getTerminal(),
+        null,
+        null,
+        null,
+        status.getUiVariant(),
+        null,
+        null,
+        status.getInitial());
   }
 }

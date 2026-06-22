@@ -134,7 +134,7 @@ export class AdministrationComponent implements OnInit {
     });
     subscribePageLoad({
       cdr: this.cdr,
-      source: this.roleApi.list(),
+      source: this.usersApi.listRoles(),
       next: (r) => (this.rolesLookup = r ?? []),
       error: () => (this.rolesLookup = [])
     });
@@ -544,7 +544,8 @@ export class AdministrationComponent implements OnInit {
             fullNameEn: d.fullNameEn,
             email: d.email,
             departmentId: d.departmentId,
-            active: !d.active
+            active: !d.active,
+            securityClearanceId: d.securityClearanceId ?? null
           })
           .subscribe({
             next: () => {

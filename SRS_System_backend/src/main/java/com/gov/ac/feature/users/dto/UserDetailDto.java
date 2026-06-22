@@ -12,4 +12,5 @@ public record UserDetailDto(
     String departmentCode,
     Long departmentId,
     Boolean active,
-    List<Long> roleIds) {}
+    List<Long> roleIds,
+    Long securityClearanceId) {}

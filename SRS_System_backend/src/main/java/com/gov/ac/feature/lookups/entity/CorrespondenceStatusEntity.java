@@ -56,6 +56,10 @@ public class CorrespondenceStatusEntity extends SoftDeletableEntity {
   @Column(name = "cancel_outcome", nullable = false)
   private Boolean cancelOutcome = false;
 
+  /** Exactly one active row: status applied when Camunda process completes successfully. */
+  @Column(name = "process_complete_outcome", nullable = false)
+  private Boolean processCompleteOutcome = false;
+
   /** Home dashboard KPI bucket; see Flyway V26 and {@code KpiSegmentCodes}. */
   @Column(name = "kpi_segment", length = 32)
   private String kpiSegment;

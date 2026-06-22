@@ -10,4 +10,5 @@ public record CreateAppUserRequestDto(
     @NotBlank String fullNameAr,
     @NotBlank String fullNameEn,
     @NotNull @Email String email,
-    @NotNull Long departmentId) {}
+    @NotNull Long departmentId,
+    Long securityClearanceId) {}

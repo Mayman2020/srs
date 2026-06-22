@@ -18,6 +18,7 @@ export interface LookupUpsertBody {
   restrictsExport?: boolean | null;
   requiresClearance?: boolean | null;
   uiVariant?: string | null;
+  initial?: boolean | null;
 }
 
 @Injectable({ providedIn: 'root' })

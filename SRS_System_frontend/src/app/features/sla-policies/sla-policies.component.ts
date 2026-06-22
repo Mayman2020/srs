@@ -8,12 +8,14 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { SlaPolicyApiService } from '../../core/api/sla-policy-api.service';
+import { OrgRoutingApiService } from '../../core/api/org-routing-api.service';
 import {
   CreateSlaEscalationStepRequestDto,
   CreateSlaPolicyRequestDto,
   SlaBreachEventDto,
-  SlaEscalationActionCode,
+  SlaEscalationActionTypeDto,
   SlaPolicyDto
 } from '../../core/api/api-types';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -45,17 +47,14 @@ export class SlaPoliciesComponent implements OnInit {
   editingId: number | null = null;
   showOnlyActiveBreaches = true;
 
+  actionCodes: SlaEscalationActionTypeDto[] = [];
+  orgLevels: string[] = [''];
+
   readonly form: FormGroup;
-  readonly actionCodes: SlaEscalationActionCode[] = [
-    'NOTIFY_MANAGER',
-    'REASSIGN_TO_DELEGATE',
-    'ESCALATE_TO_HIGHER_LEVEL',
-    'NOTIFY_AUDIT_ADMIN'
-  ];
-  readonly orgLevels = ['', 'Q', 'L', 'K', 'S'];
 
   constructor(
     private readonly api: SlaPolicyApiService,
+    private readonly orgApi: OrgRoutingApiService,
     private readonly fb: FormBuilder,
     private readonly i18n: I18nService,
     private readonly dialogService: DialogService,
@@ -75,7 +74,21 @@ export class SlaPoliciesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.refresh();
+    forkJoin({
+      actions: this.api.listEscalationActions(),
+      levels: this.orgApi.listLevels()
+    }).subscribe({
+      next: ({ actions, levels }) => {
+        this.actionCodes = actions ?? [];
+        this.orgLevels = ['', ...(levels ?? []).map((l) => l.code)];
+        this.refresh();
+      },
+      error: () => {
+        this.actionCodes = [];
+        this.orgLevels = [''];
+        this.refresh();
+      }
+    });
   }
 
   refresh(): void {
@@ -265,7 +278,7 @@ export class SlaPoliciesComponent implements OnInit {
     return this.i18n.currentLang() === 'en' ? p.nameEn : p.nameAr;
   }
 
-  actionLabel(code: string): string {
-    return this.i18n.instant('sla.action.' + code);
+  actionLabel(action: SlaEscalationActionTypeDto): string {
+    return this.i18n.currentLang() === 'en' ? action.nameEn : action.nameAr;
   }
 }

@@ -12,4 +12,5 @@ public final class LookupCodes {
   public static final String WORKFLOW_ACTION_TYPE = "workflow_action_type";
   public static final String WORKFLOW_HISTORY_EVENT_TYPE = "workflow_history_event_type";
   public static final String ORG_VISUAL_NODE_STATUS = "org_visual_node_status";
+  public static final String LEAVE_STATUS = "leave_status";
 }

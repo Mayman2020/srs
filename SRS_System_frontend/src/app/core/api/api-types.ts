@@ -51,6 +51,8 @@ export interface LookupRowAdminDto {
   requiresClearance: boolean | null;
   /** `correspondence_status` only. */
   uiVariant?: string | null;
+  /** `leave_status` only. */
+  initial?: boolean | null;
 }
 
 export interface LookupBundleDto {
@@ -275,6 +277,10 @@ export interface WorkflowActionAvailableDto {
   requiresComment: boolean;
   /** Slice 5 — when true, the actor must sign every active attachment first. */
   requiresSignature?: boolean;
+  /** From workflow_action_type.requires_target_user (V26). */
+  requiresTargetUser?: boolean;
+  /** From workflow_action_type.requires_target_department (V26). */
+  requiresTargetDepartment?: boolean;
   sortOrder: number;
   /** Semantic style: primary | secondary | danger | warning | success */
   uiVariant?: string;
@@ -344,6 +350,8 @@ export interface DashboardBucketDto {
   nameEn: string;
   sortOrder: number;
   count: number;
+  /** Chart/badge colour key from DB (`ui_variant` on status/priority). */
+  uiVariant?: string | null;
 }
 
 /** `GET /api/v1/reports/monthly-trend` */
@@ -371,6 +379,11 @@ export interface LetterTemplateDto {
   sortOrder: number;
   /** When set server-side, HTML may be loaded from disk under storage root. */
   templateFilePath?: string | null;
+}
+
+export interface LetterTemplateAdminDto extends LetterTemplateDto {
+  id: number;
+  active: boolean;
 }
 
 /** GET /api/v1/workflow-routes?correspondenceTypeCode= */
@@ -406,6 +419,7 @@ export interface LeaveRequestDto {
   endDate: string;
   reason: string | null;
   statusCode: string;
+  statusUiVariant?: string | null;
   decidedBy: string | null;
   decidedAt: string | null;
   decisionNote: string | null;
@@ -497,6 +511,7 @@ export interface UserDetailDto {
   departmentId: number | null;
   active: boolean;
   roleIds: number[];
+  securityClearanceId?: number | null;
 }
 
 export interface CurrentUserProfileDto {
@@ -743,12 +758,15 @@ export interface ActingAssignmentListDto {
 // Slice 3 — SLA Policy Engine
 // ============================================================================
 
-/** Escalation action codes — must match the V16 CHECK constraint. */
-export type SlaEscalationActionCode =
-  | 'NOTIFY_MANAGER'
-  | 'REASSIGN_TO_DELEGATE'
-  | 'ESCALATE_TO_HIGHER_LEVEL'
-  | 'NOTIFY_AUDIT_ADMIN';
+/** Escalation action codes loaded from {@code sla_escalation_action_type}. */
+export type SlaEscalationActionCode = string;
+
+export interface SlaEscalationActionTypeDto {
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  sortOrder: number;
+}
 
 export interface SlaEscalationStepDto {
   id: number;

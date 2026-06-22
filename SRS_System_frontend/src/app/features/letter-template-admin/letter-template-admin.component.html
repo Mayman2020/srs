@@ -1,0 +1,71 @@
+<div class="page-header">
+  <h2>{{ 'letterTemplates.pageTitle' | t }}</h2>
+  <button type="button" class="btn primary" (click)="startCreate()">
+    <i class="fa-solid fa-plus"></i>
+    {{ 'letterTemplates.add' | t }}
+  </button>
+</div>
+
+<div class="layout">
+  <div class="list card">
+    <p *ngIf="loading">{{ 'common.loading' | t }}</p>
+    <table *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>{{ 'lookupAdmin.colCode' | t }}</th>
+          <th>{{ 'lookupAdmin.colName' | t }}</th>
+          <th>{{ 'lookupAdmin.colSort' | t }}</th>
+          <th>{{ 'lookupAdmin.colActive' | t }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rows">
+          <td>{{ row.code }}</td>
+          <td>{{ label(row) }}</td>
+          <td>{{ row.sortOrder }}</td>
+          <td>{{ row.active ? ('common.yes' | t) : ('common.no' | t) }}</td>
+          <td class="actions">
+            <button type="button" class="action-btn" (click)="startEdit(row)">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button type="button" class="action-btn delete" (click)="remove(row)">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="editor card" *ngIf="editorOpen">
+    <h3>{{ editing ? ('letterTemplates.edit' | t) : ('letterTemplates.add' | t) }}</h3>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <label>{{ 'lookupAdmin.colCode' | t }}
+        <input formControlName="code" />
+      </label>
+      <label>{{ 'lookupAdmin.colNameAr' | t }}
+        <input formControlName="nameAr" />
+      </label>
+      <label>{{ 'lookupAdmin.colNameEn' | t }}
+        <input formControlName="nameEn" />
+      </label>
+      <label>{{ 'letterTemplates.bodyHtml' | t }}
+        <textarea formControlName="bodyHtml" rows="8"></textarea>
+      </label>
+      <label>{{ 'letterTemplates.filePath' | t }}
+        <input formControlName="templateFilePath" />
+      </label>
+      <label>{{ 'lookupAdmin.colSort' | t }}
+        <input type="number" formControlName="sortOrder" />
+      </label>
+      <label>
+        <input type="checkbox" formControlName="active" />
+        {{ 'lookupAdmin.colActive' | t }}
+      </label>
+      <button type="submit" class="btn primary" [disabled]="form.invalid">
+        {{ 'common.save' | t }}
+      </button>
+    </form>
+  </div>
+</div>
