@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AppConstants, apiPathWithId } from '../constants/app-constants';
+import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
 import { API_BASE_URL } from './api-url';
-import { AttachmentAccessLogDto } from './api-types';
+import { AttachmentAccessLogDto, SpringPage } from './api-types';
 
 /**
  * Slice 1 — read-only access log for attachments. Both endpoints are gated on
@@ -25,6 +25,17 @@ export class AttachmentAccessLogApiService {
   forCorrespondence(correspondenceId: string): Observable<AttachmentAccessLogDto[]> {
     return this.http.get<AttachmentAccessLogDto[]>(
       `${this.correspondenceItemUrl(correspondenceId)}/attachment-access-log`
+    );
+  }
+
+  listGlobal(page = 0, size = 50): Observable<SpringPage<AttachmentAccessLogDto>> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .append('sort', 'occurredAt,desc');
+    return this.http.get<SpringPage<AttachmentAccessLogDto>>(
+      apiPath(this.base, AppConstants.API.ATTACHMENT_ACCESS_LOG_GLOBAL),
+      { params }
     );
   }
 

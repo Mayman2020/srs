@@ -58,15 +58,9 @@
         (apply)="runReport()"
       >
         <form [formGroup]="reportForm" class="reports-filter-form">
-          <div>
-            <label>{{ 'reports.from' | t }}</label>
-            <input type="date" formControlName="from" />
-          </div>
+          <app-date-field formControlName="from" labelKey="reports.from" [filter]="true"></app-date-field>
 
-          <div>
-            <label>{{ 'reports.to' | t }}</label>
-            <input type="date" formControlName="to" />
-          </div>
+          <app-date-field formControlName="to" labelKey="reports.to" [filter]="true"></app-date-field>
 
           <div>
             <label>{{ 'reports.type' | t }}</label>

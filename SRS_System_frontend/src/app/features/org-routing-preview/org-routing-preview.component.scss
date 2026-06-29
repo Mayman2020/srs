@@ -1,0 +1,62 @@
+.routing-preview {
+  padding: 1.5rem;
+  max-width: 720px;
+}
+
+.routing-preview header p {
+  color: var(--text-muted);
+}
+
+.routing-preview__form {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.routing-preview__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.routing-preview__form select {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+  cursor: pointer;
+}
+
+.routing-preview__result {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.stops {
+  margin: 0.75rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+
+.stops li {
+  margin-bottom: 0.5rem;
+}
+
+.meta {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.reason {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

@@ -1,0 +1,125 @@
+/* List & detail pages — Property_Managments-style cards (app-page + app-card aliases) */
+
+.page-shell {
+  padding: 28px 32px 48px;
+  min-height: calc(100vh - var(--topbar-height, 64px));
+  max-width: 1400px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: start;
+}
+
+.page-shell app-page-header {
+  margin-bottom: 0;
+}
+
+.estate-card {
+  background: var(--card-bg, var(--surface));
+  border: 1px solid var(--card-border, var(--line));
+  border-radius: var(--r, 12px);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.estate-card.app-list-surface {
+  padding: 0;
+}
+
+.estate-card.admin-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding: 16px 18px;
+}
+
+.estate-card > .estate-table-toolbar.admin-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--paper-2);
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.estate-card .app-table-wrap {
+  background: var(--surface);
+}
+
+.estate-card .empty-state {
+  margin: 0;
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  border-top: 1px solid var(--line-2);
+}
+
+.page-shell > mat-spinner,
+.page-shell .loading-wrap {
+  margin: 40px auto;
+  display: grid;
+  place-items: center;
+}
+
+/* Cards with form/content (not table lists) — only when no inner structure */
+.estate-card:not(.admin-filters):not(.app-list-surface):not(.directory-table-card):not(:has(.app-table-wrap)):not(:has(.app-card-header)):not(.patient-hero):not(.dashboard-welcome):not(.timeline-card):not(.queue-current-card):not(.queue-filter-card):not(.queue-grid-card):not(.widget-card):not(.panel-card):not(.profile-card):not(.detail-card):not(.actions-card):not(.summary-card):not(.search-card):not(.patient-card):not(.settings-group):not(.form-card):not(.notifications-card):not(.calendar-card):not(.permissions-card) {
+  padding: 20px 24px;
+}
+
+.estate-card.tab-body {
+  padding: 0;
+}
+
+.estate-card > .estate-table-toolbar.directory-toolbar {
+  padding: 16px;
+  border-bottom: 1px solid var(--line-2);
+  background: var(--paper-2);
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.estate-card.directory-table-card {
+  padding: 0;
+}
+
+.estate-card.chart-card:not(:has(.app-card-header)),
+.estate-card.top-services:not(:has(.app-card-header)) {
+  padding: 20px 24px;
+}
+
+.estate-card.chart-card:has(.app-card-header),
+.estate-card.top-services:has(.app-card-header) {
+  padding: 0;
+}
+
+.page-shell mat-tab-group {
+  margin-top: 0;
+}
+
+.page-shell .mat-mdc-tab-header {
+  border-bottom: 1px solid var(--line-2);
+  background: var(--surface);
+  border-radius: var(--r) var(--r) 0 0;
+}
+
+.page-shell .mat-mdc-tab-group.directory-table-card,
+.page-shell mat-tab-group + .estate-card,
+.page-shell .mat-mdc-tab-body-wrapper .estate-card {
+  margin-top: 0;
+}
+
+.page-shell .mat-mdc-tab-body-content {
+  padding-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .page-shell {
+    padding: 20px 16px 32px;
+    gap: 16px;
+  }
+}

@@ -77,6 +77,7 @@ public class CorrespondenceCreateService {
   private final ServiceWorkflowRouteRepository serviceWorkflowRouteRepository;
   private final EffectiveUserPermissionService effectiveUserPermissionService;
   private final WorkflowInstanceRoutingSyncService routingSyncService;
+  private final CorrespondenceCreateRecipientSupport createRecipientSupport;
 
   /**
    * Creates correspondence, attachments, Camunda process, {@code workflow_instance}, and first
@@ -164,6 +165,11 @@ public class CorrespondenceCreateService {
 
     correspondence = correspondenceRepository.saveAndFlush(correspondence);
     log.debug("Saved correspondence id={} reference={}", correspondence.getId(), referenceNumber);
+
+    if (!StringUtils.hasText(correspondence.getBarcodeValue())) {
+      correspondence.setBarcodeValue(referenceNumber);
+      correspondence = correspondenceRepository.saveAndFlush(correspondence);
+    }
 
     persistAttachments(actorUserId, correspondence, form.getAttachments());
 
@@ -264,6 +270,8 @@ public class CorrespondenceCreateService {
     if (StringUtils.hasText(form.getPrimaryComment())) {
       notificationService.notifyCommentAdded(correspondence, actor);
     }
+
+    createRecipientSupport.persistAfterCreate(actorUserId, correspondence, form);
 
     return createMapper.toCreatedResponse(
         correspondence, instance, started.processInstanceId());

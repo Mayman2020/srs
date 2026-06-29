@@ -1,0 +1,86 @@
+.btn {
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  background: var(--surface, #fff);
+  cursor: pointer;
+  font: inherit;
+  margin-inline-end: 0.35rem;
+}
+
+.btn-primary {
+  background: var(--primary, #0f766e);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: var(--primary, #0f766e);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+  margin-inline-end: 0.5rem;
+}
+
+.btn-link.danger {
+  color: var(--danger, #dc2626);
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-muted, #6b7280);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  width: min(520px, 94vw);
+  background: var(--surface, #fff);
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.modal h3 {
+  margin: 0 0 1rem;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.modal-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.modal-form input,
+.modal-form textarea {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}

@@ -8,6 +8,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DialogService } from '../../core/services/dialog.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 import { matchesTableSearch } from '../../core/util/table-text-filter';
 
 @Component({
@@ -18,7 +19,8 @@ import { matchesTableSearch } from '../../core/util/table-text-filter';
     FormsModule,
     ReactiveFormsModule,
     TranslatePipe,
-    ErpAutoReferenceFieldComponent
+    ErpAutoReferenceFieldComponent,
+    DateFieldComponent
   ],
   templateUrl: './delegations.component.html',
   styleUrl: './delegations.component.css'

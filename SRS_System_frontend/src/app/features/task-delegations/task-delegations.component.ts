@@ -14,6 +14,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { DialogService } from '../../core/services/dialog.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 
 /**
  * Active task-delegations screen (Slice 2). Three tabs:
@@ -32,7 +33,8 @@ import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-refere
     FormsModule,
     ReactiveFormsModule,
     TranslatePipe,
-    ErpAutoReferenceFieldComponent
+    ErpAutoReferenceFieldComponent,
+    DateFieldComponent
   ],
   templateUrl: './task-delegations.component.html',
   styleUrl: './task-delegations.component.css'

@@ -102,6 +102,24 @@
   padding: 1.25rem !important;
 }
 
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+  margin-inline-end: 0.5rem;
+}
+
+.link-btn.danger {
+  color: var(--danger, #dc2626);
+}
+
+.actions {
+  white-space: nowrap;
+}
+
 /* External yes/no chips */
 .type-badge {
   display: inline-flex;

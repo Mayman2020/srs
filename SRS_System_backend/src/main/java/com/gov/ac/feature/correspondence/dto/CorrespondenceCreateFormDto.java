@@ -91,4 +91,16 @@ public class CorrespondenceCreateFormDto {
 
   @Size(max = 128)
   private String beneficiaryIdentifier;
+
+  /** Department recipients (TO) persisted after create. */
+  @Valid @Size(max = 50)
+  private java.util.List<Long> recipientDepartmentIds;
+
+  /** Department CC recipients persisted after create. */
+  @Valid @Size(max = 50)
+  private java.util.List<Long> ccDepartmentIds;
+
+  /** User recipients (TO/CC) persisted after create. */
+  @Valid @Size(max = 50)
+  private java.util.List<CorrespondenceCreateUserRecipientFormDto> userRecipients;
 }

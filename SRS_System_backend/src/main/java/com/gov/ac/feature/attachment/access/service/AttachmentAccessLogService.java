@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,6 +106,11 @@ public class AttachmentAccessLogService {
     return accessLogRepository.findRecentByCorrespondenceId(correspondenceId).stream()
         .map(this::toDto)
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public Page<AttachmentAccessLogDto> listGlobal(Pageable pageable) {
+    return accessLogRepository.findAllPaged(pageable).map(this::toDto);
   }
 
   private AttachmentAccessLogDto toDto(AttachmentAccessLogEntity row) {

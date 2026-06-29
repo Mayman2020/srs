@@ -1,0 +1,78 @@
+<app-erp-page-shell titleKey="workflowRoutes.pageTitle" subtitleKey="workflowRoutes.pageSubtitle">
+  <button shellActions type="button" class="btn btn-primary" (click)="openCreate()">
+    {{ 'workflowRoutes.add' | t }}
+  </button>
+
+  <srs-data-table [loading]="loading" [showPagination]="false">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'workflowRoutes.col.type' | t }}</th>
+          <th>{{ 'workflowRoutes.col.processKey' | t }}</th>
+          <th>{{ 'workflowRoutes.col.name' | t }}</th>
+          <th>{{ 'workflowRoutes.col.default' | t }}</th>
+          <th>{{ 'workflowRoutes.col.sort' | t }}</th>
+          <th>{{ 'workflowRoutes.col.active' | t }}</th>
+          <th>{{ 'common.actions' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rows">
+          <td>{{ typeLabel(r.correspondenceTypeId) }}</td>
+          <td><code>{{ r.processDefinitionKey }}</code></td>
+          <td>{{ routeName(r) }}</td>
+          <td>{{ r.defaultRoute ? ('common.yes' | t) : ('common.no' | t) }}</td>
+          <td>{{ r.sortOrder }}</td>
+          <td>{{ r.active ? ('common.yes' | t) : ('common.no' | t) }}</td>
+          <td class="actions">
+            <button type="button" class="btn btn-ghost" (click)="openEdit(r)">{{ 'common.edit' | t }}</button>
+            <button type="button" class="btn btn-ghost danger" (click)="remove(r)">{{ 'common.delete' | t }}</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </srs-data-table>
+
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()"></div>
+  <div class="modal" *ngIf="modalOpen" role="dialog">
+    <h2>{{ (editingId ? 'workflowRoutes.editTitle' : 'workflowRoutes.createTitle') | t }}</h2>
+    <form [formGroup]="form" (ngSubmit)="save()" class="modal-form">
+      <label>
+        <span>{{ 'workflowRoutes.field.type' | t }}</span>
+        <select formControlName="correspondenceTypeId">
+          <option *ngFor="let t of correspondenceTypes" [ngValue]="t.id">
+            {{ i18n.currentLang() === 'ar' ? t.nameAr : t.nameEn }}
+          </option>
+        </select>
+      </label>
+      <label>
+        <span>{{ 'workflowRoutes.field.processKey' | t }}</span>
+        <input formControlName="processDefinitionKey" />
+      </label>
+      <label>
+        <span>{{ 'workflowRoutes.field.nameAr' | t }}</span>
+        <input formControlName="nameAr" />
+      </label>
+      <label>
+        <span>{{ 'workflowRoutes.field.nameEn' | t }}</span>
+        <input formControlName="nameEn" />
+      </label>
+      <label>
+        <span>{{ 'workflowRoutes.field.sortOrder' | t }}</span>
+        <input type="number" formControlName="sortOrder" />
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="defaultRoute" />
+        <span>{{ 'workflowRoutes.field.defaultRoute' | t }}</span>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="active" />
+        <span>{{ 'workflowRoutes.field.active' | t }}</span>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" (click)="closeModal()">{{ 'common.cancel' | t }}</button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">{{ 'common.save' | t }}</button>
+      </div>
+    </form>
+  </div>
+</app-erp-page-shell>

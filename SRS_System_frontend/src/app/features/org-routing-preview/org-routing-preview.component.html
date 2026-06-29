@@ -1,0 +1,30 @@
+<app-erp-page-shell titleKey="routingPreview.pageTitle" subtitleKey="routingPreview.pageSubtitle">
+  <form [formGroup]="form" (ngSubmit)="preview()" class="routing-preview__form">
+    <label>
+      <span>{{ 'routingPreview.fromDept' | t }}</span>
+      <select formControlName="fromDepartmentId">
+        <option *ngFor="let d of departments" [ngValue]="d.id">{{ deptLabel(d) }}</option>
+      </select>
+    </label>
+    <label>
+      <span>{{ 'routingPreview.toDept' | t }}</span>
+      <select formControlName="toDepartmentId">
+        <option *ngFor="let d of departments" [ngValue]="d.id">{{ deptLabel(d) }}</option>
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || loading">
+      {{ 'routingPreview.preview' | t }}
+    </button>
+  </form>
+
+  <div class="routing-preview__result" *ngIf="chain">
+    <h2>{{ 'routingPreview.chainTitle' | t }}</h2>
+    <p class="reason" *ngIf="chain.reasonKey">{{ chain.reasonKey | t }}</p>
+    <ol class="stops">
+      <li *ngFor="let s of chain.stops">
+        <strong>{{ i18n.currentLang() === 'ar' ? s.departmentNameAr : s.departmentNameEn }}</strong>
+        <span class="meta">{{ s.levelCode }} · {{ s.roleCode }}</span>
+      </li>
+    </ol>
+  </div>
+</app-erp-page-shell>

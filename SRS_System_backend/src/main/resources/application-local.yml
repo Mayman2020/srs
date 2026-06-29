@@ -22,6 +22,8 @@ spring:
     # from application.yml so the demo seed never lands in real environments. Demo migrations live
     # under `classpath:db/demo` and are numbered Vx9xx so they always sort after schema migrations.
     locations: classpath:db/migration,classpath:db/demo
+    # Dev DBs may have been migrated past an intermediate version before V22–V29 landed; apply gaps.
+    out-of-order: true
   # Flyway: do not use ignore-missing-migrations — it hides history/classpath drift; run docs/db/srs_system_full_clean_reset.sql instead.
   jpa:
     hibernate:

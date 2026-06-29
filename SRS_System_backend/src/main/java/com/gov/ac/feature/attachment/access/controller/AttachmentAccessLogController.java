@@ -5,6 +5,8 @@ import com.gov.ac.feature.attachment.access.service.AttachmentAccessLogService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,5 +36,13 @@ public class AttachmentAccessLogController {
   @PreAuthorize("@effectivePermission.has('ATTACHMENT_ACCESS_LOG_VIEW')")
   public List<AttachmentAccessLogDto> forCorrespondence(@PathVariable("id") UUID id) {
     return accessLogService.listForCorrespondence(id);
+  }
+
+  @GetMapping("/attachment-access-log")
+  @PreAuthorize("@effectivePermission.has('ATTACHMENT_ACCESS_LOG_VIEW')")
+  public Page<AttachmentAccessLogDto> global(
+      @org.springframework.data.web.PageableDefault(size = 50, sort = "occurredAt", direction = org.springframework.data.domain.Sort.Direction.DESC)
+          Pageable pageable) {
+    return accessLogService.listGlobal(pageable);
   }
 }

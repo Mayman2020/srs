@@ -12,4 +12,7 @@ public interface LegalHoldRepository extends JpaRepository<LegalHoldEntity, UUID
   boolean existsByCorrespondenceIsNullAndReleasedAtIsNullAndDeletedAtIsNull();
 
   List<LegalHoldEntity> findByReleasedAtIsNullAndDeletedAtIsNullOrderByPlacedAtDesc();
+
+  List<LegalHoldEntity> findByCorrespondence_IdAndReleasedAtIsNullAndDeletedAtIsNullOrderByPlacedAtDesc(
+      UUID correspondenceId);
 }

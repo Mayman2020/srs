@@ -21,7 +21,7 @@
       class="item"
       *ngFor="let item of navItems(); trackBy: trackByNavCode"
       [class.active]="isActive(item)"
-      (click)="router.navigateByUrl(item.routePath)"
+      (click)="navigateTo(item)"
       [matTooltip]="collapsed() ? navLabel(item) : ''"
       [matTooltipDisabled]="!collapsed()"
       matTooltipPosition="after">

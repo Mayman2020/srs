@@ -8,6 +8,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 import { matchesTableSearch } from '../../core/util/table-text-filter';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
@@ -24,6 +25,7 @@ import { correspondenceStatusBadgeClass } from '../../core/util/correspondence-s
     TranslatePipe,
     LatinDigitsPipe,
     ErpAutoReferenceFieldComponent,
+    DateFieldComponent,
     SrsDataTableComponent
   ],
   templateUrl: './leave-requests.component.html',

@@ -49,14 +49,8 @@
       </ng-container>
 
       <div class="row-2">
-        <label>
-          <span>{{ 'taskDelegations.validFrom' | t }}</span>
-          <input type="date" formControlName="validFrom" />
-        </label>
-        <label>
-          <span>{{ 'taskDelegations.validTo' | t }}</span>
-          <input type="date" formControlName="validTo" />
-        </label>
+        <app-date-field formControlName="validFrom" labelKey="taskDelegations.validFrom" [required]="true"></app-date-field>
+        <app-date-field formControlName="validTo" labelKey="taskDelegations.validTo" [required]="true"></app-date-field>
       </div>
 
       <label>

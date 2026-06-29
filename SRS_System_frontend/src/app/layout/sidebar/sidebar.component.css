@@ -1,7 +1,7 @@
 /* Compact enterprise sidebar — no visible scrollbar, dense nav, smooth collapse */
 
 .sidebar {
-  width: 196px;
+  width: var(--shell-sidebar-w, 196px);
   height: 100vh;
   max-height: 100vh;
   background: var(--sidebar-bg);
@@ -19,7 +19,7 @@
 }
 
 .sidebar.collapsed {
-  width: 68px;
+  width: var(--shell-sidebar-w-collapsed, 68px);
   padding-inline: 8px;
 }
 
@@ -78,6 +78,12 @@
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
   transition: transform 0.25s ease;
+}
+
+/* Legacy public/assets/css/app.css defines .logo::after globally */
+.logo::after {
+  content: none !important;
+  display: none !important;
 }
 
 .sidebar.collapsed .logo {
@@ -255,6 +261,32 @@ app-erp-user-avatar ::ng-deep .sidebar-user__avatar.erp-avatar--sm {
 }
 
 @media (max-width: 1024px) {
+  .sidebar,
+  .sidebar.collapsed {
+    width: min(var(--shell-sidebar-w, 196px), 86vw);
+    max-width: 280px;
+    padding-inline: 10px;
+  }
+
+  .sidebar.collapsed .label {
+    display: inline;
+  }
+
+  .sidebar.collapsed .item {
+    justify-content: flex-start;
+    padding: 8px 10px;
+  }
+
+  .sidebar.collapsed .item.active::before {
+    display: block;
+  }
+
+  .sidebar.collapsed .collapse-btn {
+    right: 8px;
+    left: auto;
+    transform: none;
+  }
+
   .sidebar {
     position: fixed;
     inset-block: 0;

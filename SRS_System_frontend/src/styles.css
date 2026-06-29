@@ -97,6 +97,17 @@
   --success: var(--success-color);
   --warning: var(--warning-color);
   --danger: var(--error-color);
+
+  /* App shell layout tokens */
+  --shell-sidebar-w: 196px;
+  --shell-sidebar-w-collapsed: 68px;
+  --shell-header-h: 72px;
+  --shell-backdrop: rgba(15, 23, 42, 0.48);
+  --bp-sm: 640px;
+  --bp-md: 1024px;
+  --bp-lg: 1280px;
+  --content-max: 1280px;
+  --page-pad: clamp(0.75rem, 2vw, 1.25rem);
 }
 
 .dark-theme {
@@ -194,6 +205,11 @@ html {
   direction: rtl;
   text-align: right;
   scroll-behavior: smooth;
+}
+
+html.sidebar-scroll-lock,
+html.sidebar-scroll-lock body {
+  overflow: hidden;
 }
 
 body {
@@ -891,6 +907,44 @@ html.dark-theme,
   .table td {
     padding: 0.75rem;
   }
+}
+
+/* ── Responsive layout utilities (breakpoints: --bp-sm 640, --bp-md 1024, --bp-lg 1280) ── */
+.r-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.r-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.r-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 1024px) {
+  .r-grid-2,
+  .r-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main-layout__content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.table-wrap,
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 
 /* ── Print layout: hide chrome, show only page content ── */

@@ -16,14 +16,8 @@
         </select>
       </label>
       <div class="row-2">
-        <label>
-          <span>{{ 'delegations.validFrom' | t }}</span>
-          <input type="date" formControlName="validFrom" />
-        </label>
-        <label>
-          <span>{{ 'delegations.validTo' | t }}</span>
-          <input type="date" formControlName="validTo" />
-        </label>
+        <app-date-field formControlName="validFrom" labelKey="delegations.validFrom" [required]="true"></app-date-field>
+        <app-date-field formControlName="validTo" labelKey="delegations.validTo" [required]="true"></app-date-field>
       </div>
       <label class="check">
         <input type="checkbox" formControlName="canSignOnBehalf" />

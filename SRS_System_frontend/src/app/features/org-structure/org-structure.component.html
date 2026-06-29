@@ -72,6 +72,11 @@
   </div>
 
   <div class="panel" *ngIf="!loading && tab === 'org'">
+    <div class="panel-actions">
+      <button type="button" class="tree-link-btn" (click)="openOrgCreate()">
+        {{ 'orgCrud.create' | t }}
+      </button>
+    </div>
     <ng-container *ngIf="organizations.length">
       <div class="filters-modern org-page__search">
         <input
@@ -98,6 +103,7 @@
               <th>{{ 'orgStructure.thNameAr' | t }}</th>
               <th>{{ 'orgStructure.thNameEn' | t }}</th>
               <th>{{ 'orgStructure.thExternal' | t }}</th>
+              <th>{{ 'common.actions' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -112,9 +118,13 @@
                   {{ o.external ? ('common.yes' | t) : ('common.no' | t) }}
                 </span>
               </td>
+              <td class="actions">
+                <button type="button" class="link-btn" (click)="openOrgEdit(o)">{{ 'common.edit' | t }}</button>
+                <button type="button" class="link-btn danger" (click)="deleteOrg(o)">{{ 'common.delete' | t }}</button>
+              </td>
             </tr>
             <tr *ngIf="filteredOrganizations().length === 0">
-              <td colspan="6" class="empty-cell">{{ 'common.noSearchResults' | t }}</td>
+              <td colspan="7" class="empty-cell">{{ 'common.noSearchResults' | t }}</td>
             </tr>
           </tbody>
         </table>

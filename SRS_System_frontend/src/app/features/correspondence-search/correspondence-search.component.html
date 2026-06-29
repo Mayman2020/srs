@@ -29,14 +29,8 @@
       </label>
     </div>
     <div class="row">
-      <label>
-        <span>{{ 'correspondenceSearch.createdFrom' | t }}</span>
-        <input type="date" [(ngModel)]="createdFrom" />
-      </label>
-      <label>
-        <span>{{ 'correspondenceSearch.createdTo' | t }}</span>
-        <input type="date" [(ngModel)]="createdTo" />
-      </label>
+      <app-date-field [(ngModel)]="createdFrom" labelKey="correspondenceSearch.createdFrom" [filter]="true"></app-date-field>
+      <app-date-field [(ngModel)]="createdTo" labelKey="correspondenceSearch.createdTo" [filter]="true"></app-date-field>
       <div class="actions">
         <button type="button" class="btn primary" (click)="runSearch(0)">{{ 'common.apply' | t }}</button>
         <button type="button" class="btn ghost" (click)="clearFilters()">{{ 'common.clear' | t }}</button>

@@ -1,19 +1,31 @@
 import { Injectable, inject } from '@angular/core';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { AssistantApiService } from '../api/assistant-api.service';
+import { CorrespondenceApiService } from '../api/correspondence-api.service';
 import { DashboardApiService } from '../api/dashboard-api.service';
 import { NotificationApiService } from '../api/notification-api.service';
 import { ReportsApiService } from '../api/reports-api.service';
+import { PlatformWorkflowApiService } from '../api/platform-workflow-api.service';
 import { UiFormatService } from '../i18n/ui-format.service';
 import { I18nService } from '../i18n/i18n.service';
 import { SmartAssistantAction, SmartAssistantReply } from '../models/smart-assistant.model';
-import { TransactionService } from './transaction.service';
+
+type AssistantCorrespondenceRow = {
+  id: string;
+  referenceNumber: string | null;
+  subject: string;
+  status: string;
+};
 
 @Injectable({ providedIn: 'root' })
 export class SmartAssistantService {
+  private readonly assistantApi = inject(AssistantApiService);
   private readonly dashboardApi = inject(DashboardApiService);
-  private readonly transactionService = inject(TransactionService);
+  private readonly correspondenceApi = inject(CorrespondenceApiService);
   private readonly reportsApi = inject(ReportsApiService);
   private readonly notificationApi = inject(NotificationApiService);
+  private readonly workflowApi = inject(PlatformWorkflowApiService);
   private readonly format = inject(UiFormatService);
   private readonly i18n = inject(I18nService);
 
@@ -37,7 +49,6 @@ export class SmartAssistantService {
 
   answer(query: string): Observable<SmartAssistantReply> {
     const normalized = query.trim().toLowerCase();
-
     if (!normalized) {
       return of({
         text: this.i18n.instant('chat.emptyPrompt'),
@@ -45,8 +56,24 @@ export class SmartAssistantService {
       });
     }
 
+    return this.assistantApi.answer(query).pipe(
+      map((resp) => ({
+        text: resp.text,
+        actions: (resp.actions ?? []).map((action) => ({
+          id: action.id,
+          label: action.label,
+          route: action.route ?? undefined,
+          prompt: action.prompt ?? undefined
+        }))
+      })),
+      catchError(() => this.answerLocally(query))
+    );
+  }
+
+  private answerLocally(query: string): Observable<SmartAssistantReply> {
+    const normalized = query.trim().toLowerCase();
     if (this.matches(normalized, ['latest', 'recent', 'احدث', 'أحدث', 'آخر', 'اخير'])) {
-      return this.transactionService.listPage({ size: 5 }).pipe(
+      return this.listRecent(5).pipe(
         map((rows) => {
           if (!rows.length) {
             return {
@@ -63,7 +90,7 @@ export class SmartAssistantService {
             actions: rows.slice(0, 3).map((row) => ({
               id: row.id,
               label: row.referenceNumber ?? row.id,
-              route: `/transactions/${row.id}`
+              route: `/correspondence/${row.id}`
             }))
           };
         })
@@ -136,6 +163,45 @@ export class SmartAssistantService {
       );
     }
 
+    if (this.matches(normalized, ['registration', 'desk', 'تسجيل', 'مكتب'])) {
+      return of({
+        text: this.i18n.instant('chat.registrationDeskAnswer'),
+        actions: [
+          { id: 'registration-desk', label: this.i18n.instant('chat.actions.openRegistrationDesk'), route: '/registration-desk' }
+        ]
+      });
+    }
+
+    if (this.matches(normalized, ['workflow', 'task', 'tasks', 'inbox', 'مهام', 'صندوق'])) {
+      return this.workflowApi.myInbox(1).pipe(
+        map((rows) => ({
+          text: this.i18n.instant('chat.workflowTasksAnswer', {
+            n: this.format.formatNumber(rows?.length ?? 0)
+          }),
+          actions: [
+            { id: 'workflow-tasks', label: this.i18n.instant('chat.actions.openWorkflowTasks'), route: '/workflow-tasks' }
+          ]
+        })),
+        catchError(() =>
+          of({
+            text: this.i18n.instant('chat.workflowTasksAnswer', { n: this.format.formatNumber(0) }),
+            actions: [
+              { id: 'workflow-tasks', label: this.i18n.instant('chat.actions.openWorkflowTasks'), route: '/workflow-tasks' }
+            ]
+          })
+        )
+      );
+    }
+
+    if (this.matches(normalized, ['outbound', 'delivery', 'shipping', 'صادر', 'تتبع'])) {
+      return of({
+        text: this.i18n.instant('chat.outboundDeliveryAnswer'),
+        actions: [
+          { id: 'outbound-delivery', label: this.i18n.instant('chat.actions.openOutboundDelivery'), route: '/outbound-delivery' }
+        ]
+      });
+    }
+
     if (this.matches(normalized, ['count', 'total', 'عدد', 'اجمالي', 'إجمالي'])) {
       return this.dashboardApi.getDashboard().pipe(
         map((dash) => ({
@@ -154,7 +220,7 @@ export class SmartAssistantService {
 
     const refMatch = query.match(/[0-9a-f]{8}-[0-9a-f-]{27,}|[A-Za-z]*\d+[/-]\d+/i);
     if (refMatch) {
-      return this.transactionService.listPage({ size: 100 }).pipe(
+      return this.listRecent(100).pipe(
         map((rows) => {
           const found = rows.find(
             (row) =>
@@ -174,7 +240,7 @@ export class SmartAssistantService {
               subject: found.subject,
               status: found.status
             }),
-            actions: [{ id: found.id, label: this.i18n.instant('chat.actions.openReference'), route: `/transactions/${found.id}` }]
+            actions: [{ id: found.id, label: this.i18n.instant('chat.actions.openReference'), route: `/correspondence/${found.id}` }]
           };
         })
       );
@@ -182,7 +248,7 @@ export class SmartAssistantService {
 
     return this.dashboardApi.getDashboard().pipe(
       switchMap((dash) =>
-        this.transactionService.listPage({ size: 3 }).pipe(
+        this.listRecent(3).pipe(
           map((latest) => ({
             text: this.i18n.instant('chat.fallbackAnswer', {
               total: this.format.formatNumber(dash.totalCorrespondences),
@@ -192,7 +258,7 @@ export class SmartAssistantService {
               { id: 'pending', label: this.i18n.instant('chat.quick.pending'), prompt: this.i18n.instant('chat.quick.pending') },
               { id: 'latest', label: this.i18n.instant('chat.quick.latest'), prompt: this.i18n.instant('chat.quick.latest') },
               ...(latest[0]
-                ? [{ id: latest[0].id, label: latest[0].referenceNumber ?? latest[0].id, route: `/transactions/${latest[0].id}` }]
+                ? [{ id: latest[0].id, label: latest[0].referenceNumber ?? latest[0].id, route: `/correspondence/${latest[0].id}` }]
                 : [])
             ]
           }))
@@ -201,7 +267,20 @@ export class SmartAssistantService {
     );
   }
 
-  private matches(query: string, candidates: string[]): boolean {
-    return candidates.some((candidate) => query.includes(candidate));
+  private listRecent(size: number): Observable<AssistantCorrespondenceRow[]> {
+    return this.correspondenceApi.list({ size, sort: ['createdAt,desc'] }).pipe(
+      map((page) =>
+        (page.content ?? []).map((row) => ({
+          id: row.id,
+          referenceNumber: row.referenceNumber,
+          subject: row.subject,
+          status: row.correspondenceStatus?.code ?? ''
+        }))
+      )
+    );
+  }
+
+  private matches(text: string, tokens: string[]): boolean {
+    return tokens.some((token) => text.includes(token));
   }
 }

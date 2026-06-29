@@ -7,6 +7,7 @@ import { ChatBubbleComponent } from '../chat-bubble/chat-bubble.component';
 import { SidebarService } from '../../core/services/sidebar.service';
 import { HeaderContainerComponent } from '../../shared/components/header/header-container.component';
 import { FooterMainComponent } from '../../shared/components/footer-main/footer-main.component';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-main-layout',
@@ -17,7 +18,8 @@ import { FooterMainComponent } from '../../shared/components/footer-main/footer-
     SidebarComponent,
     ChatBubbleComponent,
     HeaderContainerComponent,
-    FooterMainComponent
+    FooterMainComponent,
+    TranslatePipe
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'
@@ -26,4 +28,9 @@ export class MainLayoutComponent {
   private readonly sidebarService = inject(SidebarService);
 
   readonly sidebarCollapsed = toSignal(this.sidebarService.collapsed$, { initialValue: false });
+  readonly sidebarMobileOpen = toSignal(this.sidebarService.mobileOpen$, { initialValue: false });
+
+  closeSidebar(): void {
+    this.sidebarService.close();
+  }
 }

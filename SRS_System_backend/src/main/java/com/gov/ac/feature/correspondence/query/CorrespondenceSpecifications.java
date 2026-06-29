@@ -62,7 +62,8 @@ public final class CorrespondenceSpecifications {
         cb.or(
             cb.like(cb.lower(root.get("referenceNumber")), like),
             cb.like(cb.lower(root.get("subject")), like),
-            cb.like(cb.lower(cb.coalesce(root.get("externalReferenceNumber"), "")), like));
+            cb.like(cb.lower(cb.coalesce(root.get("externalReferenceNumber"), "")), like),
+            cb.like(cb.lower(cb.coalesce(root.get("barcodeValue"), "")), like));
   }
 
   /**

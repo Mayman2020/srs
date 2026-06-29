@@ -32,6 +32,8 @@ import {
 } from '../../../core/api/api-types';
 import { LetterTemplateApiService } from '../../../core/api/letter-template-api.service';
 import { WorkflowRouteApiService } from '../../../core/api/workflow-route-api.service';
+import { OrgRoutingApiService, RoutingChain } from '../../../core/api/org-routing-api.service';
+import { UserDirectoryApiService } from '../../../core/api/user-directory-api.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
@@ -43,6 +45,7 @@ import { LookupTranslatePipe } from '../../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../../core/lookup/lookup-labels.service';
 import { LookupCode } from '../../../core/lookup/lookup-code';
 import { NotificationService } from '../../../core/services/notification.service';
+import { UserListDto } from '../../../core/api/api-types';
 import { GenericSelectComponent } from '../../../shared/components/generic-select/generic-select.component';
 import { ErpAutoReferenceFieldComponent } from '../../../shared/erp/erp-auto-reference-field.component';
 import {
@@ -110,6 +113,12 @@ export class CreateTransactionComponent implements OnInit {
 
   workflowRoutes: ServiceWorkflowRouteDto[] = [];
   departmentOptions: MultiChoiceOption[] = [];
+  userOptions: MultiChoiceOption[] = [];
+  toUserIds: MultiChoiceId[] = [];
+  ccUserIds: MultiChoiceId[] = [];
+  flatDepartments: DepartmentFlatDto[] = [];
+  routingChain: RoutingChain | null = null;
+  routingPreviewLoading = false;
 
   private deptLabels = new Map<number, string>();
 
@@ -160,6 +169,11 @@ export class CreateTransactionComponent implements OnInit {
     this.basicForm.get('type')?.valueChanges.subscribe((code) => {
       if (code) {
         this.reloadWorkflowRoutes(code);
+        if (code === 'DECISION') {
+          this.onTemplateChange('admin-decision');
+        } else if (code === 'CIRCULAR') {
+          this.onTemplateChange('admin-circular');
+        }
       } else {
         this.workflowRoutes = [];
       }
@@ -167,20 +181,38 @@ export class CreateTransactionComponent implements OnInit {
 
     this.departmentApi.list().subscribe({
       next: (rows) => {
+        this.flatDepartments = rows ?? [];
         this.deptLabels.clear();
-        for (const r of rows ?? []) {
+        for (const r of this.flatDepartments) {
           const label = this.departmentDisplayName(r);
           this.deptLabels.set(r.id, label);
         }
-        this.departmentOptions = (rows ?? []).map((row) => ({
+        this.departmentOptions = this.flatDepartments.map((row) => ({
           id: row.id,
           label: this.departmentDisplayName(row),
           code: row.code
         }));
+        if (this.flatDepartments.length && !this.secondaryForm.value.routingFromDepartmentId) {
+          this.secondaryForm.patchValue({ routingFromDepartmentId: this.flatDepartments[0].id });
+        }
       },
       error: () => {
         this.deptLabels.clear();
         this.departmentOptions = [];
+      }
+    });
+
+    this.userDirectoryApi.list(0, 500).subscribe({
+      next: (page) => {
+        const isAr = this.i18n.currentLang() === 'ar';
+        this.userOptions = (page.content ?? []).map((u) => ({
+          id: u.id,
+          label: (isAr ? u.fullNameAr : u.fullNameEn) || u.username,
+          code: u.username
+        }));
+      },
+      error: () => {
+        this.userOptions = [];
       }
     });
   }
@@ -307,6 +339,8 @@ export class CreateTransactionComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private letterTemplateApi: LetterTemplateApiService,
     private workflowRouteApi: WorkflowRouteApiService,
+    private orgRoutingApi: OrgRoutingApiService,
+    private userDirectoryApi: UserDirectoryApiService,
     private i18n: I18nService,
     private format: UiFormatService,
     private lookupLabels: LookupLabelsService,
@@ -335,7 +369,8 @@ export class CreateTransactionComponent implements OnInit {
       serviceWorkflowRouteId: [null as number | null],
       beneficiaryName: [''],
       beneficiaryOrganization: [''],
-      beneficiaryIdentifier: ['']
+      beneficiaryIdentifier: [''],
+      routingFromDepartmentId: [null as number | null]
     });
 
     // Step 3
@@ -556,6 +591,22 @@ export class CreateTransactionComponent implements OnInit {
   }
 
   /* ================================
+     ADMINISTRATIVE DECISION
+  ================================ */
+  administrativeDecisionTemplate(): string {
+    return this.buildBaseTemplate(`
+    <p style="text-align:center;font-weight:700;font-size:18px;color:#0B6E4F;">
+      ${this.i18n.instant('createTx.letterBody.adminDecision.title')}
+    </p>
+    <hr style="margin:30px 0;border:1px solid #e5e7eb;">
+    <p style="line-height:2.2;text-align:justify;">
+      ${this.i18n.instant('createTx.letterBody.adminDecision.bodyBefore')}
+      <strong>${this.i18n.instant('createTx.letterBody.adminDecision.topicBracket')}</strong>${this.i18n.instant('createTx.letterBody.adminDecision.bodyAfter')}
+    </p>
+  `);
+  }
+
+  /* ================================
      ADMINISTRATIVE CIRCULAR
   ================================ */
   administrativeCircularTemplate(): string {
@@ -603,6 +654,7 @@ export class CreateTransactionComponent implements OnInit {
       { key: 'approval', getHtml: () => this.approvalTemplate() },
       { key: 'rejection', getHtml: () => this.rejectionTemplate() },
       { key: 'admin-circular', getHtml: () => this.administrativeCircularTemplate() },
+      { key: 'admin-decision', getHtml: () => this.administrativeDecisionTemplate() },
       { key: 'ministerial-circular', getHtml: () => this.ministerialCircularTemplate() },
       { key: 'no-letter', getHtml: () => '' }
     ];
@@ -669,7 +721,65 @@ export class CreateTransactionComponent implements OnInit {
     const target = type === 'to' ? this.toArray : this.ccArray;
     target.clear();
     unique.forEach((id) => target.push(this.fb.control(id, { nonNullable: true })));
+    if (type === 'to') {
+      this.refreshRoutingPreview();
+    }
     this.cdr.markForCheck();
+  }
+
+  setUserSelection(type: 'to' | 'cc', ids: readonly MultiChoiceId[]): void {
+    const unique = [...new Set(ids.map((id) => String(id).trim()).filter(Boolean))];
+    if (type === 'to') {
+      this.toUserIds = unique;
+    } else {
+      this.ccUserIds = unique;
+    }
+    this.cdr.markForCheck();
+  }
+
+  private buildUserRecipients(): { recipientUserId: string; recipientKindCode: string }[] {
+    const to = this.toUserIds.map((id) => ({
+      recipientUserId: String(id),
+      recipientKindCode: 'TO'
+    }));
+    const cc = this.ccUserIds.map((id) => ({
+      recipientUserId: String(id),
+      recipientKindCode: 'CC'
+    }));
+    return [...to, ...cc];
+  }
+
+  onRoutingFromDepartmentChange(): void {
+    this.refreshRoutingPreview();
+  }
+
+  refreshRoutingPreview(): void {
+    const fromId = Number(this.secondaryForm.value.routingFromDepartmentId);
+    const toIds = this.toDepartmentIds;
+    const toId = toIds[0];
+    if (!Number.isFinite(fromId) || !Number.isFinite(toId) || fromId === toId) {
+      this.routingChain = null;
+      this.routingPreviewLoading = false;
+      return;
+    }
+    this.routingPreviewLoading = true;
+    this.routingChain = null;
+    this.orgRoutingApi.preview(fromId, toId).subscribe({
+      next: (chain) => {
+        this.routingChain = chain;
+        this.routingPreviewLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.routingChain = null;
+        this.routingPreviewLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  routingStopLabel(stop: { departmentNameAr: string; departmentNameEn: string }): string {
+    return this.i18n.currentLang() === 'ar' ? stop.departmentNameAr : stop.departmentNameEn;
   }
 
   private departmentDisplayName(row: DepartmentFlatDto): string {
@@ -770,7 +880,14 @@ export class CreateTransactionComponent implements OnInit {
           beneficiaryOrganization:
             (this.secondaryForm.value.beneficiaryOrganization ?? '').trim() || null,
           beneficiaryIdentifier:
-            (this.secondaryForm.value.beneficiaryIdentifier ?? '').trim() || null
+            (this.secondaryForm.value.beneficiaryIdentifier ?? '').trim() || null,
+          ...(this.toDepartmentIds.length
+            ? { recipientDepartmentIds: this.toDepartmentIds }
+            : {}),
+          ...(this.ccDepartmentIds.length ? { ccDepartmentIds: this.ccDepartmentIds } : {}),
+          ...(this.buildUserRecipients().length
+            ? { userRecipients: this.buildUserRecipients() }
+            : {})
         };
 
         this.transactionService.create(body).subscribe({
@@ -819,6 +936,8 @@ export class CreateTransactionComponent implements OnInit {
     }
     this.toArray.clear();
     this.ccArray.clear();
+    this.toUserIds = [];
+    this.ccUserIds = [];
     this.attachments = [];
     this.transactionNumber = '';
     this.lastCreatedCorrespondenceId = null;

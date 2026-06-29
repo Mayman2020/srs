@@ -15,6 +15,7 @@ public class CorrespondenceCreateMapper {
     return CorrespondenceCreatedResponseDto.builder()
         .id(correspondence.getId())
         .referenceNumber(correspondence.getReferenceNumber())
+        .barcodeValue(correspondence.getBarcodeValue())
         .correspondenceTypeCode(correspondence.getCorrespondenceType().getCode())
         .correspondenceStatusCode(correspondence.getCorrespondenceStatus().getCode())
         .workflowInstanceId(workflowInstance.getId())

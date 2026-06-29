@@ -5,6 +5,14 @@
   <div>
     <h2>{{ 'transactionDetails.pageTitle' | t }}</h2>
   </div>
+  <button
+    *ngIf="canEditGuide() && transaction"
+    type="button"
+    class="btn btn-outline"
+    (click)="openEditMetadata()">
+    <i class="fa-solid fa-pen"></i>
+    {{ 'transactionDetails.editMetadata' | t }}
+  </button>
 </div>
 
 <input
@@ -120,6 +128,14 @@
 
   <button
     class="tab-btn"
+    [class.active]="activeTab === 'recipients'"
+    (click)="onTabChange('recipients')">
+    <i class="fa-solid fa-users"></i>
+    {{ 'transactionDetails.tabRecipients' | t }}
+  </button>
+
+  <button
+    class="tab-btn"
     [class.active]="activeTab === 'nonarchived'"
     (click)="onTabChange('nonarchived')">
     <i class="fa-solid fa-box-open"></i>
@@ -133,6 +149,23 @@
     (click)="onTabChange('accesslog')">
     <i class="fa-solid fa-shield-halved"></i>
     {{ 'transactionDetails.tabAccessLog' | t }}
+  </button>
+
+  <button
+    class="tab-btn"
+    [class.active]="activeTab === 'legalhold'"
+    (click)="onTabChange('legalhold')">
+    <i class="fa-solid fa-gavel"></i>
+    {{ 'legalHoldContext.tabTitle' | t }}
+  </button>
+
+  <button
+    *ngIf="isOutboundCorrespondence()"
+    class="tab-btn"
+    [class.active]="activeTab === 'outbounddelivery'"
+    (click)="onTabChange('outbounddelivery')">
+    <i class="fa-solid fa-truck-fast"></i>
+    {{ 'transactionDetails.tabOutboundDelivery' | t }}
   </button>
 
 
@@ -165,6 +198,32 @@
   </div>
 
 
+
+  <div class="edit-metadata-panel" *ngIf="editMetadataOpen && canEditGuide()">
+    <h4>{{ 'transactionDetails.editMetadataTitle' | t }}</h4>
+    <label>
+      <span>{{ 'transactions.subject' | t }}</span>
+      <input [(ngModel)]="editSubject" [ngModelOptions]="{standalone: true}" />
+    </label>
+    <label>
+      <span>{{ 'createTx.descriptionShort' | t }}</span>
+      <textarea [(ngModel)]="editDescription" rows="3" [ngModelOptions]="{standalone: true}"></textarea>
+    </label>
+    <label>
+      <span>{{ 'transactions.table.priority' | t }}</span>
+      <input [(ngModel)]="editPriorityCode" [ngModelOptions]="{standalone: true}" />
+    </label>
+    <label>
+      <span>{{ 'transactionDetails.labelSecrecy' | t }}</span>
+      <input [(ngModel)]="editConfidentialityCode" [ngModelOptions]="{standalone: true}" />
+    </label>
+    <div class="edit-metadata-actions">
+      <button type="button" class="btn" (click)="editMetadataOpen = false">{{ 'common.cancel' | t }}</button>
+      <button type="button" class="btn btn-primary" [disabled]="metadataSaving" (click)="saveMetadata()">
+        {{ 'transactionDetails.saveMetadata' | t }}
+      </button>
+    </div>
+  </div>
 
   <div class="info-grid">
 
@@ -970,6 +1029,212 @@
     </div>
   </div>
 
+  <div *ngIf="activeTab==='recipients'">
+    <div class="card full-width">
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-users"></i></div>
+          <h3>{{ 'transactionDetails.recipientsTitle' | t }}</h3>
+          <span class="count-badge">{{ recipients.length }}</span>
+        </div>
+        <div class="card-actions" *ngIf="canEditGuide()">
+          <input type="number" [(ngModel)]="newRecipientDeptId" [placeholder]="'transactionDetails.recipientDeptId' | t" />
+          <button type="button" class="btn btn-primary" (click)="addRecipientDept()">
+            {{ 'transactionDetails.addRecipient' | t }}
+          </button>
+        </div>
+      </div>
+      <p *ngIf="recipientsLoading">{{ 'common.loading' | t }}</p>
+      <div class="mini-table-wrap srs-table-shell" *ngIf="!recipientsLoading && recipients.length">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>{{ 'users.thDept' | t }}</th>
+              <th>{{ 'transactionDetails.accessLogWhen' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of recipients">
+              <td>{{ recipientLabel(r) }} ({{ r.departmentCode }})</td>
+              <td>{{ r.lastReadAt ? (r.lastReadAt | date:'medium') : '—' }}</td>
+              <td>
+                <button *ngIf="canEditGuide()" type="button" class="icon-btn danger" (click)="removeRecipient(r)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!recipientsLoading && !recipients.length">
+        <p>{{ 'transactionDetails.recipientsEmpty' | t }}</p>
+      </div>
+    </div>
+
+    <div class="card full-width" style="margin-top: 1rem">
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-user-group"></i></div>
+          <h3>{{ 'transactionDetails.userRecipientsTitle' | t }}</h3>
+          <span class="count-badge">{{ userRecipients.length }}</span>
+        </div>
+        <div class="card-actions user-recipient-form" *ngIf="canEditGuide()">
+          <select [(ngModel)]="newUserRecipientId">
+            <option value="">{{ 'transactionDetails.selectUser' | t }}</option>
+            <option *ngFor="let u of userPickerOptions" [value]="u.id">{{ u.label }}</option>
+          </select>
+          <select [(ngModel)]="newUserRecipientKind">
+            <option value="TO">TO</option>
+            <option value="CC">CC</option>
+            <option value="BCC">BCC</option>
+            <option value="INFO">INFO</option>
+          </select>
+          <button type="button" class="btn btn-primary" (click)="addUserRecipient()">
+            {{ 'transactionDetails.addUserRecipient' | t }}
+          </button>
+        </div>
+      </div>
+      <div class="mini-table-wrap srs-table-shell" *ngIf="userRecipients.length">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>{{ 'users.thName' | t }}</th>
+              <th>{{ 'transactionDetails.recipientKind' | t }}</th>
+              <th>{{ 'transactionDetails.accessLogWhen' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of userRecipients">
+              <td>{{ userRecipientLabel(u) }}</td>
+              <td>{{ u.recipientKindCode }}</td>
+              <td>{{ u.lastReadAt ? (u.lastReadAt | date:'medium') : '—' }}</td>
+              <td>
+                <button *ngIf="canEditGuide()" type="button" class="icon-btn danger" (click)="removeUserRecipient(u)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!userRecipients.length">
+        <p>{{ 'transactionDetails.userRecipientsEmpty' | t }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab==='legalhold'">
+    <div class="card full-width">
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-gavel"></i></div>
+          <h3>{{ 'legalHoldContext.panelTitle' | t }}</h3>
+          <span class="count-badge">{{ legalHolds.length }}</span>
+        </div>
+      </div>
+      <p *ngIf="legalHoldsLoading">{{ 'common.loading' | t }}</p>
+      <div class="legal-hold-place" *ngIf="cap.can('LEGAL_HOLD_MANAGE')">
+        <label>
+          <span>{{ 'legalHoldContext.placeReason' | t }}</span>
+          <textarea [(ngModel)]="legalHoldReason" rows="2" [ngModelOptions]="{standalone: true}"></textarea>
+        </label>
+        <button type="button" class="btn btn-primary" (click)="placeLegalHold()">
+          {{ 'legalHoldContext.place' | t }}
+        </button>
+      </div>
+      <div class="mini-table-wrap srs-table-shell" *ngIf="!legalHoldsLoading && legalHolds.length">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>{{ 'legalHoldContext.reason' | t }}</th>
+              <th>{{ 'legalHoldContext.placedAt' | t }}</th>
+              <th>{{ 'legalHoldContext.status' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let h of legalHolds">
+              <td>{{ h.reason }}</td>
+              <td>{{ h.placedAt }}</td>
+              <td>{{ h.releasedAt ? ('legalHoldContext.released' | t) : ('legalHoldContext.active' | t) }}</td>
+              <td>
+                <ng-container *ngIf="!h.releasedAt && cap.can('LEGAL_HOLD_MANAGE')">
+                  <textarea
+                    *ngIf="legalHoldActionId === h.id"
+                    [(ngModel)]="legalHoldReleaseReason"
+                    rows="2"
+                    [ngModelOptions]="{standalone: true}"
+                    [placeholder]="'legalHoldContext.releaseReason' | t"
+                  ></textarea>
+                  <button
+                    type="button"
+                    class="btn"
+                    (click)="legalHoldActionId = h.id"
+                    *ngIf="legalHoldActionId !== h.id"
+                  >
+                    {{ 'legalHoldContext.release' | t }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    (click)="releaseLegalHold(h)"
+                    *ngIf="legalHoldActionId === h.id"
+                  >
+                    {{ 'legalHoldContext.confirmRelease' | t }}
+                  </button>
+                </ng-container>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!legalHoldsLoading && !legalHolds.length">
+        <p>{{ 'legalHoldContext.empty' | t }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab==='outbounddelivery' && isOutboundCorrespondence()">
+    <div class="card full-width">
+      <div class="card-header">
+        <div class="card-header-title">
+          <div class="header-icon"><i class="fa-solid fa-truck-fast"></i></div>
+          <h3>{{ 'transactionDetails.outboundDeliveryTitle' | t }}</h3>
+          <span class="count-badge">{{ outboundDeliveries.length }}</span>
+        </div>
+        <a class="btn-link" routerLink="/outbound-delivery">{{ 'transactionDetails.outboundDeliveryManage' | t }}</a>
+      </div>
+      <p *ngIf="outboundDeliveriesLoading">{{ 'common.loading' | t }}</p>
+      <div class="mini-table-wrap srs-table-shell" *ngIf="!outboundDeliveriesLoading && outboundDeliveries.length">
+        <table class="mini-table">
+          <thead>
+            <tr>
+              <th>{{ 'outboundDelivery.channel' | t }}</th>
+              <th>{{ 'outboundDelivery.status' | t }}</th>
+              <th>{{ 'outboundDelivery.recipient' | t }}</th>
+              <th>{{ 'outboundDelivery.proof' | t }}</th>
+              <th>{{ 'outboundDelivery.deliveredAt' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of outboundDeliveries">
+              <td><code>{{ row.channelCode }}</code></td>
+              <td><code>{{ row.statusCode }}</code></td>
+              <td>{{ row.recipientLabel || '—' }}</td>
+              <td>{{ row.proofReference || '—' }}</td>
+              <td>{{ row.deliveredAt || row.sentAt || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!outboundDeliveriesLoading && !outboundDeliveries.length">
+        <p>{{ 'transactionDetails.outboundDeliveryEmpty' | t }}</p>
+      </div>
+    </div>
+  </div>
+
   <div *ngIf="activeTab==='accesslog' && canViewAccessLog()">
     <div class="card full-width">
       <div class="card-header">
@@ -1015,7 +1280,7 @@
    {{ 'transactionDetails.actionReplyLetter' | t }}
   </button>
 
-  <button type="button" class="action-btn gray" (click)="showImageTransferPending()">
+  <button type="button" class="action-btn gray" (click)="openImageTransferDialog()">
     <i class="fa-solid fa-image"></i>
     {{ 'transactionDetails.actionImageTransfer' | t }}
   </button>
@@ -1048,7 +1313,7 @@
     {{ 'transactionDetails.actionCancel' | t }}
   </button>
 
-  <button type="button" class="action-btn green" (click)="printTransaction()">
+  <button type="button" class="action-btn green" (click)="openBarcodeLabelDialog()">
     <i class="fa-solid fa-print"></i>
     {{ 'transactionDetails.actionPrintBarcode' | t }}
   </button>

@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { DepartmentApiService } from '../../core/api/department-api.service';
-import { OrganizationApiService } from '../../core/api/organization-api.service';
+import { OrganizationApiService, UpsertOrganizationRequestDto } from '../../core/api/organization-api.service';
 import { DepartmentFlatDto, OrganizationFlatDto } from '../../core/api/api-types';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -11,6 +12,12 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { RouterLink } from '@angular/router';
 import { matchesTableSearch } from '../../core/util/table-text-filter';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
+import { DialogService } from '../../core/services/dialog.service';
+import { NotificationService } from '../../core/services/notification.service';
+import {
+  OrgStructureOrganizationDialogComponent,
+  OrgStructureOrganizationDialogData
+} from './org-structure-organization-dialog.component';
 
 @Component({
   selector: 'app-org-structure',
@@ -35,12 +42,15 @@ export class OrgStructureComponent implements OnInit {
   searchDept = '';
   searchOrg = '';
 
-  constructor(
-    private readonly deptApi: DepartmentApiService,
-    private readonly orgApi: OrganizationApiService,
-    private readonly cdr: ChangeDetectorRef,
-    private readonly i18n: I18nService
-  ) {}
+  private readonly deptApi = inject(DepartmentApiService);
+  private readonly orgApi = inject(OrganizationApiService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly i18n = inject(I18nService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly dialog = inject(DialogService);
+  private readonly toast = inject(NotificationService);
+
+  constructor() {}
 
   ngOnInit(): void {
     subscribePageLoad({
@@ -92,5 +102,71 @@ export class OrgStructureComponent implements OnInit {
         no
       ])
     );
+  }
+
+  reloadOrganizations(): void {
+    this.orgApi.list().subscribe({
+      next: (rows) => (this.organizations = rows ?? []),
+      error: () => (this.organizations = [])
+    });
+  }
+
+  openOrgCreate(): void {
+    this.openOrgDialog('create');
+  }
+
+  openOrgEdit(org: OrganizationFlatDto): void {
+    this.openOrgDialog('edit', org);
+  }
+
+  deleteOrg(org: OrganizationFlatDto): void {
+    const name = this.i18n.currentLang() === 'en' ? org.nameEn : org.nameAr;
+    this.dialog
+      .openConfirm({
+        titleKey: 'orgCrud.deleteTitle',
+        messageKey: 'orgCrud.deleteMessage',
+        params: { name },
+        confirmButton: { labelKey: 'common.delete', color: 'warn' },
+        cancelButton: { labelKey: 'common.cancel' }
+      })
+      .subscribe((ok) => {
+        if (!ok) {
+          return;
+        }
+        this.orgApi.delete(org.id).subscribe({
+          next: () => {
+            this.toast.success('orgCrud.deleted');
+            this.reloadOrganizations();
+          },
+          error: () => this.toast.error('orgCrud.deleteFailed')
+        });
+      });
+  }
+
+  private openOrgDialog(mode: 'create' | 'edit', organization?: OrganizationFlatDto): void {
+    const ref = this.matDialog.open(OrgStructureOrganizationDialogComponent, {
+      width: 'min(480px, 94vw)',
+      data: {
+        mode,
+        organization,
+        organizations: this.organizations
+      } satisfies OrgStructureOrganizationDialogData
+    });
+    ref.afterClosed().subscribe((body: UpsertOrganizationRequestDto | undefined) => {
+      if (!body) {
+        return;
+      }
+      const req =
+        mode === 'edit' && organization
+          ? this.orgApi.update(organization.id, body)
+          : this.orgApi.create(body);
+      req.subscribe({
+        next: () => {
+          this.toast.success(mode === 'edit' ? 'orgCrud.updated' : 'orgCrud.created');
+          this.reloadOrganizations();
+        },
+        error: () => this.toast.error('orgCrud.saveFailed')
+      });
+    });
   }
 }

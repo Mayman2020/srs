@@ -1,0 +1,88 @@
+/* Extracted from estate-os-package/assets/styles.css — design tokens + dark palette */
+
+:root {
+  --navy-900: #0e1f33;
+  --navy-800: #14283f;
+  --navy-700: #1b3553;
+  --navy-600: #28476b;
+  --navy-500: #3d6290;
+
+  --brass-600: #8e6a2b;
+  --brass-500: #b48a40;
+  --brass-400: #cca55b;
+  --brass-300: #e2c27e;
+  --brass-100: #f4e7c4;
+
+  --paper: #f6f2ea;
+  --paper-2: #efeae0;
+  --paper-3: #e8e0d1;
+  --ink-900: #0e1f33;
+  --ink-700: #334a67;
+  --ink-500: #6b7f96;
+  --ink-400: #95a4b8;
+  --ink-300: #b9c3d2;
+  --line: #dfd7c7;
+  --line-2: #e9e2d2;
+
+  --surface: #fffdf8;
+  --surface-2: #fbf7ee;
+
+  --ok: #2f6a3a;
+  --ok-bg: #e4efd8;
+  --warn: #b8651a;
+  --warn-bg: #f7e6c9;
+  --bad: #a8332b;
+  --bad-bg: #f4dad4;
+  --info: #2a5079;
+  --info-bg: #dce5f1;
+
+  --accent: var(--brass-500);
+  --accent-soft: var(--brass-100);
+
+  --e-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --e-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 160ms;
+  --t-med: 320ms;
+  --t-slow: 520ms;
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  --density: 1;
+  --pad-card: calc(20px * var(--density));
+  --pad-row: calc(14px * var(--density));
+
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-height: 64px;
+
+  --font-display: 'Instrument Serif', 'Playfair Display', Georgia, serif;
+  --font-ui: 'Inter', 'IBM Plex Sans Arabic', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Geist Mono', ui-monospace, monospace;
+}
+
+.dark-theme,
+html.dark-theme,
+.cdk-overlay-container.dark-theme {
+  --paper: #0b1624;
+  --paper-2: #0f1d2f;
+  --paper-3: #13253a;
+  --surface: #152739;
+  --surface-2: #1a2e44;
+  --ink-900: #efe7d6;
+  --ink-700: #b6c3d4;
+  --ink-500: #7a8ea7;
+  --ink-400: #5d7290;
+  --ink-300: #3e5472;
+  --line: #223a55;
+  --line-2: #1b314a;
+  --ok-bg: rgba(47, 106, 58, 0.18);
+  --warn-bg: rgba(184, 101, 26, 0.2);
+  --bad-bg: rgba(168, 51, 43, 0.2);
+  --info-bg: rgba(42, 80, 121, 0.28);
+  --brass-100: rgba(228, 194, 126, 0.15);
+  --accent-soft: rgba(228, 194, 126, 0.15);
+}

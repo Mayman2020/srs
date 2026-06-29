@@ -1,0 +1,132 @@
+<app-erp-page-shell titleKey="registrationDesk.pageTitle" subtitleKey="registrationDesk.pageSubtitle">
+  <div shellActions class="reg-desk__tabs">
+    <button type="button" class="tab" [class.active]="deskMode === 'INBOUND'" (click)="setDeskMode('INBOUND')">
+      {{ 'registrationDesk.tabInbound' | t }}
+    </button>
+    <button type="button" class="tab" [class.active]="deskMode === 'OUTBOUND'" (click)="setDeskMode('OUTBOUND')">
+      {{ 'registrationDesk.tabOutbound' | t }}
+    </button>
+    <button type="button" class="btn" (click)="loadToday()" [disabled]="loadingToday">
+      {{ 'common.refresh' | t }}
+    </button>
+  </div>
+
+  <section class="reg-desk__grid">
+    <form class="card reg-desk__scan" (ngSubmit)="onScanSubmit($event)">
+      <h3>{{ 'registrationDesk.scanBarcode' | t }}</h3>
+      <label class="field">
+        <input
+          [(ngModel)]="scanValue"
+          [ngModelOptions]="{ standalone: true }"
+          [attr.placeholder]="'registrationDesk.scanPlaceholder' | t"
+          [disabled]="scanning"
+        />
+      </label>
+      <button type="submit" class="btn" [disabled]="scanning || !scanValue.trim()">
+        {{ scanning ? ('common.loading' | t) : ('common.open' | t) }}
+      </button>
+    </form>
+
+    <form class="card reg-desk__form" [formGroup]="intakeForm" (ngSubmit)="submitIntake()">
+      <h3>{{ 'registrationDesk.intakeTitle' | t }}</h3>
+      <label class="field">
+        <span>{{ 'transactions.subject' | t }} *</span>
+        <input formControlName="subject" />
+      </label>
+      <label class="field">
+        <span>{{ 'registrationDesk.externalRef' | t }}</span>
+        <input formControlName="externalReferenceNumber" />
+      </label>
+      <label class="field">
+        <span>{{ 'registrationDesk.senderOrg' | t }}</span>
+        <select formControlName="senderOrganizationId">
+          <option [ngValue]="null">{{ 'common.dash' | t }}</option>
+          <option *ngFor="let o of organizations" [ngValue]="o.id">{{ orgLabel(o) }}</option>
+        </select>
+      </label>
+      <srs-multi-choice-table
+        [options]="handoffOptions"
+        [selectedIds]="selectedHandoffIds"
+        (selectedIdsChange)="onHandoffChange($event)"
+        labelKey="registrationDesk.handoffDepts"
+        placeholderKey="registrationDesk.handoffPlaceholder"
+        selectedTitleKey="registrationDesk.handoffDepts"
+        [required]="true"
+      />
+      <div class="field-row">
+        <app-generic-select
+          label="transactions.table.priority"
+          [items]="priorityLevels"
+          primaryKey="key"
+          lookupTable="priority"
+          formControlName="priorityCode"
+          [required]="true"
+        />
+        <app-generic-select
+          label="transactions.table.secrecy"
+          [items]="confidentialityLevels"
+          primaryKey="key"
+          lookupTable="confidentiality"
+          formControlName="confidentialityCode"
+          [required]="true"
+        />
+        <app-generic-select
+          label="transactions.table.classification"
+          [items]="classificationLevels"
+          primaryKey="key"
+          lookupTable="classification"
+          formControlName="classificationCode"
+          [required]="true"
+        />
+      </div>
+      <label class="field">
+        <span>{{ 'createTx.descriptionShort' | t }}</span>
+        <textarea formControlName="description" rows="2"></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary" [disabled]="submitting || intakeForm.invalid">
+        {{ submitting ? ('common.saving' | t) : ('registrationDesk.submitIntake' | t) }}
+      </button>
+      <p class="muted" *ngIf="lastIntakeBarcode">
+        {{ 'registrationDesk.lastBarcode' | t }}: <code>{{ lastIntakeBarcode }}</code>
+      </p>
+    </form>
+
+    <div class="card reg-desk__register">
+      <div class="reg-desk__register-head">
+        <h3>{{ 'registrationDesk.todayTitle' | t }}</h3>
+        <button type="button" class="btn" (click)="openBatchBarcodePrint()" [disabled]="!todayRows.length">
+          {{ 'registrationDesk.batchPrint' | t }}
+        </button>
+      </div>
+      <srs-data-table [loading]="loadingToday" [showPagination]="false" [skeletonRows]="5" [skeletonColumns]="5">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'transactions.refNo' | t }}</th>
+              <th>{{ 'transactions.subject' | t }}</th>
+              <th>{{ 'transactions.type' | t }}</th>
+              <th>{{ 'registrationDesk.createdAt' | t }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of todayRows">
+              <td><code>{{ r.referenceNumber }}</code></td>
+              <td>{{ r.subject }}</td>
+              <td>{{ r.correspondenceTypeCode | lk:'correspondenceType' }}</td>
+              <td>{{ r.createdAt }}</td>
+              <td>
+                <button type="button" class="btn-link" (click)="printRow(r)">
+                  {{ 'barcodeLabel.print' | t }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="!loadingToday && !todayRows.length">
+              <td colspan="5" class="empty">{{ 'common.noResults' | t }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </srs-data-table>
+    </div>
+  </section>
+</app-erp-page-shell>

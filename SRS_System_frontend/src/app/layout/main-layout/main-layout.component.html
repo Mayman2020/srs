@@ -1,7 +1,18 @@
-<div class="main-layout" [class.main-layout--collapsed]="sidebarCollapsed()">
+<div
+  class="main-layout"
+  [class.main-layout--collapsed]="sidebarCollapsed() && !sidebarMobileOpen()"
+  [class.main-layout--mobile-nav-open]="sidebarMobileOpen()">
   <app-sidebar></app-sidebar>
 
   <div class="main-layout__body">
+    @if (sidebarMobileOpen()) {
+      <button
+        type="button"
+        class="main-layout__backdrop"
+        (click)="closeSidebar()"
+        [attr.aria-label]="'shellHeader.closeNav' | t"></button>
+    }
+
     <app-header-container></app-header-container>
 
     <main class="main-layout__content">

@@ -34,7 +34,15 @@ WHERE r.code IN ('SYS_ADMIN', 'CORRESP_MGR')
     WHERE rp.role_id = r.id AND rp.permission_id = p.id
   );
 
-INSERT INTO ui_screen (code, route_path, name_ar, name_en, sort_order, show_in_shell_nav, permission_code)
-SELECT 'letter_templates_admin', '/admin/letter-templates', 'قوالب الخطابات', 'Letter templates',
-       860, TRUE, 'LETTER_TEMPLATE_MANAGE'
+INSERT INTO ui_screen (
+  code, route_path, name_ar, name_en, sort_order, show_in_shell_nav, required_permission_id
+)
+SELECT
+  'letter_templates_admin',
+  '/admin/letter-templates',
+  'قوالب الخطابات',
+  'Letter templates',
+  860,
+  TRUE,
+  (SELECT id FROM permission WHERE code = 'LETTER_TEMPLATE_MANAGE' AND deleted_at IS NULL ORDER BY id LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM ui_screen WHERE code = 'letter_templates_admin');

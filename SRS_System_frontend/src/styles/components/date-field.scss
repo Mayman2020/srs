@@ -1,0 +1,22 @@
+.app-date-field {
+  width: 100%;
+}
+
+.app-date-field--filter {
+  max-width: 170px;
+  min-width: 140px;
+}
+
+.report-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  > span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}

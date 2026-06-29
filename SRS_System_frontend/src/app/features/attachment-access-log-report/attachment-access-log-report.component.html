@@ -1,0 +1,45 @@
+<app-erp-page-shell titleKey="attachmentAccessLog.pageTitle" subtitleKey="attachmentAccessLog.pageSubtitle">
+  <div shellActions>
+    <button type="button" class="btn" (click)="reload()" [disabled]="loading">{{ 'common.refresh' | t }}</button>
+  </div>
+
+  <srs-data-table [loading]="loading" [showPagination]="false" [skeletonRows]="8" [skeletonColumns]="7">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'attachmentAccessLog.occurredAt' | t }}</th>
+          <th>{{ 'attachmentAccessLog.user' | t }}</th>
+          <th>{{ 'attachmentAccessLog.action' | t }}</th>
+          <th>{{ 'attachmentAccessLog.attachmentId' | t }}</th>
+          <th>{{ 'attachmentAccessLog.correspondenceId' | t }}</th>
+          <th>{{ 'attachmentAccessLog.ip' | t }}</th>
+          <th>{{ 'attachmentAccessLog.success' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rows">
+          <td>{{ r.occurredAt }}</td>
+          <td>{{ userName(r) }}</td>
+          <td><code>{{ r.actionCode }}</code></td>
+          <td>{{ r.attachmentId ?? '—' }}</td>
+          <td>{{ r.correspondenceId ?? '—' }}</td>
+          <td>{{ r.ipAddress || '—' }}</td>
+          <td>{{ r.success ? ('common.yes' | t) : ('common.no' | t) }}</td>
+        </tr>
+        <tr *ngIf="!loading && !rows.length">
+          <td colspan="7" class="empty">{{ 'common.noResults' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </srs-data-table>
+
+  <div class="pager" *ngIf="totalPages > 1">
+    <button type="button" class="btn" (click)="prevPage()" [disabled]="pageIndex === 0 || loading">
+      {{ 'common.previous' | t }}
+    </button>
+    <span>{{ pageIndex + 1 }} / {{ totalPages }} ({{ totalElements }})</span>
+    <button type="button" class="btn" (click)="nextPage()" [disabled]="pageIndex + 1 >= totalPages || loading">
+      {{ 'common.next' | t }}
+    </button>
+  </div>
+</app-erp-page-shell>

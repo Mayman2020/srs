@@ -1,7 +1,9 @@
 package com.gov.ac.feature.organization.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.gov.ac.feature.departments.entity.DepartmentEntity;
 import com.gov.ac.feature.departments.repository.DepartmentRepository;
@@ -33,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OrgRoutingServiceTest {
 
   @Mock private DepartmentRepository departmentRepository;
+  @Mock private OrgLevelRoleResolver orgLevelRoleResolver;
 
   @InjectMocks private OrgRoutingService routingService;
 
@@ -48,6 +51,8 @@ class OrgRoutingServiceTest {
 
   @BeforeEach
   void setUp() {
+    lenient().when(orgLevelRoleResolver.resolveRoleCode(anyString())).thenReturn("DEPT_MANAGER");
+
     q = dept(1L, "Q-HQ", "Q", null);
     l1 = dept(10L, "L1", "L", q);
     l2 = dept(20L, "L2", "L", q);

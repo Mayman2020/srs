@@ -3,7 +3,7 @@ import { Component, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
-import { SidebarService } from '../../core/services/sidebar.service';
+import { SidebarService, SIDEBAR_MOBILE_MEDIA } from '../../core/services/sidebar.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
@@ -57,7 +57,7 @@ export class SidebarComponent {
     { initialValue: [] as ShellNavItemDto[] }
   );
 
-  isMobile = window.innerWidth <= 1024;
+  isMobile = window.matchMedia(SIDEBAR_MOBILE_MEDIA).matches;
 
   constructor(public router: Router) {}
 
@@ -69,9 +69,16 @@ export class SidebarComponent {
     this.sidebarService.close();
   }
 
+  navigateTo(item: ShellNavItemDto) {
+    void this.router.navigateByUrl(item.routePath);
+    if (this.sidebarService.isMobile()) {
+      this.closeSidebar();
+    }
+  }
+
   @HostListener('window:resize')
   onResize() {
-    this.isMobile = window.innerWidth <= 1024;
+    this.isMobile = window.matchMedia(SIDEBAR_MOBILE_MEDIA).matches;
     this.sidebarService.syncOnResize();
   }
 

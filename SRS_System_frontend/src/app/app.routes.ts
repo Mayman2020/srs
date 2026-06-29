@@ -100,14 +100,43 @@ export const routes: Routes = [
       { path: 'supply-transaction', redirectTo: 'correspondence/supply', pathMatch: 'full' },
       { path: 'transactions/:id', redirectTo: 'correspondence/:id', pathMatch: 'full' },
 
-      // ===================== Workflow inbox =====================
       {
         path: 'workflow-tasks',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
           import('./features/workflow-task-inbox/workflow-task-inbox.component')
             .then(m => m.WorkflowTaskInboxComponent),
-        data: { titleKey: 'workflowTasks.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
+        data: { titleKey: 'workflowTasks.pageTitle', permission: 'WORKFLOW_TASK_VIEW' }
+      },
+
+      {
+        path: 'registration-desk',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/registration-desk/registration-desk.component').then(
+            (m) => m.RegistrationDeskComponent
+          ),
+        data: { titleKey: 'registrationDesk.pageTitle', permission: 'CORRESPONDENCE_CREATE' }
+      },
+
+      {
+        path: 'outbound-delivery',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/outbound-delivery/outbound-delivery.component').then(
+            (m) => m.OutboundDeliveryComponent
+          ),
+        data: { titleKey: 'outboundDelivery.pageTitle', permission: 'CORRESPONDENCE_VIEW' }
+      },
+
+      {
+        path: 'circulars/read-report',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/circular-read-report/circular-read-report.component').then(
+            (m) => m.CircularReadReportComponent
+          ),
+        data: { titleKey: 'circularReadReport.pageTitle', permission: 'CORRESPONDENCE_CREATE' }
       },
 
       // ===================== Organization =====================
@@ -133,6 +162,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/org-levels/org-levels.component').then((m) => m.OrgLevelsComponent),
         data: { titleKey: 'orgLevels.pageTitle', permission: 'ADMIN_ORG_MANAGE' }
+      },
+      {
+        path: 'org-structure/routing-preview',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/org-routing-preview/org-routing-preview.component').then(
+            (m) => m.OrgRoutingPreviewComponent
+          ),
+        data: { titleKey: 'routingPreview.pageTitle', permission: 'CORRESPONDENCE_CREATE' }
       },
 
       // ===================== HR / leave =====================
@@ -177,6 +215,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/sms-dispatch/sms-dispatch.component').then((m) => m.SmsDispatchComponent),
         data: { titleKey: 'smsDispatch.pageTitle', permission: 'NOTIFICATION_DISPATCH' }
+      },
+      {
+        path: 'email-dispatch',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/email-dispatch/email-dispatch.component').then((m) => m.EmailDispatchComponent),
+        data: { titleKey: 'emailDispatch.pageTitle', permission: 'NOTIFICATION_DISPATCH' }
       },
 
       // ===================== Reports =====================
@@ -243,6 +288,15 @@ export const routes: Routes = [
         data: { titleKey: 'letterTemplates.pageTitle', permission: 'LETTER_TEMPLATE_MANAGE' }
       },
       {
+        path: 'admin/workflow-routes',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/workflow-routes-admin/workflow-routes-admin.component').then(
+            (m) => m.WorkflowRoutesAdminComponent
+          ),
+        data: { titleKey: 'workflowRoutes.pageTitle', permission: 'ADMIN_USER_MANAGE' }
+      },
+      {
         path: 'admin-communications-main',
         canMatch: [permissionCanMatch],
         loadComponent: () =>
@@ -258,17 +312,13 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        canMatch: [permissionCanMatch],
-        loadComponent: () =>
-          import('./features/users/users').then((m) => m.UsersComponent),
-        data: { titleKey: 'users.pageTitle', permission: 'ADMIN_USER_MANAGE' }
+        redirectTo: 'admin-communications-main',
+        pathMatch: 'full'
       },
       {
         path: 'roles',
-        canMatch: [permissionCanMatch],
-        loadComponent: () =>
-          import('./features/roles/roles').then((m) => m.RolesComponent),
-        data: { titleKey: 'roles.pageTitle', permission: 'ADMIN_ROLE_MANAGE' }
+        redirectTo: 'admin-communications-main',
+        pathMatch: 'full'
       },
       {
         path: 'audit-events',
@@ -329,6 +379,24 @@ export const routes: Routes = [
             (m) => m.NotificationOutboxAdminComponent
           ),
         data: { titleKey: 'notificationAdmin.outboxPageTitle', permission: 'NOTIFICATION_CHANNEL_ADMIN' }
+      },
+      {
+        path: 'admin/notifications/catalog',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/notification-catalog-admin/notification-catalog-admin.component').then(
+            (m) => m.NotificationCatalogAdminComponent
+          ),
+        data: { titleKey: 'notificationCatalogAdmin.pageTitle', permission: 'NOTIFICATION_CHANNEL_ADMIN' }
+      },
+      {
+        path: 'admin/attachment-access-log',
+        canMatch: [permissionCanMatch],
+        loadComponent: () =>
+          import('./features/attachment-access-log-report/attachment-access-log-report.component').then(
+            (m) => m.AttachmentAccessLogReportComponent
+          ),
+        data: { titleKey: 'attachmentAccessLog.pageTitle', permission: 'ATTACHMENT_ACCESS_LOG_VIEW' }
       },
 
       // ===================== Profile =====================

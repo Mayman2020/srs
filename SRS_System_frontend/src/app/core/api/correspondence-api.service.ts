@@ -12,11 +12,15 @@ import {
   CorrespondenceListItemDto,
   CorrespondenceLinkListItemDto,
   CorrespondenceNonarchivedItemDto,
+  CorrespondencePatchRequestDto,
+  CorrespondenceRecipientDto,
+  CorrespondenceUserRecipientDto,
   AttachmentIndexEntryDto,
   SpringPage,
   WorkflowHistoryEntryDto
 } from './api-types';
 import { AppConstants, apiPath, apiPathWithId } from '../constants/app-constants';
+import { LegalHoldDto } from './retention-admin-api.service';
 
 export interface CorrespondenceListParams {
   page?: number;
@@ -57,6 +61,39 @@ export class CorrespondenceApiService {
 
   getById(id: string): Observable<CorrespondenceDetailResponseDto> {
     return this.http.get<CorrespondenceDetailResponseDto>(this.correspondenceItemUrl(id));
+  }
+
+  getByBarcode(barcode: string): Observable<CorrespondenceDetailResponseDto> {
+    return this.http.get<CorrespondenceDetailResponseDto>(
+      `${this.correspondenceUrl}/by-barcode/${encodeURIComponent(barcode.trim())}`
+    );
+  }
+
+  listWorkflowActions(id: string): Observable<import('./api-types').WorkflowActionAvailableDto[]> {
+    return this.http.get<import('./api-types').WorkflowActionAvailableDto[]>(
+      `${this.correspondenceItemUrl(id)}/workflow-actions`
+    );
+  }
+
+  listActiveLegalHolds(id: string): Observable<LegalHoldDto[]> {
+    return this.http.get<LegalHoldDto[]>(`${this.correspondenceItemUrl(id)}/legal-holds/active`);
+  }
+
+  placeLegalHold(id: string, reason: string): Observable<LegalHoldDto> {
+    return this.http.post<LegalHoldDto>(`${this.correspondenceItemUrl(id)}/legal-holds`, { reason });
+  }
+
+  releaseLegalHold(id: string, holdId: string, releaseReason: string): Observable<void> {
+    return this.http.post<void>(`${this.correspondenceItemUrl(id)}/legal-holds/${holdId}/release`, {
+      releaseReason
+    });
+  }
+
+  patch(
+    id: string,
+    body: CorrespondencePatchRequestDto
+  ): Observable<CorrespondenceDetailResponseDto> {
+    return this.http.patch<CorrespondenceDetailResponseDto>(this.correspondenceItemUrl(id), body);
   }
 
   create(body: CorrespondenceCreateRequestDto): Observable<CorrespondenceCreatedResponseDto> {
@@ -165,6 +202,47 @@ export class CorrespondenceApiService {
   deleteNonarchived(correspondenceId: string, itemId: number): Observable<void> {
     return this.http.delete<void>(
       `${this.correspondenceItemUrl(correspondenceId)}/nonarchived-items/${encodeURIComponent(String(itemId))}`
+    );
+  }
+
+  listRecipients(correspondenceId: string): Observable<CorrespondenceRecipientDto[]> {
+    return this.http.get<CorrespondenceRecipientDto[]>(
+      `${this.correspondenceItemUrl(correspondenceId)}/recipients`
+    );
+  }
+
+  addRecipient(correspondenceId: string, departmentId: number): Observable<CorrespondenceRecipientDto> {
+    return this.http.post<CorrespondenceRecipientDto>(
+      `${this.correspondenceItemUrl(correspondenceId)}/recipients`,
+      { departmentId }
+    );
+  }
+
+  deleteRecipient(correspondenceId: string, recipientId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.correspondenceItemUrl(correspondenceId)}/recipients/${encodeURIComponent(String(recipientId))}`
+    );
+  }
+
+  listUserRecipients(correspondenceId: string): Observable<CorrespondenceUserRecipientDto[]> {
+    return this.http.get<CorrespondenceUserRecipientDto[]>(
+      `${this.correspondenceItemUrl(correspondenceId)}/user-recipients`
+    );
+  }
+
+  addUserRecipient(
+    correspondenceId: string,
+    body: { recipientUserId: string; recipientKindCode: string }
+  ): Observable<CorrespondenceUserRecipientDto> {
+    return this.http.post<CorrespondenceUserRecipientDto>(
+      `${this.correspondenceItemUrl(correspondenceId)}/user-recipients`,
+      body
+    );
+  }
+
+  deleteUserRecipient(correspondenceId: string, recipientId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.correspondenceItemUrl(correspondenceId)}/user-recipients/${encodeURIComponent(String(recipientId))}`
     );
   }
 

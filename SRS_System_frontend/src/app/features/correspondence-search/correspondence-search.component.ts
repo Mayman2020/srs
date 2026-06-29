@@ -12,13 +12,14 @@ import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LookupLabelDto } from '../../core/api/api-types';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-correspondence-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe, LookupTranslatePipe, StatusBadgeComponent],
+  imports: [CommonModule, FormsModule, TranslatePipe, LookupTranslatePipe, StatusBadgeComponent, DateFieldComponent],
   templateUrl: './correspondence-search.component.html',
   styleUrl: './correspondence-search.component.css'
 })

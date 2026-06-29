@@ -1,0 +1,119 @@
+.task-inbox__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.task-inbox__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.task-inbox__error {
+  color: var(--danger-color);
+  margin-bottom: 0.75rem;
+}
+
+.task-inbox__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.task-inbox__table th,
+.task-inbox__table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: start;
+  vertical-align: top;
+}
+
+.task-inbox__ref {
+  font-family: ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+.task-inbox__when {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-inbox__empty {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-muted);
+}
+
+.btn {
+  padding: 0.35rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-elevated);
+  cursor: pointer;
+}
+
+.btn-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.task-inbox__badge {
+  display: inline-block;
+  margin-inline-start: 0.5rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.task-inbox__badge--acting {
+  background: rgba(217, 119, 6, 0.15);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.35);
+}
+
+.task-inbox__badge--acting-manager {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+}
+
+.task-inbox__row-delegated {
+  background: rgba(217, 119, 6, 0.04);
+}
+
+.task-inbox__row-acting-manager {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.task-inbox__badge--ontrack {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+}
+
+.task-inbox__badge--overdue {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+.task-inbox__row-overdue {
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.task-inbox__sla {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.task-inbox__sla-code {
+  font-family: ui-monospace, monospace;
+}

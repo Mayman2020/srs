@@ -10,4 +10,8 @@ public interface OrganizationRepository extends JpaRepository<OrganizationEntity
   Optional<OrganizationEntity> findByIdAndDeletedAtIsNull(Long id);
 
   List<OrganizationEntity> findByDeletedAtIsNullOrderByIdAsc();
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNull(String code);
+
+  boolean existsByCodeIgnoreCaseAndDeletedAtIsNullAndIdNot(String code, Long id);
 }

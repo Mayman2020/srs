@@ -6,6 +6,7 @@ import com.gov.ac.feature.retention.repository.ArchiveTransitionLogRepository;
 import com.gov.ac.feature.retention.repository.LegalHoldRepository;
 import com.gov.ac.feature.retention.repository.RetentionPolicyRepository;
 import jakarta.persistence.EntityManager;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -107,7 +108,7 @@ public class RetentionProcessingService {
         jdbcTemplate.queryForObject(
             "SELECT COUNT(*)::int FROM srs_system.audit_event WHERE occurred_at < ?",
             Integer.class,
-            cutoff);
+            ts(cutoff));
     int n = cnt == null ? 0 : cnt;
     if (dry) {
       return Math.min(n, batch);
@@ -123,7 +124,7 @@ public class RetentionProcessingService {
         ) sub
         WHERE e.id = sub.id
         """,
-        cutoff,
+        ts(cutoff),
         batch);
   }
 
@@ -143,7 +144,7 @@ public class RetentionProcessingService {
               )
             """,
             Integer.class,
-            cutoff);
+            ts(cutoff));
     int n = cnt == null ? 0 : cnt;
     if (dry) {
       return Math.min(n, batch);
@@ -164,7 +165,7 @@ public class RetentionProcessingService {
         ) sub
         WHERE l.id = sub.id
         """,
-        cutoff,
+        ts(cutoff),
         batch);
   }
 
@@ -176,7 +177,7 @@ public class RetentionProcessingService {
         jdbcTemplate.queryForObject(
             "SELECT COUNT(*)::int FROM srs_system.notification WHERE created_at < ?",
             Integer.class,
-            cutoff);
+            ts(cutoff));
     int n = cnt == null ? 0 : cnt;
     if (dry) {
       return Math.min(n, batch);
@@ -192,7 +193,7 @@ public class RetentionProcessingService {
         ) sub
         WHERE n.id = sub.id
         """,
-        cutoff,
+        ts(cutoff),
         batch);
   }
 
@@ -204,7 +205,7 @@ public class RetentionProcessingService {
         jdbcTemplate.queryForObject(
             "SELECT COUNT(*)::int FROM srs_system.attachment_download_token WHERE expires_at < ?",
             Integer.class,
-            cutoff);
+            ts(cutoff));
     int n = cnt == null ? 0 : cnt;
     if (dry) {
       return Math.min(n, batch);
@@ -220,7 +221,7 @@ public class RetentionProcessingService {
         ) sub
         WHERE t.id = sub.id
         """,
-        cutoff,
+        ts(cutoff),
         batch);
   }
 
@@ -235,7 +236,7 @@ public class RetentionProcessingService {
             WHERE s.created_at < ?
             """,
             Integer.class,
-            cutoff);
+            ts(cutoff));
     int n = cnt == null ? 0 : cnt;
     if (dry) {
       return Math.min(n, batch);
@@ -251,7 +252,7 @@ public class RetentionProcessingService {
         ) sub
         WHERE s.id = sub.id
         """,
-        cutoff,
+        ts(cutoff),
         batch);
   }
 
@@ -269,7 +270,7 @@ public class RetentionProcessingService {
                 )
               """,
               Integer.class,
-              cutoff);
+              ts(cutoff));
       int n = cnt == null ? 0 : cnt;
       if (dry) {
         return Math.min(n, batch);
@@ -295,7 +296,7 @@ public class RetentionProcessingService {
           ) sub
           WHERE c.id = sub.id
           """,
-          cutoff,
+          ts(cutoff),
           batch);
     }
     if (ACTION_HARD_DELETE.equals(policy.getActionAfter())) {
@@ -311,7 +312,7 @@ public class RetentionProcessingService {
                 )
               """,
               Integer.class,
-              cutoff);
+              ts(cutoff));
       int n = cnt == null ? 0 : cnt;
       if (dry) {
         return Math.min(n, batch);
@@ -332,7 +333,7 @@ public class RetentionProcessingService {
           ) sub
           WHERE c.id = sub.id
           """,
-          cutoff,
+          ts(cutoff),
           batch);
     }
     return 0;
@@ -355,7 +356,7 @@ public class RetentionProcessingService {
               )
             """,
             Integer.class,
-            cutoff);
+            ts(cutoff));
     int n = cnt == null ? 0 : cnt;
     if (dry) {
       return Math.min(n, batch);
@@ -377,7 +378,7 @@ public class RetentionProcessingService {
         ) sub
         WHERE v.id = sub.id
         """,
-        cutoff,
+        ts(cutoff),
         batch);
   }
 
@@ -390,6 +391,10 @@ public class RetentionProcessingService {
     row.setExecutedAt(Instant.now());
     row.setDetailJson(detailJson);
     archiveTransitionLogRepository.save(row);
+  }
+
+  private static Timestamp ts(Instant instant) {
+    return Timestamp.from(instant);
   }
 
   private static String escapeJson(String msg) {

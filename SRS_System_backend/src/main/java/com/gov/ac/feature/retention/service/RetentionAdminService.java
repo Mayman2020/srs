@@ -52,6 +52,13 @@ public class RetentionAdminService {
     return legalHoldService.listActive().stream().map(RetentionAdminService::toHoldDto).toList();
   }
 
+  @Transactional(readOnly = true)
+  public List<LegalHoldDto> listActiveHoldsForCorrespondence(UUID correspondenceId) {
+    return legalHoldService.listActiveForCorrespondence(correspondenceId).stream()
+        .map(RetentionAdminService::toHoldDto)
+        .toList();
+  }
+
   @Transactional
   public LegalHoldDto placeHold(UUID actor, LegalHoldPlaceRequestDto body) {
     LegalHoldEntity saved = legalHoldService.place(actor, body.correspondenceId(), body.reason());

@@ -134,6 +134,56 @@
               </srs-multi-choice-table>
             </div>
 
+            <div class="form-group">
+              <srs-multi-choice-table
+                [options]="userOptions"
+                [selectedIds]="toUserIds"
+                (selectedIdsChange)="setUserSelection('to', $event)"
+                labelKey="createTx.userRecipientsTo"
+                placeholderKey="createTx.userRecipientsPlaceholder"
+                selectedTitleKey="createTx.userRecipientsTo"
+              />
+            </div>
+
+            <div class="form-group">
+              <srs-multi-choice-table
+                [options]="userOptions"
+                [selectedIds]="ccUserIds"
+                (selectedIdsChange)="setUserSelection('cc', $event)"
+                labelKey="createTx.userRecipientsCc"
+                placeholderKey="createTx.userRecipientsPlaceholder"
+                selectedTitleKey="createTx.userRecipientsCc"
+              />
+            </div>
+
+            <div class="form-group routing-preview-panel" *ngIf="toDepartmentIds.length">
+              <label class="field-label">{{ 'createTx.routingPreview.title' | t }}</label>
+              <div class="routing-preview-panel__from">
+                <label class="field-label">{{ 'createTx.routingPreview.fromDept' | t }}</label>
+                <select
+                  class="custom-input"
+                  formControlName="routingFromDepartmentId"
+                  (change)="onRoutingFromDepartmentChange()">
+                  <option *ngFor="let d of flatDepartments" [ngValue]="d.id">
+                    {{ deptName(d.id) }}
+                  </option>
+                </select>
+              </div>
+              <p class="field-hint muted" *ngIf="routingPreviewLoading">{{ 'common.loading' | t }}</p>
+              <div class="routing-preview-panel__chain" *ngIf="routingChain && !routingPreviewLoading">
+                <p class="field-hint" *ngIf="routingChain.reasonKey">{{ routingChain.reasonKey | t }}</p>
+                <ol>
+                  <li *ngFor="let s of routingChain.stops">
+                    <strong>{{ routingStopLabel(s) }}</strong>
+                    <span class="muted">{{ s.levelCode }} · {{ s.roleCode }}</span>
+                  </li>
+                </ol>
+              </div>
+              <p class="field-hint muted" *ngIf="!routingPreviewLoading && !routingChain && toDepartmentIds.length">
+                {{ 'createTx.routingPreview.empty' | t }}
+              </p>
+            </div>
+
             <!-- DAYS -->
             <div class="form-group">
               <label class="field-label">

@@ -1,0 +1,72 @@
+<app-erp-page-shell titleKey="circularReadReport.pageTitle" subtitleKey="circularReadReport.pageSubtitle">
+  <div shellActions>
+    <button type="button" class="btn" (click)="reload()" [disabled]="loading">{{ 'common.refresh' | t }}</button>
+  </div>
+
+  <srs-data-table [loading]="loading" [showPagination]="false" [skeletonRows]="5" [skeletonColumns]="6">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'circularReadReport.title' | t }}</th>
+          <th>{{ 'circularReadReport.broadcast' | t }}</th>
+          <th>{{ 'circularReadReport.createdAt' | t }}</th>
+          <th>{{ 'circularReadReport.recipients' | t }}</th>
+          <th>{{ 'circularReadReport.readCount' | t }}</th>
+          <th>{{ 'circularReadReport.readPercent' | t }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rows">
+          <td>{{ r.title }}</td>
+          <td>{{ r.broadcast ? ('common.yes' | t) : ('common.no' | t) }}</td>
+          <td>{{ r.createdAt }}</td>
+          <td>{{ r.totalRecipients }}</td>
+          <td>{{ r.readCount }}</td>
+          <td>{{ formatPercent(r.readPercent) }}%</td>
+          <td>
+            <button type="button" class="btn-link" (click)="openDetail(r)">
+              {{ 'circularReadReport.drillDown' | t }}
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && !rows.length">
+          <td colspan="7" class="empty">{{ 'common.noResults' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </srs-data-table>
+</app-erp-page-shell>
+
+<div class="modal-backdrop" *ngIf="selected || detailLoading" (click)="closeDetail()"></div>
+<div class="modal" *ngIf="selected || detailLoading" role="dialog">
+  <p *ngIf="detailLoading" class="muted">{{ 'common.loading' | t }}</p>
+  <ng-container *ngIf="selected as d">
+    <h3>{{ d.title }}</h3>
+    <p class="muted">
+      {{ 'circularReadReport.readPercent' | t }}: {{ formatPercent(d.readPercent) }}%
+      ({{ d.readCount }} / {{ d.totalRecipients }})
+    </p>
+    <srs-data-table [loading]="false" [showPagination]="false">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ 'circularReadReport.user' | t }}</th>
+            <th>{{ 'circularReadReport.read' | t }}</th>
+            <th>{{ 'circularReadReport.readAt' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of d.recipients">
+            <td>{{ recipientName(u) }}</td>
+            <td>{{ u.read ? ('common.yes' | t) : ('common.no' | t) }}</td>
+            <td>{{ u.readAt || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </srs-data-table>
+    <div class="modal-actions">
+      <button type="button" class="btn" (click)="closeDetail()">{{ 'common.close' | t }}</button>
+    </div>
+  </ng-container>
+</div>

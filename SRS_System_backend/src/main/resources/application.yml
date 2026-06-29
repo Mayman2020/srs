@@ -162,6 +162,12 @@ ac:
   retention:
     poll-ms: 3600000
     batch-size: 500
+  assistant:
+    llm-enabled: ${AC_ASSISTANT_LLM_ENABLED:false}
+    llm-api-url: ${AC_ASSISTANT_LLM_API_URL:https://api.openai.com/v1/chat/completions}
+    llm-model: ${AC_ASSISTANT_LLM_MODEL:gpt-4o-mini}
+    llm-api-key: ${AC_ASSISTANT_LLM_API_KEY:}
+    llm-timeout-seconds: ${AC_ASSISTANT_LLM_TIMEOUT_SECONDS:25}
     dry-run: ${AC_RETENTION_DRY_RUN:true}
   notification:
     routing: ${AC_NOTIFICATION_ROUTING:outbox}

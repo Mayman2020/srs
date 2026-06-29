@@ -21,7 +21,8 @@ import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { MatIcon } from '@angular/material/icon';
 import { DashboardApiService } from '../../core/api/dashboard-api.service';
 import { DashboardBucketDto, DashboardResponseDto } from '../../core/api/api-types';
-import { TransactionService } from '../../core/services/transaction.service';
+import { CorrespondenceApiService } from '../../core/api/correspondence-api.service';
+import { PlatformWorkflowApiService, WorkflowTaskInboxRowDto } from '../../core/api/platform-workflow-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { UiFormatService } from '../../core/i18n/ui-format.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -29,7 +30,9 @@ import { LookupTranslatePipe } from '../../core/i18n/lookup-translate.pipe';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { LookupCode } from '../../core/lookup/lookup-code';
 import { ThemeService } from '../../core/services/theme.service';
+import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { chartColorForUiVariant, chartThemeColors } from '../../core/util/chart-ui-variant-colors';
+import { AuthTokenService } from '../../core/auth/auth-token.service';
 
 export type DashboardRecentRow = {
   id: string;
@@ -65,6 +68,7 @@ export class DashboardComponent implements OnInit {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly theme = inject(ThemeService);
+  private readonly cap = inject(CapabilitiesService);
   private readonly formatUi = inject(UiFormatService);
   private statusDonutChart?: Chart;
   private deptBarChart?: Chart;
@@ -74,8 +78,9 @@ export class DashboardComponent implements OnInit {
   constructor(
     public router: Router,
     private dashboardApi: DashboardApiService,
+    private correspondenceApi: CorrespondenceApiService,
+    private workflowApi: PlatformWorkflowApiService,
     private lookupLabels: LookupLabelsService,
-    private transactionService: TransactionService,
     private i18n: I18nService,
     private readonly cdr: ChangeDetectorRef
   ) {
@@ -107,13 +112,21 @@ export class DashboardComponent implements OnInit {
   recentAll: DashboardRecentRow[] = [];
   recentRows: DashboardRecentRow[] = [];
 
+  urgentTasks: WorkflowTaskInboxRowDto[] = [];
+  urgentTasksLoading = true;
+  workflowTaskCount = 0;
+  currentRole = '';
+
+  private readonly authTokens = inject(AuthTokenService);
+
   ngOnInit(): void {
+    this.currentRole = this.authTokens.getCurrentRole()?.trim() ?? '';
     subscribePageLoad({
       cdr: this.cdr,
       setLoading: (v) => (this.recentLoading = v),
       source: forkJoin({
         dash: this.dashboardApi.getDashboard(),
-        recent: this.transactionService.listPage({ page: 0, size: 50 }),
+        recent: this.correspondenceApi.list({ page: 0, size: 50 }),
         correspondenceTypes: this.lookupLabels
           .loadTable(LookupCode.CorrespondenceType)
           .pipe(catchError(() => of([]))),
@@ -137,14 +150,14 @@ export class DashboardComponent implements OnInit {
         this.slaAction = this.inProgress;
         this.slaOnTime = Math.max(0, this.done - this.slaLate);
 
-        this.recentAll = recent.map((t) => ({
+        this.recentAll = (recent.content ?? []).map((t) => ({
           id: t.id,
           referenceNumber: t.referenceNumber ?? t.id,
-          typeCode: t.typeCode,
+          typeCode: t.correspondenceType?.code ?? '',
           subject: t.subject,
-          created: t.created,
-          statusCode: t.statusCode,
-          statusUiVariant: t.statusUiVariant ?? null,
+          created: t.createdAt,
+          statusCode: t.correspondenceStatus?.code ?? '',
+          statusUiVariant: (t.correspondenceStatus as { uiVariant?: string } | null)?.uiVariant ?? null,
         }));
         this.recentRows = this.recentAll.slice(0, 8);
         afterNextRender(
@@ -166,6 +179,79 @@ export class DashboardComponent implements OnInit {
         this.slaAction = 0;
       }
     });
+
+    this.urgentTasksLoading = true;
+    this.workflowApi.myInbox(200).subscribe({
+      next: (rows) => {
+        this.workflowTaskCount = rows?.length ?? 0;
+        this.urgentTasks = (rows ?? []).slice(0, 5);
+        this.urgentTasksLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.urgentTasks = [];
+        this.urgentTasksLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  isCorrespondenceManager(): boolean {
+    return this.hasRole('CORRESP_MGR');
+  }
+
+  isDeptManager(): boolean {
+    return this.hasRole('DEPT_MANAGER');
+  }
+
+  isClerk(): boolean {
+    return this.hasRole('CORRESP_CLERK') && !this.hasRole('CORRESP_MGR');
+  }
+
+  isAuditor(): boolean {
+    return this.hasRole('AUDITOR') && !this.hasRole('SYS_ADMIN');
+  }
+
+  useRoleFocusedLayout(): boolean {
+    return this.isClerk() || this.isAuditor() || this.isDeptManager();
+  }
+
+  showExecutiveCharts(): boolean {
+    return !this.isClerk() && !this.isAuditor();
+  }
+
+  openRegistrationDesk(): void {
+    void this.router.navigate(['/registration-desk']);
+  }
+
+  openOutboundDelivery(): void {
+    void this.router.navigate(['/outbound-delivery']);
+  }
+
+  openAuditEvents(): void {
+    void this.router.navigate(['/audit-events']);
+  }
+
+  openAttachmentAccessLog(): void {
+    void this.router.navigate(['/admin/attachment-access-log']);
+  }
+
+  openReports(): void {
+    void this.router.navigate(['/reports']);
+  }
+
+  openLegalHolds(): void {
+    void this.router.navigate(['/admin/retention/legal-holds']);
+  }
+
+  openWorkflowTasks(): void {
+    void this.router.navigate(['/workflow-tasks']);
+  }
+
+  openUrgentTask(correspondenceId: string | null): void {
+    if (correspondenceId) {
+      void this.router.navigate(['/correspondence', correspondenceId]);
+    }
   }
 
   animateSla() {
@@ -384,5 +470,17 @@ export class DashboardComponent implements OnInit {
       return 'ok';
     }
     return '';
+  }
+
+  hasRole(role: string): boolean {
+    return (this.cap.getSnapshot()?.roles ?? []).includes(role);
+  }
+
+  showCorrespondMgrShortcuts(): boolean {
+    return this.hasRole('CORRESP_MGR') || this.hasRole('CORRESP_CLERK');
+  }
+
+  showDeptMgrShortcuts(): boolean {
+    return this.hasRole('DEPT_MANAGER') || this.hasRole('APPROVER');
   }
 }

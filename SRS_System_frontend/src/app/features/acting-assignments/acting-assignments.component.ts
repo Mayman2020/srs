@@ -15,6 +15,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 
 type ActingTab = 'absent' | 'acting' | 'upcoming' | 'inactive' | 'audit';
 
@@ -30,7 +31,8 @@ type ActingTab = 'absent' | 'acting' | 'upcoming' | 'inactive' | 'audit';
     FormsModule,
     ReactiveFormsModule,
     TranslatePipe,
-    ErpAutoReferenceFieldComponent
+    ErpAutoReferenceFieldComponent,
+    DateFieldComponent
   ],
   templateUrl: './acting-assignments.component.html',
   styleUrl: './acting-assignments.component.css'

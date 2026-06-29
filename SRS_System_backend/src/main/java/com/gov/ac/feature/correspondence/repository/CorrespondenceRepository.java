@@ -202,4 +202,6 @@ public interface CorrespondenceRepository
       @Param("departmentId") Long departmentId,
       @Param("viewerSortOrder") Integer viewerSortOrder,
       Pageable pageable);
+
+  Optional<CorrespondenceEntity> findByBarcodeValueIgnoreCaseAndDeletedAtIsNull(String barcodeValue);
 }

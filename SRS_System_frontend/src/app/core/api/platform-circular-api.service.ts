@@ -60,4 +60,39 @@ export class PlatformCircularApiService {
       body
     );
   }
+
+  readReport(): Observable<CircularReadReportSummaryDto[]> {
+    return this.http.get<CircularReadReportSummaryDto[]>(
+      `${apiPath(this.base, AppConstants.API.CIRCULARS)}/read-report`
+    );
+  }
+
+  readStatus(circularId: string): Observable<CircularReadStatusDto> {
+    return this.http.get<CircularReadStatusDto>(
+      `${apiPathWithId(this.base, AppConstants.API.CIRCULARS, circularId)}/read-status`
+    );
+  }
+}
+
+export interface CircularReadReportSummaryDto {
+  circularId: string;
+  title: string;
+  broadcast: boolean;
+  createdAt: string;
+  totalRecipients: number;
+  readCount: number;
+  readPercent: number;
+}
+
+export interface CircularReadStatusDto extends CircularReadReportSummaryDto {
+  recipients: CircularReadRecipientRowDto[];
+}
+
+export interface CircularReadRecipientRowDto {
+  userId: string;
+  username: string | null;
+  fullNameAr: string | null;
+  fullNameEn: string | null;
+  readAt: string | null;
+  read: boolean;
 }

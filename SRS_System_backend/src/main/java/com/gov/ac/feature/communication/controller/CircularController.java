@@ -61,6 +61,18 @@ public class CircularController {
     return Map.of("id", id.toString());
   }
 
+  @GetMapping("/read-report")
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_CREATE')")
+  public List<com.gov.ac.feature.communication.dto.CircularReadReportSummaryDto> readReport() {
+    return circularService.readReportSummaries();
+  }
+
+  @GetMapping("/{id}/read-status")
+  @PreAuthorize("@effectivePermission.has('CORRESPONDENCE_CREATE')")
+  public com.gov.ac.feature.communication.dto.CircularReadStatusDto readStatus(@PathVariable UUID id) {
+    return circularService.readStatus(id);
+  }
+
   /** Always force {@code createdBy} to the JWT user and broadcast to the requested mode. */
   private CreateCircularRequestDto stamp(CreateCircularRequestDto body, boolean forceBroadcast) {
     String me = SecurityUtils.requireCurrentUserId().toString();

@@ -41,6 +41,13 @@ public class LegalHoldService {
     return legalHoldRepository.findByReleasedAtIsNullAndDeletedAtIsNullOrderByPlacedAtDesc();
   }
 
+  @Transactional(readOnly = true)
+  public List<LegalHoldEntity> listActiveForCorrespondence(UUID correspondenceId) {
+    return legalHoldRepository
+        .findByCorrespondence_IdAndReleasedAtIsNullAndDeletedAtIsNullOrderByPlacedAtDesc(
+            correspondenceId);
+  }
+
   @Transactional
   public LegalHoldEntity place(UUID actorUserId, UUID correspondenceId, String reason) {
     if (reason == null || reason.isBlank()) {

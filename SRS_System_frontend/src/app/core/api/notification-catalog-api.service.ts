@@ -10,9 +10,27 @@ export interface NotificationCatalogItemDto {
   nameAr: string;
 }
 
+export interface NotificationCatalogAdminItemDto extends NotificationCatalogItemDto {
+  sortOrder: number;
+  active: boolean;
+}
+
 export interface NotificationCatalogDto {
   eventTypes: NotificationCatalogItemDto[];
   channels: NotificationCatalogItemDto[];
+}
+
+export interface NotificationCatalogAdminDto {
+  eventTypes: NotificationCatalogAdminItemDto[];
+  channels: NotificationCatalogAdminItemDto[];
+}
+
+export interface UpsertNotificationCatalogItemRequestDto {
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  sortOrder: number;
+  active: boolean;
 }
 
 /**
@@ -39,5 +57,63 @@ export class NotificationCatalogApiService {
 
   invalidate(): void {
     this.cache$ = undefined;
+  }
+
+  loadAdmin(): Observable<NotificationCatalogAdminDto> {
+    return this.http.get<NotificationCatalogAdminDto>(
+      apiPath(this.base, AppConstants.API.NOTIFICATION_CATALOG_ADMIN)
+    );
+  }
+
+  createEventType(body: UpsertNotificationCatalogItemRequestDto): Observable<NotificationCatalogAdminItemDto> {
+    this.invalidate();
+    return this.http.post<NotificationCatalogAdminItemDto>(
+      apiPath(this.base, `${AppConstants.API.NOTIFICATION_CATALOG_ADMIN}/event-types`),
+      body
+    );
+  }
+
+  updateEventType(
+    code: string,
+    body: UpsertNotificationCatalogItemRequestDto
+  ): Observable<NotificationCatalogAdminItemDto> {
+    this.invalidate();
+    return this.http.put<NotificationCatalogAdminItemDto>(
+      apiPath(this.base, `${AppConstants.API.NOTIFICATION_CATALOG_ADMIN}/event-types/${encodeURIComponent(code)}`),
+      body
+    );
+  }
+
+  deleteEventType(code: string): Observable<void> {
+    this.invalidate();
+    return this.http.delete<void>(
+      apiPath(this.base, `${AppConstants.API.NOTIFICATION_CATALOG_ADMIN}/event-types/${encodeURIComponent(code)}`)
+    );
+  }
+
+  createChannel(body: UpsertNotificationCatalogItemRequestDto): Observable<NotificationCatalogAdminItemDto> {
+    this.invalidate();
+    return this.http.post<NotificationCatalogAdminItemDto>(
+      apiPath(this.base, `${AppConstants.API.NOTIFICATION_CATALOG_ADMIN}/channels`),
+      body
+    );
+  }
+
+  updateChannel(
+    code: string,
+    body: UpsertNotificationCatalogItemRequestDto
+  ): Observable<NotificationCatalogAdminItemDto> {
+    this.invalidate();
+    return this.http.put<NotificationCatalogAdminItemDto>(
+      apiPath(this.base, `${AppConstants.API.NOTIFICATION_CATALOG_ADMIN}/channels/${encodeURIComponent(code)}`),
+      body
+    );
+  }
+
+  deleteChannel(code: string): Observable<void> {
+    this.invalidate();
+    return this.http.delete<void>(
+      apiPath(this.base, `${AppConstants.API.NOTIFICATION_CATALOG_ADMIN}/channels/${encodeURIComponent(code)}`)
+    );
   }
 }

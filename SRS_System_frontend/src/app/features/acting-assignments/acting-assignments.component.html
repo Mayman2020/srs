@@ -48,14 +48,8 @@
       </div>
 
       <div class="row-2">
-        <label>
-          <span>{{ 'acting.validFrom' | t }}</span>
-          <input type="date" formControlName="validFrom" />
-        </label>
-        <label>
-          <span>{{ 'acting.validTo' | t }}</span>
-          <input type="date" formControlName="validTo" />
-        </label>
+        <app-date-field formControlName="validFrom" labelKey="acting.validFrom" [required]="true"></app-date-field>
+        <app-date-field formControlName="validTo" labelKey="acting.validTo" [required]="true"></app-date-field>
       </div>
 
       <label>

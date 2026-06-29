@@ -11,6 +11,7 @@ public class CorrespondenceCreatedResponseDto {
 
   UUID id;
   String referenceNumber;
+  String barcodeValue;
   String correspondenceTypeCode;
   String correspondenceStatusCode;
   UUID workflowInstanceId;

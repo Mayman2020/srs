@@ -494,46 +494,77 @@ html[dir='rtl'] .toolbar-main {
   text-decoration: underline;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1024px) {
   .toolbar {
     min-height: auto;
   }
 
-  .toolbar-main,
-  .toolbar-end,
-  .account-side {
+  .toolbar-main {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.65rem;
     width: 100%;
-    flex-wrap: wrap;
   }
 
-  .toolbar-main {
-    align-items: flex-start;
+  .toolbar-brand {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: 46vw;
+  }
+
+  .toolbar-end {
+    flex: 1 1 auto;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .account-side {
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+
+  .menu-toggle {
+    flex-shrink: 0;
+  }
+
+  .profile-btn,
+  .role-switch-btn {
+    width: auto;
+    max-width: none;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .toolbar {
     gap: 0.75rem;
     padding-inline: 0.75rem;
   }
 
   .toolbar-main,
-  .toolbar-end,
-  .account-side {
+  .toolbar-end {
     width: 100%;
   }
 
   .account-side {
-    justify-content: space-between;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .lang-name,
+  .user-copy {
+    display: none;
   }
 
   .profile-btn {
-    width: 100%;
-    max-width: 100%;
+    width: auto;
+    max-width: none;
+    padding-inline: 0.35rem 0.45rem;
   }
 
   .role-switch-btn {
-    width: 100%;
+    width: auto;
   }
 
   .header-shell__panel {

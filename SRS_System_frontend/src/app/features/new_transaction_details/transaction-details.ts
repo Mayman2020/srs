@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
@@ -9,6 +9,9 @@ import {
   CorrespondenceCommentDetailDto,
   CorrespondenceDetailResponseDto,
   CorrespondenceNonarchivedItemDto,
+  CorrespondenceRecipientDto,
+  CorrespondenceUserRecipientDto,
+  CorrespondencePatchRequestDto,
   CorrespondenceReadReceiptDto,
   CorrespondenceReadStatusSummaryDto,
   AttachmentAccessLogDto,
@@ -16,6 +19,8 @@ import {
   WorkflowHistoryEntryDto
 } from '../../core/api/api-types';
 import { CorrespondenceApiService } from '../../core/api/correspondence-api.service';
+import { OutboundDeliveryApiService, OutboundDeliveryDto } from '../../core/api/outbound-delivery-api.service';
+import { UserDirectoryApiService } from '../../core/api/user-directory-api.service';
 import { CorrespondenceReadTrackingApiService } from '../../core/api/correspondence-read-tracking-api.service';
 import { AttachmentAccessLogApiService } from '../../core/api/attachment-access-log-api.service';
 import { TransactionService } from '../../core/services/transaction.service';
@@ -50,6 +55,23 @@ import {
   SendMailDialogComponent,
   SendMailDialogData,
 } from '../../shared/dialogs/send-mail-dialog.component';
+import {
+  BarcodeLabelDialogComponent,
+} from '../../shared/dialogs/barcode-label-dialog.component';
+import {
+  ImageTransferDialogComponent,
+} from '../../shared/dialogs/image-transfer-dialog.component';
+import {
+  WorkflowForwardDialogComponent,
+  WorkflowForwardDialogData,
+  WorkflowForwardDialogResult,
+} from '../../shared/dialogs/workflow-forward-dialog.component';
+import {
+  WorkflowReferDialogComponent,
+  WorkflowReferDialogData,
+  WorkflowReferDialogResult,
+} from '../../shared/dialogs/workflow-refer-dialog.component';
+import { LegalHoldDto } from '../../core/api/retention-admin-api.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 
@@ -123,8 +145,10 @@ function guessAttachmentContentTypeCode(fileName: string, mimeType: string | und
 export interface Transaction {
   id: string;
   referenceNumber: string;
+  barcodeValue?: string | null;
   subject: string;
   type: string;
+  typeCode?: string | null;
   created: Date | string;
   dueDate: Date | string;
   secrecy: string;
@@ -139,7 +163,11 @@ export interface Transaction {
   priority?: string;
   priorityClass?: 'low' | 'normal' | 'high' | 'urgent';
   priorityPercent?: number;
+  priorityCode?: string;
+  confidentialityCode?: string;
+  description?: string;
   currentHandler: string;
+  ownerDepartmentId?: number | null;
   timeline: TimelineStep[];
   attachments: Attachment[];
   notes: TransactionNote[];
@@ -169,6 +197,7 @@ export interface Transaction {
     LatinDigitsPipe,
     TranslatePipe,
     StatusBadgeComponent,
+    RouterLink,
   ],
   standalone: true,
 })
@@ -183,8 +212,29 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   transaction!: Transaction;
   relatedTransactions: RelatedTransaction[] = [];
   nonarchivedItems: CorrespondenceNonarchivedItemDto[] = [];
+  recipients: CorrespondenceRecipientDto[] = [];
+  userRecipients: CorrespondenceUserRecipientDto[] = [];
+  recipientsLoading = false;
+  newRecipientDeptId: number | null = null;
+  newUserRecipientId = '';
+  newUserRecipientKind = 'TO';
+  userPickerOptions: { id: string; label: string }[] = [];
+  editMetadataOpen = false;
+  ownerDepartmentId: number | null = null;
+  legalHolds: LegalHoldDto[] = [];
+  legalHoldsLoading = false;
+  legalHoldReason = '';
+  legalHoldReleaseReason = '';
+  legalHoldActionId: string | null = null;
+  editSubject = '';
+  editDescription = '';
+  editPriorityCode = '';
+  editConfidentialityCode = '';
+  metadataSaving = false;
   accessLogEntries: AttachmentAccessLogDto[] = [];
   accessLogLoading = false;
+  outboundDeliveries: OutboundDeliveryDto[] = [];
+  outboundDeliveriesLoading = false;
   /** Backend attachment id → index rows */
   indexEntriesByAttachmentId: Record<number, AttachmentIndexEntryDto[]> = {};
   correspondenceUuid = '';
@@ -245,8 +295,10 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     private attachmentDownloadApi: AttachmentDownloadApiService,
     private signatureApi: DocumentSignatureApiService,
     private correspondenceApi: CorrespondenceApiService,
+    private usersApi: UserDirectoryApiService,
     private readTrackingApi: CorrespondenceReadTrackingApiService,
     private accessLogApi: AttachmentAccessLogApiService,
+    private outboundDeliveryApi: OutboundDeliveryApiService,
     private tokens: AuthTokenService,
     private authApi: AuthApiService,
     private i18n: I18nService,
@@ -319,6 +371,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.form.patchValue({ letterContent: draft });
           this.myReadReceipt = d.myReadReceipt ?? null;
           this.acknowledgementSupported = d.acknowledgementSupported !== false;
+          this.ownerDepartmentId = d.ownerDepartment?.id ?? null;
           this.cdr.detectChanges();
           this.loadGuideData();
         },
@@ -387,8 +440,10 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     return {
       id: d.id,
       referenceNumber: d.referenceNumber ?? d.id,
+      barcodeValue: d.barcodeValue ?? d.referenceNumber ?? d.id,
       subject: d.subject ?? '—',
       type: labelOf(d.correspondenceType),
+      typeCode: d.correspondenceType?.code ?? null,
       created,
       dueDate,
       secrecy: secrecyLabel,
@@ -399,11 +454,15 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       maxDays,
       remainingDays: Math.max(0, Math.ceil((dueDate.getTime() - Date.now()) / 86_400_000)),
       priority: labelOf(d.priority),
+      priorityCode: d.priority?.code,
+      confidentialityCode: d.confidentiality?.code,
+      description: d.description ?? '',
       priorityClass: 'normal',
       priorityPercent: 40,
       currentHandler: d.ownerDepartment
         ? ((isAr ? d.ownerDepartment.nameAr : d.ownerDepartment.nameEn) ?? d.ownerDepartment.code ?? '—')
         : '—',
+      ownerDepartmentId: d.ownerDepartment?.id ?? null,
       timeline: steps,
       attachments: (d.attachments ?? []).map((a) => {
         const current = a.versions?.find((v) => v.id === a.currentVersionId) ?? a.versions?.[0] ?? null;
@@ -459,11 +518,13 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     }
     forkJoin({
       links: this.correspondenceApi.listLinks(id).pipe(catchError(() => of([]))),
-      na: this.correspondenceApi.listNonarchived(id).pipe(catchError(() => of([])))
+      na: this.correspondenceApi.listNonarchived(id).pipe(catchError(() => of([]))),
+      recipients: this.correspondenceApi.listRecipients(id).pipe(catchError(() => of([]))),
+      userRecipients: this.correspondenceApi.listUserRecipients(id).pipe(catchError(() => of([])))
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ links, na }) => {
+        next: ({ links, na, recipients, userRecipients }) => {
           this.relatedTransactions = (links ?? []).map((l) => ({
             linkId: l.id,
             id: l.linkedCorrespondenceId,
@@ -473,6 +534,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
             status: l.linkKind
           }));
           this.nonarchivedItems = na ?? [];
+          this.recipients = recipients ?? [];
+          this.userRecipients = userRecipients ?? [];
           this.loadAttachmentIndexes();
         }
       });
@@ -508,11 +571,264 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
     return this.cap.can(this.ACCESS_LOG_VIEW_PERMISSION);
   }
 
+  isOutboundCorrespondence(): boolean {
+    return (this.transaction?.typeCode ?? '').toUpperCase() === 'OUTBOUND';
+  }
+
   onTabChange(tab: string): void {
     this.activeTab = tab;
     if (tab === 'accesslog' && this.canViewAccessLog()) {
       this.loadAccessLog();
     }
+    if (tab === 'legalhold') {
+      this.loadLegalHolds();
+    }
+    if (tab === 'outbounddelivery' && this.isOutboundCorrespondence()) {
+      this.loadOutboundDeliveries();
+    }
+    if (tab === 'recipients' && !this.recipients.length && this.correspondenceUuid) {
+      this.reloadRecipients();
+    }
+    if (tab === 'recipients' && this.userPickerOptions.length === 0) {
+      this.loadUserPicker();
+    }
+  }
+
+  loadOutboundDeliveries(): void {
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    this.outboundDeliveriesLoading = true;
+    this.outboundDeliveryApi.list(this.correspondenceUuid).subscribe({
+      next: (rows) => {
+        this.outboundDeliveries = rows ?? [];
+        this.outboundDeliveriesLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.outboundDeliveries = [];
+        this.outboundDeliveriesLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  loadLegalHolds(): void {
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    this.legalHoldsLoading = true;
+    this.correspondenceApi.listActiveLegalHolds(this.correspondenceUuid).subscribe({
+      next: (rows) => {
+        this.legalHolds = rows ?? [];
+        this.legalHoldsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.legalHolds = [];
+        this.legalHoldsLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  placeLegalHold(): void {
+    const reason = this.legalHoldReason.trim();
+    if (!this.correspondenceUuid || reason.length < 3) {
+      this.toast(this.i18n.instant('legalHoldContext.reasonRequired'), 'warning');
+      return;
+    }
+    this.correspondenceApi.placeLegalHold(this.correspondenceUuid, reason).subscribe({
+      next: () => {
+        this.legalHoldReason = '';
+        this.toast(this.i18n.instant('legalHoldContext.placed'), 'success');
+        this.loadLegalHolds();
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
+      }
+    });
+  }
+
+  releaseLegalHold(hold: LegalHoldDto): void {
+    const releaseReason = this.legalHoldReleaseReason.trim();
+    if (!this.correspondenceUuid || releaseReason.length < 3) {
+      this.toast(this.i18n.instant('legalHoldContext.releaseReasonRequired'), 'warning');
+      return;
+    }
+    this.correspondenceApi.releaseLegalHold(this.correspondenceUuid, hold.id, releaseReason).subscribe({
+      next: () => {
+        this.legalHoldReleaseReason = '';
+        this.legalHoldActionId = null;
+        this.toast(this.i18n.instant('legalHoldContext.releasedToast'), 'success');
+        this.loadLegalHolds();
+      },
+      error: (err: HttpErrorResponse & { userMessage?: string }) => {
+        this.toast(err.userMessage ?? this.i18n.instant('errors.generic'), 'error');
+      }
+    });
+  }
+
+  loadUserPicker(): void {
+    this.usersApi.list(0, 200).pipe(take(1)).subscribe({
+      next: (page) => {
+        const isAr = this.i18n.currentLang() === 'ar';
+        this.userPickerOptions = (page.content ?? []).map((u) => ({
+          id: u.id,
+          label: (isAr ? u.fullNameAr : u.fullNameEn) || u.username
+        }));
+      },
+      error: () => (this.userPickerOptions = [])
+    });
+  }
+
+  reloadRecipients(): void {
+    const id = this.correspondenceUuid;
+    if (!id) {
+      return;
+    }
+    this.recipientsLoading = true;
+    this.correspondenceApi.listRecipients(id).pipe(takeUntil(this.destroy$), take(1)).subscribe({
+      next: (rows) => {
+        this.recipients = rows ?? [];
+        this.recipientsLoading = false;
+      },
+      error: () => {
+        this.recipients = [];
+        this.recipientsLoading = false;
+      }
+    });
+    this.correspondenceApi.listUserRecipients(id).pipe(takeUntil(this.destroy$), take(1)).subscribe({
+      next: (rows) => (this.userRecipients = rows ?? []),
+      error: () => (this.userRecipients = [])
+    });
+  }
+
+  addRecipientDept(): void {
+    if (!this.canEditGuide() || this.newRecipientDeptId == null) {
+      return;
+    }
+    this.correspondenceApi.addRecipient(this.correspondenceUuid, this.newRecipientDeptId).subscribe({
+      next: (row) => {
+        this.recipients = [...this.recipients, row];
+        this.newRecipientDeptId = null;
+        this.toast(this.i18n.instant('transactionDetails.recipientAdded'), 'success');
+      },
+      error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+    });
+  }
+
+  removeRecipient(row: CorrespondenceRecipientDto): void {
+    if (!this.canEditGuide()) {
+      return;
+    }
+    this.correspondenceApi.deleteRecipient(this.correspondenceUuid, row.id).subscribe({
+      next: () => {
+        this.recipients = this.recipients.filter((r) => r.id !== row.id);
+        this.toast(this.i18n.instant('transactionDetails.recipientDeleted'), 'success');
+      },
+      error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+    });
+  }
+
+  addUserRecipient(): void {
+    if (!this.canEditGuide() || !this.newUserRecipientId.trim()) {
+      return;
+    }
+    this.correspondenceApi
+      .addUserRecipient(this.correspondenceUuid, {
+        recipientUserId: this.newUserRecipientId.trim(),
+        recipientKindCode: this.newUserRecipientKind
+      })
+      .subscribe({
+        next: (row) => {
+          this.userRecipients = [...this.userRecipients, row];
+          this.newUserRecipientId = '';
+          this.toast(this.i18n.instant('transactionDetails.userRecipientAdded'), 'success');
+        },
+        error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+      });
+  }
+
+  removeUserRecipient(row: CorrespondenceUserRecipientDto): void {
+    if (!this.canEditGuide()) {
+      return;
+    }
+    this.correspondenceApi.deleteUserRecipient(this.correspondenceUuid, row.id).subscribe({
+      next: () => {
+        this.userRecipients = this.userRecipients.filter((r) => r.id !== row.id);
+        this.toast(this.i18n.instant('transactionDetails.userRecipientDeleted'), 'success');
+      },
+      error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
+    });
+  }
+
+  userRecipientLabel(row: CorrespondenceUserRecipientDto): string {
+    return this.i18n.currentLang() === 'ar'
+      ? row.recipientFullNameAr || row.recipientUsername
+      : row.recipientFullNameEn || row.recipientUsername;
+  }
+
+  recipientLabel(row: CorrespondenceRecipientDto): string {
+    return this.i18n.currentLang() === 'ar' ? row.departmentNameAr : row.departmentNameEn;
+  }
+
+  openEditMetadata(): void {
+    if (!this.transaction) {
+      return;
+    }
+    this.editSubject = this.transaction.subject ?? '';
+    this.editDescription = this.transaction.description ?? '';
+    this.editPriorityCode = this.transaction.priorityCode ?? '';
+    this.editConfidentialityCode = this.transaction.confidentialityCode ?? '';
+    this.editMetadataOpen = true;
+  }
+
+  saveMetadata(): void {
+    if (!this.canEditGuide() || !this.correspondenceUuid) {
+      return;
+    }
+    this.metadataSaving = true;
+    const body: CorrespondencePatchRequestDto = {
+      subject: this.editSubject.trim() || null,
+      description: this.editDescription,
+      priorityCode: this.editPriorityCode || null,
+      confidentialityCode: this.editConfidentialityCode || null
+    };
+    this.correspondenceApi.patch(this.correspondenceUuid, body).subscribe({
+      next: () => {
+        this.metadataSaving = false;
+        this.editMetadataOpen = false;
+        this.toast(this.i18n.instant('transactionDetails.metadataSaved'), 'success');
+        this.reloadDetail();
+      },
+      error: () => {
+        this.metadataSaving = false;
+        this.toast(this.i18n.instant('transactionDetails.metadataSaveFailed'), 'error');
+      }
+    });
+  }
+
+  private reloadDetail(): void {
+    const id = this.correspondenceUuid;
+    if (!id) {
+      return;
+    }
+    this.transactionService.getDetail(id).pipe(take(1)).subscribe({
+      next: (d) => {
+        this.transactionService.getWorkflowHistory(id).pipe(take(1)).subscribe({
+          next: (h) => {
+            this.transaction = this.mapDetail(d, h ?? []);
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.transaction = this.mapDetail(d, []);
+            this.cdr.detectChanges();
+          }
+        });
+      },
+      error: () => {}
+    });
   }
 
   private loadAccessLog(): void {
@@ -780,57 +1096,45 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   }
 
   private promptReferAction(a: WorkflowActionAvailableDto): void {
-    const ref = this.dialog.open(TextInputDialogComponent, {
-      width: 'min(480px, 94vw)',
-      autoFocus: 'dialog',
-      data: {
-        dialogTitle: this.workflowActionLabel(a),
-        labelKey: 'transactionDetails.workflowReferUserPrompt',
-        confirmKey: 'common.apply',
-        required: true,
-        multiline: false,
-      } satisfies TextInputDialogData,
-    });
-    ref
+    this.dialog
+      .open(WorkflowReferDialogComponent, {
+        width: 'min(520px, 94vw)',
+        data: { dialogTitle: this.workflowActionLabel(a) } satisfies WorkflowReferDialogData
+      })
       .afterClosed()
       .pipe(take(1))
-      .subscribe((targetUserId) => {
-        if (!targetUserId?.trim()) {
+      .subscribe((result: WorkflowReferDialogResult | undefined) => {
+        if (!result?.targetUserId) {
           return;
         }
         if (a.requiresComment) {
-          this.promptCommentThenRun(a.code, targetUserId.trim());
+          this.promptCommentThenRun(a.code, result.targetUserId);
           return;
         }
-        this.runWorkflowAction(a.code, null, targetUserId.trim());
+        this.runWorkflowAction(a.code, null, result.targetUserId);
       });
   }
 
   private promptForwardAction(a: WorkflowActionAvailableDto): void {
-    const ref = this.dialog.open(TextInputDialogComponent, {
-      width: 'min(480px, 94vw)',
-      autoFocus: 'dialog',
-      data: {
-        dialogTitle: this.workflowActionLabel(a),
-        labelKey: 'transactionDetails.workflowForwardDeptPrompt',
-        confirmKey: 'common.apply',
-        required: true,
-        multiline: false,
-      } satisfies TextInputDialogData,
-    });
-    ref
+    this.dialog
+      .open(WorkflowForwardDialogComponent, {
+        width: 'min(560px, 94vw)',
+        data: {
+          dialogTitle: this.workflowActionLabel(a),
+          routingFromDepartmentId: this.ownerDepartmentId
+        } satisfies WorkflowForwardDialogData
+      })
       .afterClosed()
       .pipe(take(1))
-      .subscribe((deptRaw) => {
-        const deptId = Number(String(deptRaw ?? '').trim());
-        if (!Number.isFinite(deptId) || deptId <= 0) {
+      .subscribe((result: WorkflowForwardDialogResult | undefined) => {
+        if (!result?.targetDepartmentId) {
           return;
         }
         if (a.requiresComment) {
-          this.promptCommentThenRun(a.code, undefined, deptId);
+          this.promptCommentThenRun(a.code, undefined, result.targetDepartmentId);
           return;
         }
-        this.runWorkflowAction(a.code, null, null, deptId);
+        this.runWorkflowAction(a.code, null, null, result.targetDepartmentId);
       });
   }
 
@@ -964,12 +1268,45 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
-  showImageTransferPending(): void {
-    this.openAttachmentFilePicker();
+  openImageTransferDialog(): void {
+    if (!this.correspondenceUuid) {
+      return;
+    }
+    this.dialog
+      .open(ImageTransferDialogComponent, {
+        width: 'min(480px, 94vw)',
+        data: { correspondenceId: this.correspondenceUuid }
+      })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((ok) => {
+        if (ok) {
+          this.loadTransaction();
+        }
+      });
+  }
+
+  openBarcodeLabelDialog(): void {
+    if (!this.transaction) {
+      return;
+    }
+    this.dialog.open(BarcodeLabelDialogComponent, {
+      width: 'min(420px, 94vw)',
+      data: {
+        items: [
+          {
+            reference:
+              this.transaction.barcodeValue?.trim() ||
+              this.transaction.referenceNumber,
+            subject: this.transaction.subject
+          }
+        ]
+      }
+    });
   }
 
   printTransaction(): void {
-    window.print();
+    this.openBarcodeLabelDialog();
   }
 
   shareTransaction(): void {

@@ -51,6 +51,7 @@ import type { SortDirection } from '../../shared/data-table/table-sort.util';
 import { REPORT_TABLE_SORT_PROPERTY, reportSpringSort } from './report-table-sort.util';
 import { SRS_TABLE_DEFAULT_PAGE_SIZE } from '../../shared/data-table/srs-table-defaults';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
+import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { ThemeService } from '../../core/services/theme.service';
 
@@ -72,6 +73,7 @@ Chart.register(...registerables);
     SrsFilterBarComponent,
     SrsEmptyStateComponent,
     StatusBadgeComponent,
+    DateFieldComponent,
   ],
   templateUrl: './reports.html',
   styleUrls: ['./reports.css'],

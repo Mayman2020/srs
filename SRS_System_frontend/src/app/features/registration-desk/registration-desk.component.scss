@@ -1,0 +1,126 @@
+.reg-desk__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.reg-desk__tabs .tab {
+  border: 1px solid var(--border, #d1d5db);
+  background: var(--surface, #fff);
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.reg-desk__tabs .tab.active {
+  background: var(--primary, #0f766e);
+  color: #fff;
+  border-color: transparent;
+}
+
+.reg-desk__grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(240px, 280px) minmax(280px, 380px) 1fr;
+}
+
+.reg-desk__scan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reg-desk__scan h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 960px) {
+  .reg-desk__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  background: var(--surface, #fff);
+}
+
+.reg-desk__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.field input,
+.field textarea,
+.field select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.field-row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.reg-desk__register-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.reg-desk__register-head h3,
+.reg-desk__form h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-muted, #6b7280);
+}
+
+.muted {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.85rem;
+}
+
+.btn {
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  background: var(--surface, #fff);
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn-primary {
+  background: var(--primary, #0f766e);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: var(--primary, #0f766e);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+}

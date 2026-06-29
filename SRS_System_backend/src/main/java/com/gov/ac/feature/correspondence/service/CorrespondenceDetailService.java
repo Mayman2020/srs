@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +46,18 @@ public class CorrespondenceDetailService {
   private final CorrespondenceWorkflowAvailabilityService correspondenceWorkflowAvailabilityService;
   private final CorrespondenceCancelService correspondenceCancelService;
   private final CorrespondenceReadTrackingService correspondenceReadTrackingService;
+
+  @Transactional(readOnly = true)
+  public CorrespondenceDetailResponseDto getByBarcode(String barcode, UUID viewerId) {
+    if (!StringUtils.hasText(barcode)) {
+      throw new NotFoundException("CorrespondenceEntity not found");
+    }
+    CorrespondenceEntity correspondence =
+        correspondenceRepository
+            .findByBarcodeValueIgnoreCaseAndDeletedAtIsNull(barcode.trim())
+            .orElseThrow(() -> new NotFoundException("CorrespondenceEntity not found"));
+    return getById(correspondence.getId(), viewerId);
+  }
 
   @Transactional(readOnly = true)
   public CorrespondenceDetailResponseDto getById(UUID correspondenceId, UUID viewerId) {

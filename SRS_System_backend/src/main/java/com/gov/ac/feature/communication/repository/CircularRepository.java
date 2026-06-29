@@ -17,4 +17,6 @@ public interface CircularRepository extends JpaRepository<CircularEntity, UUID> 
       ORDER BY c.createdAt DESC
       """)
   List<CircularEntity> findInboxForUser(@Param("userId") String userId);
+
+  List<CircularEntity> findAllByOrderByCreatedAtDesc();
 }

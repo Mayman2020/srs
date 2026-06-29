@@ -728,6 +728,29 @@ angular-editor {
   line-height: 1.4;
 }
 
+.routing-preview-panel {
+  grid-column: 1 / -1;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surface-muted, #f9fafb);
+}
+
+.routing-preview-panel__chain ol {
+  margin: 0.5rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+
+.routing-preview-panel__chain li {
+  margin-bottom: 0.35rem;
+}
+
+.routing-preview-panel__chain .muted {
+  margin-inline-start: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
 /* TinyMCE chrome follows theme (editor body styled separately) */
 :host-context(html.dark-theme) ::ng-deep .tox-tinymce {
   border-color: var(--border-color) !important;

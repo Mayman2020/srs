@@ -1,0 +1,54 @@
+.btn {
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  background: var(--surface, #fff);
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: var(--primary, #0f766e);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+}
+
+.empty,
+.muted {
+  color: var(--text-muted, #6b7280);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  width: min(640px, 94vw);
+  max-height: 85vh;
+  overflow: auto;
+  background: var(--surface, #fff);
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.modal h3 {
+  margin: 0 0 0.5rem;
+}
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}

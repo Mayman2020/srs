@@ -64,6 +64,12 @@
               }
             ],
             "styles": [
+              "src/styles/estate-os-tokens.scss",
+              "src/styles/platform-os-globals.scss",
+              "src/styles/pages/list-pages.scss",
+              "src/styles/admin.filters.scss",
+              "src/styles/pages/dashboard.page.scss",
+              "src/styles/page-ui.scss",
               "src/material-theme.scss",
               "src/styles.css",
               "public/assets/css/app.css",

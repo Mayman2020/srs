@@ -1,0 +1,21 @@
+<app-erp-page-shell titleKey="emailDispatch.pageTitle" subtitleKey="emailDispatch.pageSubtitle" [narrow]="true">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="email-dispatch__form">
+    <label>
+      <span>{{ 'emailDispatch.to' | t }}</span>
+      <input type="email" formControlName="to" />
+    </label>
+    <label>
+      <span>{{ 'emailDispatch.subject' | t }}</span>
+      <input formControlName="subject" maxlength="200" />
+    </label>
+    <label>
+      <span>{{ 'emailDispatch.body' | t }}</span>
+      <textarea formControlName="body" rows="6" maxlength="5000"></textarea>
+    </label>
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || sending">
+      {{ (sending ? 'common.sending' : 'emailDispatch.send') | t }}
+    </button>
+    <p class="success" *ngIf="lastResultKey === 'sent'">{{ 'emailDispatch.successMessage' | t }}</p>
+    <p class="error" *ngIf="lastResultKey === 'failed'">{{ 'emailDispatch.errorMessage' | t }}</p>
+  </form>
+</app-erp-page-shell>

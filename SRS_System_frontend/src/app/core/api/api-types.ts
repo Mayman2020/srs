@@ -330,6 +330,9 @@ export interface CorrespondenceCreateRequestDto {
   beneficiaryName?: string | null;
   beneficiaryOrganization?: string | null;
   beneficiaryIdentifier?: string | null;
+  recipientDepartmentIds?: number[];
+  ccDepartmentIds?: number[];
+  userRecipients?: { recipientUserId: string; recipientKindCode: string }[];
 }
 
 export interface CorrespondenceCreatedResponseDto {
@@ -880,6 +883,49 @@ export interface CorrespondenceNonarchivedItemDto {
   descriptionText: string | null;
   quantity: number;
   sortOrder: number;
+}
+
+export interface CorrespondenceRecipientDto {
+  id: number;
+  departmentId: number;
+  departmentCode: string;
+  departmentNameAr: string;
+  departmentNameEn: string;
+  firstReadAt: string | null;
+  lastReadAt: string | null;
+  readCount: number;
+}
+
+export interface CorrespondenceUserRecipientDto {
+  id: number;
+  recipientUserId: string;
+  recipientUsername: string;
+  recipientFullNameAr: string;
+  recipientFullNameEn: string;
+  recipientKindCode: string;
+  firstReadAt: string | null;
+  lastReadAt: string | null;
+  readCount: number;
+  acknowledgedAt: string | null;
+}
+
+export interface CorrespondencePatchRequestDto {
+  subject?: string | null;
+  description?: string | null;
+  bodyHtml?: string | null;
+  priorityCode?: string | null;
+  confidentialityCode?: string | null;
+  classificationCode?: string | null;
+  senderOrganizationId?: number | null;
+  recipientOrganizationId?: number | null;
+  externalReferenceNumber?: string | null;
+  externalReferenceDate?: string | null;
+  ownerDepartmentId?: number | null;
+  dueDate?: string | null;
+  barcodeValue?: string | null;
+  beneficiaryName?: string | null;
+  beneficiaryOrganization?: string | null;
+  beneficiaryIdentifier?: string | null;
 }
 
 export interface AttachmentIndexEntryDto {

@@ -17,6 +17,7 @@ import com.gov.ac.feature.departments.repository.DepartmentRepository;
 import com.gov.ac.feature.lookups.entity.ConfidentialityEntity;
 import com.gov.ac.feature.organization.entity.OrganizationalUnitLevelEntity;
 import com.gov.ac.feature.organization.repository.OrganizationalUnitLevelRepository;
+import com.gov.ac.feature.organization.service.OrgLevelRoleResolver;
 import com.gov.ac.feature.sla.entity.SlaBreachEventEntity;
 import com.gov.ac.feature.sla.entity.SlaEscalationStepEntity;
 import com.gov.ac.feature.sla.entity.SlaPolicyEntity;
@@ -49,6 +50,7 @@ class SlaEscalationServiceTest {
   @Mock private AuthorityDelegationRepository authorityDelegationRepository;
   @Mock private DepartmentRepository departmentRepository;
   @Mock private OrganizationalUnitLevelRepository organizationalUnitLevelRepository;
+  @Mock private OrgLevelRoleResolver orgLevelRoleResolver;
   @Mock private UserRoleRepository userRoleRepository;
   @Mock private SlaBreachEventRepository slaBreachEventRepository;
   @Mock private SlaClearanceFilter slaClearanceFilter;
@@ -209,6 +211,7 @@ class SlaEscalationServiceTest {
         .thenReturn(Optional.of(level("S", 4)));
     when(organizationalUnitLevelRepository.findActiveByCode("K"))
         .thenReturn(Optional.of(level("K", 3)));
+    when(orgLevelRoleResolver.resolveRoleCode("K")).thenReturn("DEPT_MANAGER");
     when(userRoleRepository.findActiveUserIdsByRoleCodeAndDepartmentId("DEPT_MANAGER", 200L))
         .thenReturn(List.of(higherUser));
     when(slaClearanceFilter.filter(eq(correspondence), any())).thenReturn(List.of(higherUser));

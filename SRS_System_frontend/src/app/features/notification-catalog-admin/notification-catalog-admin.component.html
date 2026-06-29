@@ -1,0 +1,111 @@
+<app-erp-page-shell titleKey="notificationCatalogAdmin.pageTitle" subtitleKey="notificationCatalogAdmin.pageSubtitle">
+  <div shellActions>
+    <button type="button" class="btn" (click)="reload()" [disabled]="loading">{{ 'common.refresh' | t }}</button>
+  </div>
+
+  <p *ngIf="loading" class="muted">{{ 'common.loading' | t }}</p>
+
+  <section class="card catalog-form" *ngIf="!loading">
+    <h3>{{ (editing() ? 'notificationCatalogAdmin.editTitle' : 'notificationCatalogAdmin.createTitle') | t }}</h3>
+    <p class="muted">{{ (formKind() === 'eventType' ? 'notificationCatalogAdmin.eventTypes' : 'notificationCatalogAdmin.channels') | t }}</p>
+    <form class="catalog-form__grid" [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'notificationCatalogAdmin.code' | t }}</mat-label>
+        <input matInput formControlName="code" [readonly]="!!editing()" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'notificationCatalogAdmin.nameAr' | t }}</mat-label>
+        <input matInput formControlName="nameAr" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'notificationCatalogAdmin.nameEn' | t }}</mat-label>
+        <input matInput formControlName="nameEn" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'notificationCatalogAdmin.sortOrder' | t }}</mat-label>
+        <input matInput type="number" formControlName="sortOrder" min="0" />
+      </mat-form-field>
+      <mat-checkbox formControlName="active">{{ 'notificationCatalogAdmin.active' | t }}</mat-checkbox>
+      <div class="catalog-form__actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="submitting">
+          {{ (editing() ? 'common.save' : 'common.create') | t }}
+        </button>
+        <button mat-button type="button" (click)="cancelEdit()" *ngIf="editing() || form.dirty">
+          {{ 'common.cancel' | t }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <div class="grid" *ngIf="!loading && catalog">
+    <section class="card">
+      <div class="section-head">
+        <h3>{{ 'notificationCatalogAdmin.eventTypes' | t }}</h3>
+        <button type="button" class="btn" (click)="startCreate('eventType')">{{ 'common.add' | t }}</button>
+      </div>
+      <srs-data-table [loading]="false" [showPagination]="false">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'notificationCatalogAdmin.code' | t }}</th>
+              <th>{{ 'notificationCatalogAdmin.name' | t }}</th>
+              <th>{{ 'notificationCatalogAdmin.sortOrder' | t }}</th>
+              <th>{{ 'notificationCatalogAdmin.active' | t }}</th>
+              <th>{{ 'common.actions' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of catalog.eventTypes">
+              <td><code>{{ e.code }}</code></td>
+              <td>{{ label(e) }}</td>
+              <td>{{ e.sortOrder }}</td>
+              <td>{{ (e.active ? 'common.yes' : 'common.no') | t }}</td>
+              <td class="actions">
+                <button type="button" (click)="startEdit('eventType', e)">{{ 'common.edit' | t }}</button>
+                <button type="button" class="danger" (click)="confirmDelete('eventType', e)">{{ 'common.delete' | t }}</button>
+              </td>
+            </tr>
+            <tr *ngIf="!catalog.eventTypes.length">
+              <td colspan="5" class="empty">{{ 'common.noResults' | t }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </srs-data-table>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h3>{{ 'notificationCatalogAdmin.channels' | t }}</h3>
+        <button type="button" class="btn" (click)="startCreate('channel')">{{ 'common.add' | t }}</button>
+      </div>
+      <srs-data-table [loading]="false" [showPagination]="false">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'notificationCatalogAdmin.code' | t }}</th>
+              <th>{{ 'notificationCatalogAdmin.name' | t }}</th>
+              <th>{{ 'notificationCatalogAdmin.sortOrder' | t }}</th>
+              <th>{{ 'notificationCatalogAdmin.active' | t }}</th>
+              <th>{{ 'common.actions' | t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of catalog.channels">
+              <td><code>{{ c.code }}</code></td>
+              <td>{{ label(c) }}</td>
+              <td>{{ c.sortOrder }}</td>
+              <td>{{ (c.active ? 'common.yes' : 'common.no') | t }}</td>
+              <td class="actions">
+                <button type="button" (click)="startEdit('channel', c)">{{ 'common.edit' | t }}</button>
+                <button type="button" class="danger" (click)="confirmDelete('channel', c)">{{ 'common.delete' | t }}</button>
+              </td>
+            </tr>
+            <tr *ngIf="!catalog.channels.length">
+              <td colspan="5" class="empty">{{ 'common.noResults' | t }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </srs-data-table>
+    </section>
+  </div>
+</app-erp-page-shell>

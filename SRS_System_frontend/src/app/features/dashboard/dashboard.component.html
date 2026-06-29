@@ -1,12 +1,90 @@
-<div id="particles-js"></div>
-
 <div class="page-header">
   <div>
-    <h2>{{ 'dashboard.pageTitle' | t }}</h2>
+    <h2>{{ (isClerk() ? 'dashboard.roleClerkTitle' : isAuditor() ? 'dashboard.roleAuditorTitle' : isDeptManager() ? 'dashboard.roleDeptTitle' : 'dashboard.pageTitle') | t }}</h2>
+    <p class="muted role-subtitle" *ngIf="isClerk()">{{ 'dashboard.roleClerkSubtitle' | t }}</p>
+    <p class="muted role-subtitle" *ngIf="isAuditor()">{{ 'dashboard.roleAuditorSubtitle' | t }}</p>
+    <p class="muted role-subtitle" *ngIf="isDeptManager() && !isClerk() && !isAuditor()">{{ 'dashboard.roleDeptSubtitle' | t }}</p>
   </div>
 </div>
 
-<section class="grid c2 dashboard-top-section">
+<section class="card role-layout role-layout--clerk" *ngIf="isClerk()">
+  <h3>{{ 'dashboard.roleClerkPanelTitle' | t }}</h3>
+  <p class="muted">{{ 'dashboard.roleClerkPanelHint' | t }}</p>
+  <div class="role-layout__kpis">
+    <div>
+      <span>{{ 'dashboard.kpiInbound' | t }}</span>
+      <strong>{{ format(incoming) }}</strong>
+    </div>
+    <div>
+      <span>{{ 'dashboard.kpiProgress' | t }}</span>
+      <strong>{{ format(inProgress) }}</strong>
+    </div>
+    <div>
+      <span>{{ 'dashboard.kpiDone' | t }}</span>
+      <strong>{{ format(done) }}</strong>
+    </div>
+  </div>
+  <div class="role-layout__actions">
+    <button type="button" (click)="openRegistrationDesk()">{{ 'dashboard.openRegistrationDesk' | t }}</button>
+    <button type="button" (click)="openOutboundDelivery()">{{ 'dashboard.openOutboundDelivery' | t }}</button>
+    <button type="button" (click)="openTransctions()">{{ 'transactions.pageTitle' | t }}</button>
+  </div>
+</section>
+
+<section class="card role-layout role-layout--auditor" *ngIf="isAuditor()">
+  <h3>{{ 'dashboard.roleAuditorPanelTitle' | t }}</h3>
+  <p class="muted">{{ 'dashboard.roleAuditorPanelHint' | t }}</p>
+  <div class="role-layout__kpis">
+    <div>
+      <span>{{ 'dashboard.kpiTotal' | t }}</span>
+      <strong>{{ format(total) }}</strong>
+    </div>
+    <div>
+      <span>{{ 'dashboard.slaLate' | t }}</span>
+      <strong>{{ format(overdueCount) }}</strong>
+    </div>
+    <div>
+      <span>{{ 'dashboard.kpiProgress' | t }}</span>
+      <strong>{{ format(inProgress) }}</strong>
+    </div>
+  </div>
+  <div class="role-layout__actions">
+    <button type="button" (click)="openAuditEvents()">{{ 'dashboard.openAuditLog' | t }}</button>
+    <button type="button" (click)="openAttachmentAccessLog()">{{ 'dashboard.openAttachmentLog' | t }}</button>
+    <button type="button" (click)="openLegalHolds()">{{ 'dashboard.openLegalHolds' | t }}</button>
+    <button type="button" (click)="openReports()">{{ 'dashboard.openReports' | t }}</button>
+  </div>
+</section>
+
+<section class="card role-widget" *ngIf="isCorrespondenceManager()">
+  <h3>{{ 'dashboard.roleMgrPipelineTitle' | t }}</h3>
+  <div class="role-widget__kpis">
+    <div>
+      <span class="role-widget__label">{{ 'dashboard.kpiProgress' | t }}</span>
+      <strong>{{ format(inProgress) }}</strong>
+    </div>
+    <div>
+      <span class="role-widget__label">{{ 'dashboard.slaLate' | t }}</span>
+      <strong>{{ format(overdueCount) }}</strong>
+    </div>
+    <div>
+      <span class="role-widget__label">{{ 'dashboard.kpiDone' | t }}</span>
+      <strong>{{ format(done) }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="card role-widget role-widget--dept" *ngIf="isDeptManager()">
+  <h3>{{ 'dashboard.roleDeptTasksTitle' | t }}</h3>
+  <p>{{ 'dashboard.roleDeptTasksHint' | t:{ n: format(workflowTaskCount) } }}</p>
+  <div class="role-layout__actions">
+    <button type="button" class="btn-link" (click)="openWorkflowTasks()">{{ 'dashboard.viewAllTasks' | t }}</button>
+    <button type="button" (click)="openTransctions()">{{ 'transactions.pageTitle' | t }}</button>
+    <button type="button" (click)="openReports()">{{ 'dashboard.openReports' | t }}</button>
+  </div>
+</section>
+
+<section class="grid c2 dashboard-top-section" [class.dashboard-top-section--mgr]="isCorrespondenceManager()" [class.dashboard-top-section--focused]="useRoleFocusedLayout()">
   <div class="card sla-summary">
     <div class="card-title">
       <h3>{{ 'dashboard.slaCardTitle' | t }}</h3>
@@ -91,7 +169,24 @@
   </div>
 </section>
 
-<section class="grid c3" style="margin-top: 12px">
+<section class="card role-shortcuts" *ngIf="showCorrespondMgrShortcuts() || showDeptMgrShortcuts()" style="margin-top: 12px">
+  <div class="card-title">
+    <h3>{{ 'dashboard.roleShortcutsTitle' | t }}</h3>
+  </div>
+  <p class="muted" *ngIf="showCorrespondMgrShortcuts()">{{ 'dashboard.roleShortcutsCorrespMgr' | t }}</p>
+  <div class="role-shortcuts__links" *ngIf="showCorrespondMgrShortcuts()">
+    <button type="button" (click)="router.navigate(['/registration-desk'])">{{ 'dashboard.openRegistrationDesk' | t }}</button>
+    <button type="button" (click)="router.navigate(['/outbound-delivery'])">{{ 'dashboard.openOutboundDelivery' | t }}</button>
+    <button type="button" (click)="router.navigate(['/circulars/read-report'])">{{ 'dashboard.openCircularReport' | t }}</button>
+  </div>
+  <p class="muted" *ngIf="showDeptMgrShortcuts()" style="margin-top: 0.75rem">{{ 'dashboard.roleShortcutsDeptMgr' | t }}</p>
+  <div class="role-shortcuts__links" *ngIf="showDeptMgrShortcuts()">
+    <button type="button" (click)="openWorkflowTasks()">{{ 'dashboard.openWorkflowTasks' | t }}</button>
+    <button type="button" (click)="openTransctions()">{{ 'transactions.pageTitle' | t }}</button>
+  </div>
+</section>
+
+<section class="grid c3" style="margin-top: 12px" *ngIf="showExecutiveCharts()">
   <div class="card sla-card">
     <div class="card-title">
       <h3>{{ 'dashboard.slaAlertsTitle' | t }}</h3>
@@ -147,6 +242,26 @@
 
 <div class="divider"></div>
 
+<section class="card urgent-tasks-card" style="margin-top: 12px">
+  <div class="title" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem">
+    <h3>{{ 'dashboard.urgentTasksTitle' | t }}</h3>
+    <button type="button" class="btn-link" (click)="openWorkflowTasks()">{{ 'dashboard.viewAllTasks' | t }}</button>
+  </div>
+  <p *ngIf="urgentTasksLoading" class="muted">{{ 'common.loading' | t }}</p>
+  <ul class="urgent-tasks-list" *ngIf="!urgentTasksLoading && urgentTasks.length">
+    <li *ngFor="let t of urgentTasks">
+      <button type="button" class="urgent-task-row" (click)="openUrgentTask(t.correspondenceId)">
+        <span class="urgent-task-ref">{{ t.correspondenceReferenceNumber || '—' }}</span>
+        <span class="urgent-task-subject">{{ t.correspondenceTitle || t.taskName || '—' }}</span>
+        <span class="urgent-task-meta">{{ t.priorityCode || '—' }}</span>
+      </button>
+    </li>
+  </ul>
+  <p *ngIf="!urgentTasksLoading && !urgentTasks.length" class="muted">{{ 'dashboard.noUrgentTasks' | t }}</p>
+</section>
+
+<div class="divider"></div>
+
 <section class="card" style="margin-top: 12px">
   <div class="title">
     <h3>{{ 'dashboard.recentTitle' | t }}</h3>
@@ -198,7 +313,7 @@
 
 <div class="divider"></div>
 
-<section class="grid c2" style="margin-top: 12px" id="aiAnalytics">
+<section class="grid c2" style="margin-top: 12px" id="aiAnalytics" *ngIf="showExecutiveCharts()">
   <div class="card ai-card">
     <div class="ai-title">
       <mat-icon>insights</mat-icon>

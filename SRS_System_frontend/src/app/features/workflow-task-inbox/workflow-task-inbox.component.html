@@ -1,0 +1,101 @@
+<app-erp-page-shell titleKey="workflowTasks.pageTitle" subtitleKey="workflowTasks.pageSubtitle">
+  <div shellActions class="task-inbox__toolbar">
+    <label class="task-inbox__filter">
+      <input type="checkbox" [checked]="showOnlyBreached" (change)="toggleFilter()" />
+      <span>{{ 'workflowTasks.filterOnlyBreached' | t }}</span>
+    </label>
+    <button type="button" class="btn" (click)="load()" [disabled]="loading">
+      {{ 'common.refresh' | t }}
+    </button>
+  </div>
+
+  <p class="task-inbox__error" *ngIf="errorKey">{{ errorKey | t }}</p>
+
+  <srs-data-table [loading]="loading" [showPagination]="false" [skeletonRows]="6" [skeletonColumns]="9">
+    <table class="task-inbox__table">
+      <thead>
+        <tr>
+          <th>{{ 'workflowTasks.col.ref' | t }}</th>
+          <th>{{ 'workflowTasks.col.title' | t }}</th>
+          <th>{{ 'workflowTasks.col.task' | t }}</th>
+          <th>{{ 'workflowTasks.col.level' | t }}</th>
+          <th>{{ 'workflowTasks.col.status' | t }}</th>
+          <th>{{ 'workflowTasks.col.priority' | t }}</th>
+          <th>{{ 'workflowTasks.col.createdAt' | t }}</th>
+          <th>{{ 'workflowTasks.col.sla' | t }}</th>
+          <th>{{ 'workflowTasks.col.actions' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let r of visibleRows()"
+          [class.task-inbox__row-delegated]="r.actingAsDelegate"
+          [class.task-inbox__row-acting-manager]="r.actingAsManager"
+          [class.task-inbox__row-overdue]="slaFor(r)?.overdue"
+        >
+          <td class="task-inbox__ref">{{ r.correspondenceReferenceNumber || '—' }}</td>
+          <td class="task-inbox__title">
+            {{ r.correspondenceTitle || '—' }}
+            <span
+              *ngIf="r.actingAsDelegate"
+              class="task-inbox__badge task-inbox__badge--acting"
+              [attr.title]="'workflowTasks.actingForTooltip' | t"
+            >
+              {{ 'workflowTasks.actingFor' | t }}
+            </span>
+            <span
+              *ngIf="r.actingAsManager"
+              class="task-inbox__badge task-inbox__badge--acting-manager"
+              [attr.title]="'workflowTasks.actingManagerTooltip' | t"
+            >
+              {{ 'workflowTasks.actingManager' | t }}
+            </span>
+            <span
+              *ngIf="slaFor(r) as s"
+              [class.task-inbox__badge--overdue]="s.overdue"
+              [class.task-inbox__badge--ontrack]="!s.overdue"
+              class="task-inbox__badge"
+            >
+              {{ s.overdue ? ('workflowTasks.sla.overdueBy' | t) : ('workflowTasks.sla.remaining' | t) }}
+              {{ humanizeSeconds(s.overdue ? s.secondsOverdue : s.secondsRemaining) }}
+            </span>
+          </td>
+          <td>{{ r.taskName || r.taskDefinitionKey || '—' }}</td>
+          <td>{{ r.currentLevelCode || '—' }}</td>
+          <td>{{ r.correspondenceStatusCode || '—' }}</td>
+          <td>{{ r.priorityCode || '—' }}</td>
+          <td class="task-inbox__when">{{ r.createdAt }}</td>
+          <td class="task-inbox__sla">
+            <ng-container *ngIf="slaFor(r) as s; else noSla">
+              <span class="task-inbox__sla-code">{{ s.slaPolicyCode || '—' }}</span>
+              <span *ngIf="s.lastStepActionCode" class="task-inbox__sla-step">
+                · {{ ('sla.action.' + s.lastStepActionCode) | t }}
+              </span>
+            </ng-container>
+            <ng-template #noSla>—</ng-template>
+          </td>
+          <td>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              *ngIf="r.correspondenceId"
+              (click)="openQuickAction(r)"
+            >
+              {{ 'workflowQuickAction.run' | t }}
+            </button>
+            <a
+              *ngIf="r.correspondenceId"
+              class="btn btn-link"
+              [routerLink]="['/correspondence', r.correspondenceId]"
+            >
+              {{ 'common.open' | t }}
+            </a>
+          </td>
+        </tr>
+        <tr *ngIf="!loading && !visibleRows().length">
+          <td colspan="9" class="task-inbox__empty">{{ 'common.noResults' | t }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </srs-data-table>
+</app-erp-page-shell>

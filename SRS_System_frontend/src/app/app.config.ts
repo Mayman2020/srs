@@ -2,15 +2,18 @@ import {
   ApplicationConfig,
   ApplicationRef,
   inject,
+  LOCALE_ID,
   NgZone,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners
 } from '@angular/core';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Title } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/api/auth.interceptor';
+import { authRefreshInterceptor } from './core/api/auth-refresh.interceptor';
 import { systemIssueReporterInterceptor } from './core/api/system-issue-reporter.interceptor';
 import { zonePatchHttpInterceptor } from './core/api/zone-patch-http.interceptor';
 import { catchError, firstValueFrom, of, timeout } from 'rxjs';
@@ -22,6 +25,8 @@ import { I18nService, AppLang } from './core/i18n/i18n.service';
 import { LookupLabelsService } from './core/lookup/lookup-labels.service';
 import { AuthTokenService } from './core/auth/auth-token.service';
 import { ThemeService } from './core/theme/theme.service';
+import { DateFormatAdapter } from './core/adapters/date-format.adapter';
+import { DD_MM_YYYY_DATE_FORMATS } from './core/constants/date-formats';
 
 function readStoredLang(): AppLang {
   try {
@@ -38,10 +43,15 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideAnimations(),
+    { provide: LOCALE_ID, useValue: 'en-GB' },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: DateAdapter, useClass: DateFormatAdapter },
+    { provide: MAT_DATE_FORMATS, useValue: DD_MM_YYYY_DATE_FORMATS },
     provideHttpClient(
       withInterceptors([
         zonePatchHttpInterceptor,
         authInterceptor,
+        authRefreshInterceptor,
         successNotificationInterceptor,
         httpErrorInterceptor,
         systemIssueReporterInterceptor,

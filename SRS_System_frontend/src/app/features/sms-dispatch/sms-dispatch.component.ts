@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { NotificationDispatchApiService } from '../../core/api/notification-dispatch-api.service';
+import { ErpPageShellComponent } from '../../shared/erp/erp-page-shell.component';
 
 /**
  * Outbound SMS dispatch panel for system administrators / correspondence managers with
@@ -12,14 +13,9 @@ import { NotificationDispatchApiService } from '../../core/api/notification-disp
 @Component({
   selector: 'app-sms-dispatch',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe, ErpPageShellComponent],
   template: `
-    <section class="sms-dispatch">
-      <header class="sms-dispatch__header">
-        <h1>{{ 'smsDispatch.pageTitle' | t }}</h1>
-        <p class="sms-dispatch__subtitle">{{ 'smsDispatch.pageSubtitle' | t }}</p>
-      </header>
-
+    <app-erp-page-shell titleKey="smsDispatch.pageTitle" subtitleKey="smsDispatch.pageSubtitle" [narrow]="true">
       <form class="sms-dispatch__form" [formGroup]="form" (ngSubmit)="submit()">
         <label class="sms-dispatch__field">
           <span>{{ 'smsDispatch.phone' | t }}</span>
@@ -42,13 +38,11 @@ import { NotificationDispatchApiService } from '../../core/api/notification-disp
         <p class="sms-dispatch__success" *ngIf="lastResultKey === 'sent'">{{ 'smsDispatch.successMessage' | t }}</p>
         <p class="sms-dispatch__error" *ngIf="lastResultKey === 'failed'">{{ 'smsDispatch.errorMessage' | t }}</p>
       </form>
-    </section>
+    </app-erp-page-shell>
   `,
   styles: [
     `
-      .sms-dispatch { max-width: 560px; padding: 1.5rem; }
-      .sms-dispatch__subtitle { color: var(--text-muted, #6b7280); margin: 0.25rem 0 0; }
-      .sms-dispatch__form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+      .sms-dispatch__form { display: flex; flex-direction: column; gap: 1rem; }
       .sms-dispatch__field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
       .sms-dispatch__field input, .sms-dispatch__field textarea {
         padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid var(--border, #d1d5db);
