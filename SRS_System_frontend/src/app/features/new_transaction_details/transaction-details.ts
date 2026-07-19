@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, take, takeUntil } from 'rxjs/operators';
@@ -34,7 +35,10 @@ import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SrsAuditTrailComponent } from '../../shared/components/audit-trail/srs-audit-trail.component';
+import { NavigationHistoryService } from '../../core/services/navigation-history.service';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -195,8 +199,10 @@ export interface Transaction {
     MatDialogModule,
     MatButtonModule,
     LatinDigitsPipe,
+    SrsDatePipe,
     TranslatePipe,
     StatusBadgeComponent,
+    SrsAuditTrailComponent,
     RouterLink,
   ],
   standalone: true,
@@ -205,6 +211,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
 
   /** Permission checks for toolbar actions (codes from {@code GET /api/v1/me/capabilities}). */
   readonly cap = inject(CapabilitiesService);
+  private readonly navHistory = inject(NavigationHistoryService);
+  private readonly location = inject(Location);
 
   @ViewChild('attachmentInput') attachmentInput?: ElementRef<HTMLInputElement>;
 
@@ -238,6 +246,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
   /** Backend attachment id → index rows */
   indexEntriesByAttachmentId: Record<number, AttachmentIndexEntryDto[]> = {};
   correspondenceUuid = '';
+  detailDto: CorrespondenceDetailResponseDto | null = null;
+  canGoBack = false;
 
   /** Slice 1 — calling user's read receipt for this correspondence (`null` until tracked). */
   myReadReceipt: CorrespondenceReadReceiptDto | null = null;
@@ -313,12 +323,23 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.buildForm();
+    this.syncBack();
+    this.navHistory.canGoBack$.pipe(takeUntil(this.destroy$)).subscribe(() => this.syncBack());
     this.loadTransaction();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onBack(): void {
+    this.navHistory.goBack(this.location);
+  }
+
+  private syncBack(): void {
+    this.canGoBack = this.navHistory.canGoBack();
+    this.cdr.markForCheck();
   }
 
   // ══════════════════════════════════════════════
@@ -355,6 +376,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       h: this.transactionService.getWorkflowHistory(id).pipe(
         catchError((err: unknown) => {
           console.error('[TransactionDetails] workflow history request failed', err);
+          this.toast(this.i18n.instant('transactionDetails.workflowHistoryLoadFailed'), 'error');
           return of([] as WorkflowHistoryEntryDto[]);
         })
       ),
@@ -362,6 +384,7 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ d, h }) => {
+          this.detailDto = d;
           this.transaction = this.mapDetail(d, h);
           const steps = this.transaction.timeline.length;
           this.activeIndex = steps > 0 ? steps - 1 : 0;
@@ -517,10 +540,10 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
       return;
     }
     forkJoin({
-      links: this.correspondenceApi.listLinks(id).pipe(catchError(() => of([]))),
-      na: this.correspondenceApi.listNonarchived(id).pipe(catchError(() => of([]))),
-      recipients: this.correspondenceApi.listRecipients(id).pipe(catchError(() => of([]))),
-      userRecipients: this.correspondenceApi.listUserRecipients(id).pipe(catchError(() => of([])))
+      links: this.correspondenceApi.listLinks(id),
+      na: this.correspondenceApi.listNonarchived(id),
+      recipients: this.correspondenceApi.listRecipients(id),
+      userRecipients: this.correspondenceApi.listUserRecipients(id)
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -537,7 +560,8 @@ export class TransactionDetailsComponent implements OnInit, OnDestroy {
           this.recipients = recipients ?? [];
           this.userRecipients = userRecipients ?? [];
           this.loadAttachmentIndexes();
-        }
+        },
+        error: () => this.toast(this.i18n.instant('errors.generic'), 'error')
       });
   }
 

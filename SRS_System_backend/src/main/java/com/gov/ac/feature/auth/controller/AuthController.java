@@ -3,6 +3,7 @@ package com.gov.ac.feature.auth.controller;
 import com.gov.ac.feature.auth.dto.ForgotPasswordRequestDto;
 import com.gov.ac.feature.auth.dto.LoginRequestDto;
 import com.gov.ac.feature.auth.dto.LoginResponseDto;
+import com.gov.ac.feature.auth.dto.LogoutRequestDto;
 import com.gov.ac.feature.auth.dto.MfaChallengeRequestDto;
 import com.gov.ac.feature.auth.dto.MfaVerifyRequestDto;
 import com.gov.ac.feature.auth.dto.RefreshRequestDto;
@@ -37,6 +38,12 @@ public class AuthController {
   @PreAuthorize("permitAll()")
   public LoginResponseDto refresh(@Valid @RequestBody RefreshRequestDto request) {
     return authService.refresh(request.refreshToken());
+  }
+
+  @PostMapping("/logout")
+  @PreAuthorize("permitAll()")
+  public void logout(@Valid @RequestBody LogoutRequestDto request) {
+    authService.logout(request.refreshToken());
   }
 
   /** Switch {@code active_role} claim; returns a fresh JWT (no logout). */

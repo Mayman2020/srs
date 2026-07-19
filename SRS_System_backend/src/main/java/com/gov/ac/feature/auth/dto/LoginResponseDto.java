@@ -15,4 +15,5 @@ public record LoginResponseDto(
     String username,
     List<String> roles,
     String currentRole,
-    String profileImageUrl) {}
+    String profileImageUrl,
+    boolean mustChangePassword) {}

@@ -8,6 +8,7 @@ import { LookupRowAdminDto, ServiceWorkflowRouteDto } from '../../core/api/api-t
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { DialogService } from '../../core/services/dialog.service';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 import { ErpPageShellComponent } from '../../shared/erp/erp-page-shell.component';
 
@@ -24,6 +25,7 @@ export class WorkflowRoutesAdminComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly i18n = inject(I18nService);
   private readonly toast = inject(NotificationService);
+  private readonly dialogService = inject(DialogService);
 
   rows: ServiceWorkflowRouteDto[] = [];
   correspondenceTypes: LookupRowAdminDto[] = [];
@@ -125,15 +127,20 @@ export class WorkflowRoutesAdminComponent implements OnInit {
   }
 
   remove(row: ServiceWorkflowRouteDto): void {
-    if (!confirm(this.i18n.instant('workflowRoutes.confirmDelete'))) {
-      return;
-    }
-    this.adminApi.deleteWorkflowRoute(row.id).subscribe({
-      next: () => {
-        this.reload();
-        this.toast.success('workflowRoutes.deleted');
-      },
-      error: () => this.toast.error('workflowRoutes.deleteFailed')
+    this.dialogService.openConfirm({
+      titleKey: 'admin.confirmDelete',
+      messageKey: 'workflowRoutes.confirmDelete',
+      confirmButton: { labelKey: 'common.delete', color: 'warn' },
+      cancelButton: { labelKey: 'common.close' }
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.adminApi.deleteWorkflowRoute(row.id).subscribe({
+        next: () => {
+          this.reload();
+          this.toast.success('workflowRoutes.deleted');
+        },
+        error: () => this.toast.error('workflowRoutes.deleteFailed')
+      });
     });
   }
 

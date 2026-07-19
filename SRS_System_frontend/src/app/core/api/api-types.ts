@@ -203,6 +203,8 @@ export interface CorrespondenceDetailResponseDto {
   totalAttachmentBytes: number;
   createdAt: string;
   updatedAt: string;
+  createdByUser?: UserAuditRefDto | null;
+  updatedByUser?: UserAuditRefDto | null;
   workflowRouteMode?: string | null;
   serviceWorkflowRouteId?: number | null;
   workflowProcessDefinitionKey?: string | null;
@@ -502,6 +504,7 @@ export interface LoginResponseDto {
   roles: string[];
   currentRole: string;
   profileImageUrl?: string | null;
+  mustChangePassword?: boolean;
 }
 
 export interface UserDetailDto {
@@ -513,8 +516,13 @@ export interface UserDetailDto {
   departmentCode: string | null;
   departmentId: number | null;
   active: boolean;
+  mustChangePassword?: boolean;
   roleIds: number[];
   securityClearanceId?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  createdByUser?: UserAuditRefDto | null;
+  updatedByUser?: UserAuditRefDto | null;
 }
 
 export interface CurrentUserProfileDto {

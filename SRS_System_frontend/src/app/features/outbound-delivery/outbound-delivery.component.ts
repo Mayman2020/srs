@@ -37,8 +37,10 @@ export class OutboundDeliveryComponent implements OnInit {
     recipientLabel: [''],
     proofReference: [''],
     notes: [''],
-    sentAt: [''],
-    deliveredAt: ['']
+    sentDate: [''],
+    sentTime: [''],
+    deliveredDate: [''],
+    deliveredTime: ['']
   });
 
   ngOnInit(): void {
@@ -69,8 +71,7 @@ export class OutboundDeliveryComponent implements OnInit {
       recipientLabel: '',
       proofReference: '',
       notes: '',
-      sentAt: '',
-      deliveredAt: ''
+      sentDate: '', sentTime: '', deliveredDate: '', deliveredTime: ''
     });
     this.modalOpen = true;
   }
@@ -84,8 +85,10 @@ export class OutboundDeliveryComponent implements OnInit {
       recipientLabel: row.recipientLabel ?? '',
       proofReference: row.proofReference ?? '',
       notes: row.notes ?? '',
-      sentAt: row.sentAt ? row.sentAt.slice(0, 16) : '',
-      deliveredAt: row.deliveredAt ? row.deliveredAt.slice(0, 16) : ''
+      sentDate: row.sentAt ? row.sentAt.slice(0, 10) : '',
+      sentTime: row.sentAt ? row.sentAt.slice(11, 16) : '',
+      deliveredDate: row.deliveredAt ? row.deliveredAt.slice(0, 10) : '',
+      deliveredTime: row.deliveredAt ? row.deliveredAt.slice(11, 16) : ''
     });
     this.modalOpen = true;
   }
@@ -143,8 +146,13 @@ export class OutboundDeliveryComponent implements OnInit {
       recipientLabel: v.recipientLabel.trim() || null,
       proofReference: v.proofReference.trim() || null,
       notes: v.notes.trim() || null,
-      sentAt: v.sentAt ? new Date(v.sentAt).toISOString() : null,
-      deliveredAt: v.deliveredAt ? new Date(v.deliveredAt).toISOString() : null
+      sentAt: this.toIso(v.sentDate, v.sentTime),
+      deliveredAt: this.toIso(v.deliveredDate, v.deliveredTime)
     };
+  }
+
+  private toIso(date: string, time: string): string | null {
+    if (!date) return null;
+    return new Date(`${date}T${time || '00:00'}:00`).toISOString();
   }
 }

@@ -1,10 +1,20 @@
 <div [ngClass]="toolbarClasses()">
-  <div class="erp-page-toolbar__text">
-    <h2 class="erp-page-toolbar__title">{{ titleKey | t }}</h2>
-    @if (subtitleKey) {
-      <p class="erp-page-toolbar__subtitle">{{ subtitleKey | t }}</p>
-    }
-    <ng-content select="[erpToolbarMeta]"></ng-content>
+  <div class="erp-page-toolbar__lead">
+    <button
+      *ngIf="canGoBack"
+      type="button"
+      class="erp-page-toolbar__back"
+      (click)="onBack()"
+      [attr.aria-label]="'common.back' | t">
+      <span class="material-icons" aria-hidden="true">arrow_back</span>
+    </button>
+    <div class="erp-page-toolbar__text">
+      <h2 class="erp-page-toolbar__title">{{ titleKey | t }}</h2>
+      @if (subtitleKey) {
+        <p class="erp-page-toolbar__subtitle">{{ subtitleKey | t }}</p>
+      }
+      <ng-content select="[erpToolbarMeta]"></ng-content>
+    </div>
   </div>
   <div class="erp-page-toolbar__actions">
     <ng-content select="[erpToolbarActions]"></ng-content>

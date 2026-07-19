@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize, forkJoin } from 'rxjs';
 import { CorrespondenceApiService, CorrespondenceListParams } from '../../core/api/correspondence-api.service';
 import { CorrespondenceListItemDto, UserAuditRefDto } from '../../core/api/api-types';
 import { LookupItemDto } from '../../core/api/api-types';
@@ -13,8 +14,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { LookupLabelDto } from '../../core/api/api-types';
 import { StatusBadgeComponent } from '../../shared/status-badge/status-badge.component';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
-import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
-import { forkJoin } from 'rxjs';
+import { ListLoadController } from '../../shared/utils/list-load.util';
 
 @Component({
   selector: 'app-correspondence-search',
@@ -24,7 +24,7 @@ import { forkJoin } from 'rxjs';
   styleUrl: './correspondence-search.component.css'
 })
 export class CorrespondenceSearchComponent implements OnInit {
-  loading = true;
+  readonly listLoad = new ListLoadController();
   rows: CorrespondenceListItemDto[] = [];
   totalElements = 0;
   page = 0;
@@ -61,14 +61,11 @@ export class CorrespondenceSearchComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    subscribePageLoad({
-      cdr: this.cdr,
-      source: forkJoin({
-        correspondenceTypes: this.lookupLabels.loadTable(LookupCode.CorrespondenceType),
-        correspondenceStatuses: this.lookupLabels.loadTable(LookupCode.CorrespondenceStatus),
-        priorities: this.lookupLabels.loadTable(LookupCode.Priority),
-      }),
-      setLoading: (loading) => (this.loading = loading),
+    forkJoin({
+      correspondenceTypes: this.lookupLabels.loadTable(LookupCode.CorrespondenceType),
+      correspondenceStatuses: this.lookupLabels.loadTable(LookupCode.CorrespondenceStatus),
+      priorities: this.lookupLabels.loadTable(LookupCode.Priority)
+    }).subscribe({
       next: ({ correspondenceTypes, correspondenceStatuses, priorities }) => {
         this.correspondenceTypes = correspondenceTypes ?? [];
         this.correspondenceStatuses = correspondenceStatuses ?? [];
@@ -93,19 +90,25 @@ export class CorrespondenceSearchComponent implements OnInit {
       createdFrom: this.toInstantStart(this.createdFrom),
       createdTo: this.toInstantEnd(this.createdTo)
     };
-    subscribePageLoad({
-      cdr: this.cdr,
-      source: this.api.list(p),
-      setLoading: (loading) => (this.loading = loading),
-      next: (pg) => {
-        this.rows = pg.content ?? [];
-        this.totalElements = pg.totalElements ?? 0;
-      },
-      error: () => {
-        this.rows = [];
-        this.totalElements = 0;
-      }
-    });
+    this.listLoad.begin();
+    this.api
+      .list(p)
+      .pipe(
+        finalize(() => {
+          this.listLoad.end();
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (pg) => {
+          this.rows = pg.content ?? [];
+          this.totalElements = pg.totalElements ?? 0;
+        },
+        error: () => {
+          this.rows = [];
+          this.totalElements = 0;
+        }
+      });
   }
 
   private toInstantStart(d: string): string | undefined {

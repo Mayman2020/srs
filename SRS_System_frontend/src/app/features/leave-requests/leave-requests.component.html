@@ -54,8 +54,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let r of mine">
-            <td>{{ (r.startDate | date : 'dd/MM/yyyy') | latinDigits }}</td>
-            <td>{{ (r.endDate | date : 'dd/MM/yyyy') | latinDigits }}</td>
+            <td>{{ r.startDate | srsDate:'date' }}</td>
+            <td>{{ r.endDate | srsDate:'date' }}</td>
             <td>
               <span class="type-badge badge-{{ statusBadgeClass(r) }}">
                 {{ statusLabel(r.statusCode) }}
@@ -100,8 +100,8 @@
         <tbody>
           <tr *ngFor="let r of filteredAdminRows()">
             <td>{{ r.fullNameAr || r.username }}</td>
-            <td>{{ (r.startDate | date : 'dd/MM/yyyy') | latinDigits }}</td>
-            <td>{{ (r.endDate | date : 'dd/MM/yyyy') | latinDigits }}</td>
+            <td>{{ r.startDate | srsDate:'date' }}</td>
+            <td>{{ r.endDate | srsDate:'date' }}</td>
             <td>
               <span class="type-badge badge-{{ statusBadgeClass(r) }}">
                 {{ statusLabel(r.statusCode) }}

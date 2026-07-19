@@ -6,6 +6,7 @@ import {
   RetentionAdminApiService
 } from '../../core/api/retention-admin-api.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { DialogService } from '../../core/services/dialog.service';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -18,7 +19,7 @@ import { NotificationService } from '../../core/services/notification.service';
 @Component({
   selector: 'app-legal-holds-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslatePipe, SrsDatePipe],
   templateUrl: './legal-holds-admin.component.html',
   styleUrl: './legal-holds-admin.component.scss'
 })

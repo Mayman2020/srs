@@ -1,5 +1,6 @@
 package com.gov.ac.feature.correspondence.mapper;
 
+import com.gov.ac.common.audit.UserAuditRefDto;
 import com.gov.ac.feature.correspondence.dto.AttachmentVersionDto;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceAttachmentDetailDto;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceCommentDetailDto;
@@ -43,7 +44,9 @@ public class CorrespondenceDetailMapper {
       List<WorkflowActionAvailableDto> availableWorkflowActions,
       boolean cancelAllowed,
       CorrespondenceReadReceiptDto myReadReceipt,
-      boolean acknowledgementSupported) {
+      boolean acknowledgementSupported,
+      UserAuditRefDto createdByUser,
+      UserAuditRefDto updatedByUser) {
 
     List<CorrespondenceAttachmentDetailDto> attachmentDtos = new ArrayList<>();
     for (AttachmentEntity a : attachments) {
@@ -89,6 +92,8 @@ public class CorrespondenceDetailMapper {
         .totalAttachmentBytes(c.getTotalAttachmentBytes() != null ? c.getTotalAttachmentBytes() : 0L)
         .createdAt(c.getCreatedAt())
         .updatedAt(c.getUpdatedAt())
+        .createdByUser(createdByUser)
+        .updatedByUser(updatedByUser)
         .workflowRouteMode(
             c.getWorkflowRouteMode() != null ? c.getWorkflowRouteMode() : "AUTO")
         .serviceWorkflowRouteId(

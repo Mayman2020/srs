@@ -8,7 +8,7 @@ import { AuthTokenService } from '../auth/auth-token.service';
 let refreshInFlight: ReturnType<AuthApiService['refresh']> | null = null;
 
 function isAuthEndpoint(url: string): boolean {
-  return url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/mfa');
+  return url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/logout') || url.includes('/auth/mfa');
 }
 
 /**

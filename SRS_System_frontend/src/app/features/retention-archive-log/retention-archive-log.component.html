@@ -30,7 +30,7 @@
             *ngFor="let row of rows()"
             (click)="select(row)"
             [class.selected]="selected()?.id === row.id">
-            <td>{{ row.executedAt | date: 'short' }}</td>
+            <td>{{ row.executedAt | srsDate:'datetime' }}</td>
             <td><span class="badge">{{ row.action }}</span></td>
             <td><code class="code">{{ row.appliedTo }}</code></td>
             <td><code class="code">{{ row.resourceId }}</code></td>

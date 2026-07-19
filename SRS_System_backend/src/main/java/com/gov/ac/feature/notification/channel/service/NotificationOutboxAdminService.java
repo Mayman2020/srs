@@ -59,6 +59,8 @@ public class NotificationOutboxAdminService {
         e.getChannelCode(),
         e.getRecipientUserId(),
         e.getRecipientAddress(),
+        e.getCorrelationResourceType(),
+        e.getCorrelationResourceId(),
         e.getStatus(),
         e.getAttemptCount(),
         e.getNextAttemptAt(),

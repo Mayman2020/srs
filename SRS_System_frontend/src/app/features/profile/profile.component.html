@@ -138,10 +138,10 @@
         <div class="tab-panel card-erp">
           <dl class="info-grid">
             <dt>{{ 'profile.fields.lastLogin' | t }}</dt>
-            <dd>{{ detail?.lastLoginAt ? ((detail?.lastLoginAt | date : 'medium') | latinDigits) : ('common.dash' | t) }}</dd>
+            <dd>{{ detail?.lastLoginAt ? (detail?.lastLoginAt | srsDate:'datetime') : ('common.dash' | t) }}</dd>
 
             <dt>{{ 'profile.fields.passwordChangedAt' | t }}</dt>
-            <dd>{{ detail?.passwordChangedAt ? ((detail?.passwordChangedAt | date : 'medium') | latinDigits) : ('common.dash' | t) }}</dd>
+            <dd>{{ detail?.passwordChangedAt ? (detail?.passwordChangedAt | srsDate:'datetime') : ('common.dash' | t) }}</dd>
 
             <dt>{{ 'profile.fields.mfa' | t }}</dt>
             <dd>{{ mfaLabel(detail?.mfaEnabled) }}</dd>

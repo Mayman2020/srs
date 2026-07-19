@@ -109,6 +109,16 @@ public class AuthService {
   }
 
   @Transactional
+  public void logout(String refreshTokenJti) {
+    try {
+      UUID jti = UUID.fromString(refreshTokenJti.trim());
+      refreshTokenRepository.findByJti(jti).ifPresent(refreshTokenRepository::delete);
+    } catch (IllegalArgumentException ignored) {
+      // Idempotent logout: malformed or already-revoked tokens reveal no session information.
+    }
+  }
+
+  @Transactional
   public LoginResponseDto switchRole(UUID userId, Authentication authentication, String roleCode) {
     String normalized = roleCode == null ? "" : roleCode.trim();
     if (normalized.isEmpty()) {
@@ -148,7 +158,8 @@ public class AuthService {
           user.getUsername(),
           sorted,
           normalized,
-          profileImageUrl(user));
+          profileImageUrl(user),
+          Boolean.TRUE.equals(user.getMustChangePassword()));
     } catch (JOSEException e) {
       throw new IllegalStateException("Could not issue token", e);
     }
@@ -250,6 +261,7 @@ public class AuthService {
     user.setPasswordChangedAt(Instant.now());
     user.setFailedLoginCount(0);
     user.setLockedUntil(null);
+    user.setMustChangePassword(false);
     appUserRepository.save(user);
     row.setConsumed(true);
     passwordResetTokenRepository.save(row);
@@ -362,7 +374,8 @@ public class AuthService {
           user.getUsername(),
           sorted,
           current,
-          profileImageUrl(user));
+          profileImageUrl(user),
+          Boolean.TRUE.equals(user.getMustChangePassword()));
     } catch (JOSEException e) {
       throw new IllegalStateException("Could not issue token", e);
     }

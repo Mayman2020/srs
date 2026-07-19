@@ -9,9 +9,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { UserDirectoryApiService } from '../../core/api/user-directory-api.service';
+import { EffectivePermissionDto, UserDirectoryApiService } from '../../core/api/user-directory-api.service';
 import { AdminConsoleApiService } from '../../core/api/admin-console-api.service';
 import { RoleApiService } from '../../core/api/role-api.service';
 import { DepartmentApiService } from '../../core/api/department-api.service';
@@ -26,6 +27,7 @@ import {
 } from '../../core/api/api-types';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
+import { DialogService } from '../../core/services/dialog.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { CapabilitiesService } from '../../core/auth/capabilities.service';
 import { matchesTableSearch } from '../../core/util/table-text-filter';
@@ -45,6 +47,7 @@ export type AdminTab = 'users' | 'permissions' | 'screens' | 'roles' | 'issues';
     FormsModule,
     TranslatePipe,
     LatinDigitsPipe,
+    SrsDatePipe,
     ErpAutoReferenceFieldComponent,
     MultiChoiceTableComponent,
     SrsDataTableComponent
@@ -57,6 +60,10 @@ export class AdministrationComponent implements OnInit {
 
   users: UserListDto[] = [];
   filteredUsers: UserListDto[] = [];
+  usersPageIndex = 0;
+  usersPageSize = 20;
+  usersTotal = 0;
+  readonly togglingUserIds = new Set<string>();
   searchQuery = '';
   filterStatus: 'all' | 'active' | 'suspended' = 'all';
   departments: DepartmentFlatDto[] = [];
@@ -87,6 +94,7 @@ export class AdministrationComponent implements OnInit {
   } = this.emptyUserForm();
   assignRoleIds: number[] = [];
   assignTargetUserId: string | null = null;
+  effectivePermissions: EffectivePermissionDto[] = [];
 
   permModal: 'add' | 'edit' | null = null;
   permForm = this.emptyPermForm();
@@ -110,6 +118,7 @@ export class AdministrationComponent implements OnInit {
     private deptApi: DepartmentApiService,
     private i18n: I18nService,
     private notification: NotificationService,
+    private readonly dialogService: DialogService,
     private readonly cdr: ChangeDetectorRef,
     private readonly cap: CapabilitiesService
   ) {}
@@ -118,6 +127,10 @@ export class AdministrationComponent implements OnInit {
     const def = this.route.snapshot.data['defaultAdminTab'] as AdminTab | undefined;
     if (def && this.isTab(def)) {
       this.activeTab = def;
+    }
+    if (!this.canOpenTab(this.activeTab)) {
+      this.activeTab = (['users', 'permissions', 'screens', 'roles', 'issues'] as AdminTab[])
+        .find((tab) => this.canOpenTab(tab)) ?? 'users';
     }
     this.route.queryParamMap.subscribe((q) => {
       const t = q.get('tab') as AdminTab;
@@ -144,7 +157,19 @@ export class AdministrationComponent implements OnInit {
     return ['users', 'permissions', 'screens', 'roles', 'issues'].includes(t);
   }
 
+  canOpenTab(tab: AdminTab): boolean {
+    const permission: Record<AdminTab, string> = {
+      users: 'ADMIN_USER_MANAGE',
+      permissions: 'ADMIN_ROLE_MANAGE',
+      screens: 'ADMIN_UI_SCREEN_MANAGE',
+      roles: 'ADMIN_ROLE_MANAGE',
+      issues: 'ADMIN_AUDIT_VIEW'
+    };
+    return this.cap.can(permission[tab]);
+  }
+
   selectTab(tab: AdminTab): void {
+    if (!this.canOpenTab(tab)) return;
     this.activeTab = tab;
     this.router.navigate([], {
       relativeTo: this.route,
@@ -202,10 +227,11 @@ export class AdministrationComponent implements OnInit {
     subscribePageLoad({
       cdr: this.cdr,
       setLoading: (value) => (this.loading = value),
-      source: this.usersApi.list(0, 500),
+      source: this.usersApi.list(this.usersPageIndex, this.usersPageSize, this.searchQuery),
       next: (p) => {
         this.errorMsg = '';
         this.users = p.content ?? [];
+        this.usersTotal = p.totalElements ?? 0;
         this.applyFilters();
       },
       error: (err) => {
@@ -254,11 +280,19 @@ export class AdministrationComponent implements OnInit {
   }
 
   onSearchChange(): void {
-    this.applyFilters();
+    this.usersPageIndex = 0;
+    this.loadUsers();
   }
 
   onFilterChange(): void {
     this.applyFilters();
+  }
+
+  changeUsersPage(delta: number): void {
+    const next = this.usersPageIndex + delta;
+    if (next < 0 || next * this.usersPageSize >= this.usersTotal) return;
+    this.usersPageIndex = next;
+    this.loadUsers();
   }
 
   statusLabel(active: boolean): string {
@@ -268,13 +302,9 @@ export class AdministrationComponent implements OnInit {
   loadPermissions(): void {
     subscribePageLoad({
       cdr: this.cdr,
-      source: forkJoin({
-        perms: this.adminApi.listPermissions(),
-        screens: this.adminApi.listUiScreens()
-      }),
-      next: ({ perms, screens }) => {
+      source: this.adminApi.listPermissions(),
+      next: (perms) => {
         this.permissions = perms ?? [];
-        this.screens = screens ?? [];
       },
       error: (err) => {
         this.permissions = [];
@@ -450,12 +480,17 @@ export class AdministrationComponent implements OnInit {
     this.syncViewAfterAsyncMutation(() => {
       this.assignTargetUserId = u.id;
       this.assignRoleIds = [];
+      this.effectivePermissions = [];
       this.userModal = 'assign';
     });
-    this.usersApi.getOne(u.id).subscribe({
-      next: (d) => {
+    forkJoin({
+      detail: this.usersApi.getOne(u.id),
+      effective: this.usersApi.effectivePermissions(u.id)
+    }).subscribe({
+      next: ({ detail, effective }) => {
         this.syncViewAfterAsyncMutation(() => {
-          this.assignRoleIds = this.normalizeRoleIds(d.roleIds);
+          this.assignRoleIds = this.normalizeRoleIds(detail.roleIds);
+          this.effectivePermissions = effective ?? [];
         });
       },
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
@@ -517,48 +552,37 @@ export class AdministrationComponent implements OnInit {
   }
 
   deleteUser(u: UserListDto): void {
-    if (!confirm(this.i18n.instant('admin.confirmDeleteUser'))) {
-      return;
-    }
-    this.usersApi.delete(u.id).subscribe({
-      next: () => {
-        this.loadUsers();
-        this.toastOk('admin.userDeleted');
-      },
-      error: (e: HttpErrorResponse & { userMessage?: string }) => {
-        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
-      }
+    this.dialogService.openConfirm({
+      titleKey: 'admin.confirmDelete',
+      messageKey: 'admin.confirmDeleteUser',
+      confirmButton: { labelKey: 'common.delete', color: 'warn' },
+      cancelButton: { labelKey: 'common.close' }
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.usersApi.delete(u.id).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.toastOk('admin.userDeleted');
+        },
+        error: (e: HttpErrorResponse & { userMessage?: string }) => {
+          this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
+        }
+      });
     });
   }
 
   toggleUserStatus(u: UserListDto): void {
-    this.usersApi.getOne(u.id).subscribe({
-      next: (d) => {
-        if (d.departmentId == null) {
-          this.errorMsg = this.i18n.instant('admin.validationUser');
-          return;
-        }
-        this.usersApi
-          .update(u.id, {
-            fullNameAr: d.fullNameAr,
-            fullNameEn: d.fullNameEn,
-            email: d.email,
-            departmentId: d.departmentId,
-            active: !d.active,
-            securityClearanceId: d.securityClearanceId ?? null
-          })
-          .subscribe({
-            next: () => {
-              this.loadUsers();
-              this.toastOk('admin.userUpdated');
-            },
-            error: (e: HttpErrorResponse & { userMessage?: string }) => {
-              this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
-            }
-          });
+    if (this.togglingUserIds.has(u.id)) return;
+    this.togglingUserIds.add(u.id);
+    this.usersApi.toggleActive(u.id).subscribe({
+      next: () => {
+        this.togglingUserIds.delete(u.id);
+        this.loadUsers();
+        this.toastOk('admin.userUpdated');
       },
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
-        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
+        this.togglingUserIds.delete(u.id);
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
       }
     });
   }
@@ -572,6 +596,7 @@ export class AdministrationComponent implements OnInit {
         this.userModal = null;
         this.assignTargetUserId = null;
         this.assignRoleIds = [];
+        this.effectivePermissions = [];
         this.loadUsers();
         this.toastOk('admin.roleAssigned');
       },
@@ -586,6 +611,7 @@ export class AdministrationComponent implements OnInit {
       this.userModal = null;
       this.assignTargetUserId = null;
       this.assignRoleIds = [];
+      this.effectivePermissions = [];
     });
   }
 
@@ -664,18 +690,23 @@ export class AdministrationComponent implements OnInit {
   }
 
   deletePerm(p: PermissionAdminDto): void {
-    if (!confirm(this.i18n.instant('admin.confirmDelete'))) {
-      return;
-    }
-    this.adminApi.deletePermission(p.id).subscribe({
-      next: () => {
-        this.loadPermissions();
-        this.loadMatrix();
-        this.toastOk('admin.deleted');
-      },
-      error: (e: HttpErrorResponse & { userMessage?: string }) => {
-        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
-      }
+    this.dialogService.openConfirm({
+      titleKey: 'admin.confirmDelete',
+      messageKey: 'admin.confirmDelete',
+      confirmButton: { labelKey: 'common.delete', color: 'warn' },
+      cancelButton: { labelKey: 'common.close' }
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.adminApi.deletePermission(p.id).subscribe({
+        next: () => {
+          this.loadPermissions();
+          this.loadMatrix();
+          this.toastOk('admin.deleted');
+        },
+        error: (e: HttpErrorResponse & { userMessage?: string }) => {
+          this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
+        }
+      });
     });
   }
 
@@ -731,17 +762,22 @@ export class AdministrationComponent implements OnInit {
   }
 
   deleteScreen(s: UiScreenDto): void {
-    if (!confirm(this.i18n.instant('admin.confirmDelete'))) {
-      return;
-    }
-    this.adminApi.deleteUiScreen(s.id).subscribe({
-      next: () => {
-        this.loadScreens();
-        this.toastOk('admin.deleted');
-      },
-      error: (e: HttpErrorResponse & { userMessage?: string }) => {
-        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
-      }
+    this.dialogService.openConfirm({
+      titleKey: 'admin.confirmDelete',
+      messageKey: 'admin.confirmDelete',
+      confirmButton: { labelKey: 'common.delete', color: 'warn' },
+      cancelButton: { labelKey: 'common.close' }
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.adminApi.deleteUiScreen(s.id).subscribe({
+        next: () => {
+          this.loadScreens();
+          this.toastOk('admin.deleted');
+        },
+        error: (e: HttpErrorResponse & { userMessage?: string }) => {
+          this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
+        }
+      });
     });
   }
 

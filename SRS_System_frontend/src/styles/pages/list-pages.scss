@@ -23,9 +23,26 @@
   overflow: hidden;
 }
 
-.estate-card.app-list-surface {
-  padding: 0;
+.app-list-surface {
+  position: relative;
 }
+
+.app-list-surface.is-refreshing {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.list-refresh-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: color-mix(in srgb, var(--surface, #fff) 55%, transparent);
+  font-weight: 600;
+}
+
 
 .estate-card.admin-filters {
   display: flex;

@@ -1,6 +1,7 @@
 package com.gov.ac.config;
 
 import com.gov.ac.security.AcJwtAuthenticationConverter;
+import com.gov.ac.security.MustChangePasswordFilter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.crypto.SecretKey;
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 
@@ -33,6 +35,7 @@ public class SecurityConfig {
 
   private final AcJwtAuthenticationConverter acJwtAuthenticationConverter;
   private final Environment environment;
+  private final MustChangePasswordFilter mustChangePasswordFilter;
 
   @Value("${ac.security.headers.hsts-enabled:false}")
   private boolean hstsEnabled;
@@ -76,6 +79,7 @@ public class SecurityConfig {
     http.securityMatcher(
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
+            "/api/v1/auth/logout",
             "/api/v1/auth/mfa/challenge",
             "/api/v1/auth/mfa/verify",
             "/api/v1/auth/forgot-password",
@@ -115,6 +119,7 @@ public class SecurityConfig {
         });
     http.oauth2ResourceServer(
         o -> o.jwt(j -> j.decoder(jwtDecoder).jwtAuthenticationConverter(acJwtAuthenticationConverter)));
+    http.addFilterBefore(mustChangePasswordFilter, AuthorizationFilter.class);
     return http.build();
   }
 

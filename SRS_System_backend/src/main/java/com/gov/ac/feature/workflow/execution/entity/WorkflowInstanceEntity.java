@@ -16,6 +16,8 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "workflow_instance", schema = "srs_system")
 @Getter
@@ -50,6 +52,7 @@ public class WorkflowInstanceEntity extends SoftDeletableEntity {
   private String businessKey;
 
   /** JSON snapshot of the routing chain produced by {@code routingChainDelegate} (V5 column). */
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "routing_chain_json", columnDefinition = "jsonb")
   private String routingChainJson;
 

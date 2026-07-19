@@ -90,6 +90,7 @@ public class CurrentUserProfileService {
     user.setPasswordChangedAt(Instant.now());
     user.setFailedLoginCount(0);
     user.setLockedUntil(null);
+    user.setMustChangePassword(false);
     appUserRepository.save(user);
   }
 

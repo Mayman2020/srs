@@ -24,6 +24,11 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
+                "glob": "runtime-config.js",
+                "input": "src/assets",
+                "output": "assets"
+              },
+              {
                 "glob": "favicon.ico",
                 "input": "public"
               },
@@ -108,7 +113,7 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "host": "0.0.0.0",
-            "port": 1200,
+            "port": 4205,
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {

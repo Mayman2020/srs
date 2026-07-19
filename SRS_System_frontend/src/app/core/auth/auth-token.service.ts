@@ -9,6 +9,7 @@ const USER_ID_KEY = 'ac_user_id';
 const ROLES_KEY = 'ac_roles_json';
 const CURRENT_ROLE_KEY = 'ac_current_role';
 const AVATAR_URL_KEY = 'ac_avatar_url';
+const MUST_CHANGE_PASSWORD_KEY = 'ac_must_change_password';
 
 export interface AuthSessionPayload {
   accessToken: string;
@@ -18,6 +19,7 @@ export interface AuthSessionPayload {
   roles?: string[] | null;
   currentRole?: string | null;
   profileImageUrl?: string | null;
+  mustChangePassword?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -141,6 +143,27 @@ export class AuthTokenService {
     }
   }
 
+  mustChangePassword(): boolean {
+    try {
+      return localStorage.getItem(MUST_CHANGE_PASSWORD_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  setMustChangePassword(required: boolean): void {
+    try {
+      if (required) {
+        localStorage.setItem(MUST_CHANGE_PASSWORD_KEY, 'true');
+      } else {
+        localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+    this.pushSession();
+  }
+
   /** Persists token, identity, roles, and optional avatar from login or switch-role. */
   applySessionPayload(payload: AuthSessionPayload): void {
     this.setToken(payload.accessToken);
@@ -187,6 +210,17 @@ export class AuthTokenService {
       /* ignore */
     }
     this.syncAvatarStorage(payload);
+    if (payload.mustChangePassword !== undefined) {
+      try {
+        if (payload.mustChangePassword) {
+          localStorage.setItem(MUST_CHANGE_PASSWORD_KEY, 'true');
+        } else {
+          localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
     this.pushSession();
   }
 
@@ -199,6 +233,7 @@ export class AuthTokenService {
       localStorage.removeItem(CURRENT_ROLE_KEY);
       localStorage.removeItem(AVATAR_URL_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
     } catch {
       /* ignore */
     }

@@ -66,6 +66,9 @@ public class AppUserEntity extends SoftDeletableEntity {
   @Column(name = "password_changed_at")
   private Instant passwordChangedAt;
 
+  @Column(name = "must_change_password", nullable = false)
+  private Boolean mustChangePassword = false;
+
   @Column(name = "mfa_enabled", nullable = false)
   private Boolean mfaEnabled = false;
 

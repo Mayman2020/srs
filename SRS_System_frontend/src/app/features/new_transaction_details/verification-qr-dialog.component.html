@@ -19,7 +19,7 @@
       <input type="text" readonly [value]="verifyUrl() ?? ''" (focus)="$event.target && ($any($event.target).select())" />
     </label>
     <p *ngIf="issued()?.expiresAt as exp" class="expires">
-      {{ 'verify.expiresAt' | t }}: {{ exp | date: 'medium' }}
+      {{ 'verify.expiresAt' | t }}: {{ exp | srsDate:'datetime' }}
     </p>
     <p *ngIf="!issued()?.expiresAt" class="expires">{{ 'verify.permanent' | t }}</p>
   </ng-container>

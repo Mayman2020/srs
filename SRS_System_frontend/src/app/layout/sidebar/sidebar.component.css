@@ -19,7 +19,7 @@
 }
 
 .sidebar.collapsed {
-  width: var(--shell-sidebar-w-collapsed, 68px);
+  width: var(--shell-sidebar-w-collapsed, 76px);
   padding-inline: 8px;
 }
 

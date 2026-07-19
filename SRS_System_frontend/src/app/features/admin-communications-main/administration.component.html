@@ -8,23 +8,23 @@
   <p class="banner-ok" *ngIf="successMsg">{{ successMsg }}</p>
 
   <nav class="tab-strip" aria-label="admin sections">
-    <button type="button" class="tab" [class.active]="activeTab === 'users'" (click)="selectTab('users')">
+    <button *ngIf="canOpenTab('users')" type="button" class="tab" [class.active]="activeTab === 'users'" (click)="selectTab('users')">
       <i class="fa-solid fa-users"></i>
       {{ 'admin.tabUsers' | t }}
     </button>
-    <button type="button" class="tab" [class.active]="activeTab === 'permissions'" (click)="selectTab('permissions')">
+    <button *ngIf="canOpenTab('permissions')" type="button" class="tab" [class.active]="activeTab === 'permissions'" (click)="selectTab('permissions')">
       <i class="fa-solid fa-key"></i>
       {{ 'admin.tabPermissions' | t }}
     </button>
-    <button type="button" class="tab" [class.active]="activeTab === 'screens'" (click)="selectTab('screens')">
+    <button *ngIf="canOpenTab('screens')" type="button" class="tab" [class.active]="activeTab === 'screens'" (click)="selectTab('screens')">
       <i class="fa-solid fa-tablet-screen-button"></i>
       {{ 'admin.tabScreens' | t }}
     </button>
-    <button type="button" class="tab" [class.active]="activeTab === 'roles'" (click)="selectTab('roles')">
+    <button *ngIf="canOpenTab('roles')" type="button" class="tab" [class.active]="activeTab === 'roles'" (click)="selectTab('roles')">
       <i class="fa-solid fa-shield-halved"></i>
       {{ 'admin.tabRolesMatrix' | t }}
     </button>
-    <button type="button" class="tab tab-warn" [class.active]="activeTab === 'issues'" (click)="selectTab('issues')">
+    <button *ngIf="canOpenTab('issues')" type="button" class="tab tab-warn" [class.active]="activeTab === 'issues'" (click)="selectTab('issues')">
       <i class="fa-solid fa-triangle-exclamation"></i>
       {{ 'admin.tabIssues' | t }}
     </button>
@@ -137,6 +137,7 @@
                 <button
                   type="button"
                   class="action-btn toggle"
+                  [disabled]="togglingUserIds.has(user.id)"
                   (click)="toggleUserStatus(user)"
                   [attr.title]="(user.active ? 'users.action.suspend' : 'users.action.activate') | t">
                   <i class="fa-solid" [ngClass]="user.active ? 'fa-user-slash' : 'fa-user-check'"></i>
@@ -169,8 +170,10 @@
 
     <div class="pager-modern">
       <div class="pager-info">
-        {{ 'users.pagerLabel' | t: { n: filteredUsers.length } }}
+        {{ 'users.pagerLabel' | t: { n: usersTotal } }}
       </div>
+      <button type="button" class="btn ghost" [disabled]="usersPageIndex === 0" (click)="changeUsersPage(-1)">‹</button>
+      <button type="button" class="btn ghost" [disabled]="(usersPageIndex + 1) * usersPageSize >= usersTotal" (click)="changeUsersPage(1)">›</button>
     </div>
   </section>
 
@@ -403,7 +406,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let i of filteredIssues" [class.resolved]="issueResolved(i)">
-            <td>{{ (i.createdAt | date: 'short') | latinDigits }}</td>
+            <td>{{ i.createdAt | srsDate:'datetime' }}</td>
             <td>{{ i.severity }}</td>
             <td class="msg-cell">{{ i.message }}</td>
             <td class="url-cell" [title]="i.pageUrl || ''">{{ i.pageUrl || ('common.dash' | t) }}</td>
@@ -515,6 +518,18 @@
         selectedTitleKey="admin.assignRoleSelected">
       </srs-multi-choice-table>
       <p *ngIf="!rolesLookup.length" class="empty-cell">{{ 'common.empty' | t }}</p>
+      <section class="effective-access-panel">
+        <h4>{{ 'admin.effectivePermissionsTitle' | t }}</h4>
+        <p>{{ 'admin.effectivePermissionsHint' | t }}</p>
+        <div class="badge-list" *ngIf="effectivePermissions.length; else noEffectivePermissions">
+          <span class="type-badge in" *ngFor="let permission of effectivePermissions">
+            {{ permission.code }}
+          </span>
+        </div>
+        <ng-template #noEffectivePermissions>
+          <p class="empty-cell">{{ 'common.empty' | t }}</p>
+        </ng-template>
+      </section>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="closeUserModal()">

@@ -1,5 +1,7 @@
 package com.gov.ac.feature.correspondence.service;
 
+import com.gov.ac.common.audit.UserAuditRefDto;
+import com.gov.ac.common.audit.UserAuditResolutionService;
 import com.gov.ac.feature.correspondence.dto.CorrespondenceDetailResponseDto;
 import com.gov.ac.feature.correspondence.dto.WorkflowActionAvailableDto;
 import com.gov.ac.feature.correspondence.mapper.CorrespondenceDetailMapper;
@@ -46,6 +48,7 @@ public class CorrespondenceDetailService {
   private final CorrespondenceWorkflowAvailabilityService correspondenceWorkflowAvailabilityService;
   private final CorrespondenceCancelService correspondenceCancelService;
   private final CorrespondenceReadTrackingService correspondenceReadTrackingService;
+  private final UserAuditResolutionService userAuditResolutionService;
 
   @Transactional(readOnly = true)
   public CorrespondenceDetailResponseDto getByBarcode(String barcode, UUID viewerId) {
@@ -131,6 +134,11 @@ public class CorrespondenceDetailService {
           ex.getMessage());
     }
 
+    UserAuditRefDto createdByUser =
+        userAuditResolutionService.toRef(correspondence.getCreatedBy()).orElse(null);
+    UserAuditRefDto updatedByUser =
+        userAuditResolutionService.toRef(correspondence.getUpdatedBy()).orElse(null);
+
     return correspondenceDetailMapper.toResponse(
         correspondence,
         attachments,
@@ -140,6 +148,8 @@ public class CorrespondenceDetailService {
         actions,
         cancelAllowed,
         myReceipt,
-        true);
+        true,
+        createdByUser,
+        updatedByUser);
   }
 }

@@ -10,6 +10,7 @@ import {
 } from '../../core/api/platform-circular-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
 import { NotificationService } from '../../core/services/notification.service';
@@ -21,6 +22,7 @@ import { NotificationService } from '../../core/services/notification.service';
     CommonModule,
     TranslatePipe,
     LatinDigitsPipe,
+    SrsDatePipe,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule

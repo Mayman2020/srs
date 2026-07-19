@@ -47,7 +47,8 @@ export class AuthApiService {
           userId: r.userId,
           roles: r.roles,
           currentRole: r.currentRole,
-          profileImageUrl: r.profileImageUrl
+          profileImageUrl: r.profileImageUrl,
+          mustChangePassword: r.mustChangePassword
         });
       })
     );
@@ -73,7 +74,8 @@ export class AuthApiService {
           userId: r.userId,
           roles: r.roles,
           currentRole: r.currentRole,
-          profileImageUrl: r.profileImageUrl
+          profileImageUrl: r.profileImageUrl,
+          mustChangePassword: r.mustChangePassword
         });
       })
     );
@@ -93,7 +95,8 @@ export class AuthApiService {
           userId: r.userId,
           roles: r.roles,
           currentRole: r.currentRole,
-          profileImageUrl: r.profileImageUrl
+          profileImageUrl: r.profileImageUrl,
+          mustChangePassword: r.mustChangePassword
         });
       })
     );
@@ -113,14 +116,22 @@ export class AuthApiService {
           userId: r.userId,
           roles: r.roles,
           currentRole: r.currentRole,
-          profileImageUrl: r.profileImageUrl
+          profileImageUrl: r.profileImageUrl,
+          mustChangePassword: r.mustChangePassword
         });
       })
     );
   }
 
   logout(): void {
+    const refreshToken = this.tokens.getRefreshToken();
     this.tokens.clear();
+    if (refreshToken) {
+      const auth = apiPath(this.base, AppConstants.API.AUTH);
+      this.http.post<void>(`${auth}/logout`, { refreshToken }, {
+        context: withSilentNotifications()
+      }).subscribe({ error: () => {} });
+    }
   }
 
   forgotPassword(username: string): Observable<void> {

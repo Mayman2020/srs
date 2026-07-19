@@ -118,7 +118,11 @@
           </form>
         </div>
 
-        <div class="intranet-panel lookup-page__table-panel" *ngIf="!loadingRows">
+        <div
+          class="intranet-panel lookup-page__table-panel app-list-surface"
+          [class.is-refreshing]="rowsLoad.refreshing"
+          *ngIf="rowsLoad.showSurface">
+          <div class="list-refresh-spinner" *ngIf="rowsLoad.refreshing">{{ 'common.loading' | t }}</div>
           <div class="filters-modern lookup-page__table-search">
             <input
               type="search"
@@ -176,7 +180,7 @@
           </div>
           <p class="lookup-page__empty" *ngIf="!filteredRows().length">{{ 'common.empty' | t }}</p>
         </div>
-        <p *ngIf="loadingRows" class="lookup-page__loading">{{ 'common.loading' | t }}</p>
+        <p *ngIf="rowsLoad.showInitialSpinner" class="lookup-page__loading">{{ 'common.loading' | t }}</p>
       </div>
     </div>
   </ng-container>

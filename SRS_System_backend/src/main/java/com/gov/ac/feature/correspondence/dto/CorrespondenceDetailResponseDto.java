@@ -1,5 +1,6 @@
 package com.gov.ac.feature.correspondence.dto;
 
+import com.gov.ac.common.audit.UserAuditRefDto;
 import com.gov.ac.feature.correspondence.readtracking.dto.CorrespondenceReadReceiptDto;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,6 +33,8 @@ public class CorrespondenceDetailResponseDto {
   long totalAttachmentBytes;
   Instant createdAt;
   Instant updatedAt;
+  UserAuditRefDto createdByUser;
+  UserAuditRefDto updatedByUser;
 
   String workflowRouteMode;
   Long serviceWorkflowRouteId;

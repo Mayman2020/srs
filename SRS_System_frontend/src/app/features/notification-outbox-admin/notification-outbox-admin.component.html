@@ -61,7 +61,7 @@
               </span>
             </td>
             <td class="num">{{ row.attemptCount }}</td>
-            <td>{{ row.nextAttemptAt ? (row.nextAttemptAt | date: 'short') : '—' }}</td>
+            <td>{{ row.nextAttemptAt ? (row.nextAttemptAt | srsDate:'datetime') : '—' }}</td>
             <td class="actions-col" (click)="$event.stopPropagation()">
               <button
                 type="button"
@@ -110,9 +110,9 @@
         <dd><code class="code">{{ s.idempotencyKey ?? '—' }}</code></dd>
         <dt>{{ 'notificationAdmin.outbox.attempts' | t }}</dt><dd>{{ s.attemptCount }}</dd>
         <dt>{{ 'notificationAdmin.outbox.lastAttempt' | t }}</dt>
-        <dd>{{ s.lastAttemptedAt ? (s.lastAttemptedAt | date: 'medium') : '—' }}</dd>
+        <dd>{{ s.lastAttemptedAt ? (s.lastAttemptedAt | srsDate:'datetime') : '—' }}</dd>
         <dt>{{ 'notificationAdmin.outbox.nextAttempt' | t }}</dt>
-        <dd>{{ s.nextAttemptAt ? (s.nextAttemptAt | date: 'medium') : '—' }}</dd>
+        <dd>{{ s.nextAttemptAt ? (s.nextAttemptAt | srsDate:'datetime') : '—' }}</dd>
         <dt>{{ 'notificationAdmin.outbox.lastError' | t }}</dt>
         <dd>
           <pre *ngIf="s.lastError" class="error-pane">{{ s.lastError }}</pre>

@@ -19,6 +19,8 @@ export interface NotificationOutboxAdminDto {
   channelCode: string;
   recipientUserId: string | null;
   recipientAddress: string | null;
+  correlationResourceType?: string | null;
+  correlationResourceId?: string | null;
   status: NotificationOutboxStatus;
   attemptCount: number;
   nextAttemptAt: string | null;

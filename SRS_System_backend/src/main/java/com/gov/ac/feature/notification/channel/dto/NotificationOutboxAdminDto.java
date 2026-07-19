@@ -10,6 +10,8 @@ public record NotificationOutboxAdminDto(
     String channelCode,
     UUID recipientUserId,
     String recipientAddress,
+    String correlationResourceType,
+    String correlationResourceId,
     String status,
     Integer attemptCount,
     Instant nextAttemptAt,

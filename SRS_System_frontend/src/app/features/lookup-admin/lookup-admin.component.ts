@@ -10,6 +10,8 @@ import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { DialogService } from '../../core/services/dialog.service';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { ListLoadController } from '../../shared/utils/list-load.util';
+import { finalize } from 'rxjs';
 import { matchesTableSearch } from '../../core/util/table-text-filter';
 
 @Component({
@@ -20,11 +22,11 @@ import { matchesTableSearch } from '../../core/util/table-text-filter';
   styleUrl: './lookup-admin.component.css'
 })
 export class LookupAdminComponent implements OnInit {
+  readonly rowsLoad = new ListLoadController();
   catalog: LookupCatalogDto[] = [];
   selectedCode = '';
   rows: LookupRowAdminDto[] = [];
   loadingCatalog = true;
-  loadingRows = false;
   parentRows: LookupRowAdminDto[] = [];
   tableSearch = '';
 
@@ -102,17 +104,23 @@ export class LookupAdminComponent implements OnInit {
 
   private loadRows(): void {
     if (!this.selectedCode) return;
-    subscribePageLoad({
-      cdr: this.cdr,
-      source: this.api.listRows(this.selectedCode),
-      setLoading: (loading) => (this.loadingRows = loading),
-      next: (r) => {
-        this.rows = r ?? [];
-      },
-      error: () => {
-        this.rows = [];
-      }
-    });
+    this.rowsLoad.begin();
+    this.api
+      .listRows(this.selectedCode)
+      .pipe(
+        finalize(() => {
+          this.rowsLoad.end();
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (r) => {
+          this.rows = r ?? [];
+        },
+        error: () => {
+          this.rows = [];
+        }
+      });
   }
 
   filteredRows(): LookupRowAdminDto[] {

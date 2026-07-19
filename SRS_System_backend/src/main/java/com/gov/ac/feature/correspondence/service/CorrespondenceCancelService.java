@@ -99,15 +99,10 @@ public class CorrespondenceCancelService {
 
     if (primary != null && StringUtils.hasText(primary.getProcessInstanceId())) {
       if (workflowService.hasActiveProcessInstance(primary.getProcessInstanceId())) {
-        try {
-          workflowService.deleteProcessInstance(
-              primary.getProcessInstanceId(), "CORRESPONDENCE_CANCELLED");
-        } catch (Exception e) {
-          log.warn(
-              "Camunda deleteProcessInstance failed for {}: {}",
-              primary.getProcessInstanceId(),
-              e.getMessage());
-        }
+        // Keep the domain row and Camunda in one transactional outcome. Swallowing this failure
+        // would mark the correspondence CANCELLED while leaving executable tasks alive.
+        workflowService.deleteProcessInstance(
+            primary.getProcessInstanceId(), "CORRESPONDENCE_CANCELLED");
       }
       var terminated =
           workflowInstanceStatusRepository

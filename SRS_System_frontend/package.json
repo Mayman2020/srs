@@ -8,7 +8,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "check:i18n": "node scripts/check-i18n-keys.js",
-    "check:routes": "node scripts/check-route-permissions.js"
+    "check:routes": "node scripts/check-route-permissions.js",
+    "test:api": "node scripts/api-integration-test.mjs",
+    "validate:i18n": "npm run check:i18n"
   },
   "prettier": {
     "printWidth": 100,

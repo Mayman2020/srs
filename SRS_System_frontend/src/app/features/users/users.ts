@@ -16,7 +16,11 @@ import {
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
+import { ListLoadController } from '../../shared/utils/list-load.util';
+import { finalize } from 'rxjs';
+import { DialogService } from '../../core/services/dialog.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { SrsAuditTrailComponent } from '../../shared/components/audit-trail/srs-audit-trail.component';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
 import { matchesTableSearch } from '../../core/util/table-text-filter';
@@ -35,12 +39,14 @@ import {
     TranslatePipe,
     ErpAutoReferenceFieldComponent,
     SrsDataTableComponent,
-    MultiChoiceTableComponent
+    MultiChoiceTableComponent,
+    SrsAuditTrailComponent
   ],
   templateUrl: './users.html',
   styleUrl: './users.scss'
 })
 export class UsersComponent implements OnInit {
+  readonly listLoad = new ListLoadController();
   users: UserListDto[] = [];
   filteredUsers: UserListDto[] = [];
   departments: DepartmentFlatDto[] = [];
@@ -53,6 +59,7 @@ export class UsersComponent implements OnInit {
   loading = false;
   errorMsg = '';
   successMsg = '';
+  auditDetail: UserDetailDto | null = null;
 
   userModal: 'add' | 'edit' | 'view' | 'assign' | null = null;
   userForm: {
@@ -76,6 +83,7 @@ export class UsersComponent implements OnInit {
     private lookupApi: LookupService,
     private i18n: I18nService,
     private notification: NotificationService,
+    private readonly dialogService: DialogService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
@@ -102,20 +110,27 @@ export class UsersComponent implements OnInit {
   }
 
   loadUsers(): void {
-    subscribePageLoad({
-      cdr: this.cdr,
-      setLoading: (value) => (this.loading = value),
-      source: this.userApi.list(0, 500),
-      next: (page) => {
-        this.errorMsg = '';
-        this.users = page.content ?? [];
-        this.applyFilters();
-      },
-      error: () => {
-        this.users = [];
-        this.filteredUsers = [];
-      }
-    });
+    this.listLoad.begin();
+    this.userApi
+      .list(0, 500)
+      .pipe(
+        finalize(() => {
+          this.listLoad.end();
+          this.loading = this.listLoad.showInitialSpinner;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (page) => {
+          this.errorMsg = '';
+          this.users = page.content ?? [];
+          this.applyFilters();
+        },
+        error: () => {
+          this.users = [];
+          this.filteredUsers = [];
+        }
+      });
   }
 
   private syncViewAfterAsyncMutation(work: () => void): void {
@@ -178,7 +193,11 @@ export class UsersComponent implements OnInit {
 
   openViewModal(u: UserListDto): void {
     this.userApi.getOne(u.id).subscribe({
-      next: (d) => this.syncViewAfterAsyncMutation(() => this.patchUserFormFromDetail(d, true)),
+      next: (d) =>
+        this.syncViewAfterAsyncMutation(() => {
+          this.auditDetail = d;
+          this.patchUserFormFromDetail(d, true);
+        }),
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
         this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
       }
@@ -187,7 +206,11 @@ export class UsersComponent implements OnInit {
 
   openEditModal(u: UserListDto): void {
     this.userApi.getOne(u.id).subscribe({
-      next: (d) => this.syncViewAfterAsyncMutation(() => this.patchUserFormFromDetail(d, false)),
+      next: (d) =>
+        this.syncViewAfterAsyncMutation(() => {
+          this.auditDetail = d;
+          this.patchUserFormFromDetail(d, false);
+        }),
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
         this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
       }
@@ -216,6 +239,7 @@ export class UsersComponent implements OnInit {
       this.userModal = null;
       this.assignTargetUserId = null;
       this.assignRoleIds = [];
+      this.auditDetail = null;
     });
   }
 
@@ -288,48 +312,33 @@ export class UsersComponent implements OnInit {
   }
 
   deleteUser(u: UserListDto): void {
-    if (!confirm(this.i18n.instant('admin.confirmDeleteUser'))) {
-      return;
-    }
-    this.userApi.delete(u.id).subscribe({
-      next: () => {
-        this.loadUsers();
-        this.toastOk('admin.userDeleted');
-      },
-      error: (e: HttpErrorResponse & { userMessage?: string }) => {
-        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
-      }
+    this.dialogService.openConfirm({
+      titleKey: 'admin.confirmDelete',
+      messageKey: 'admin.confirmDeleteUser',
+      confirmButton: { labelKey: 'common.delete', color: 'warn' },
+      cancelButton: { labelKey: 'common.close' }
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.userApi.delete(u.id).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.toastOk('admin.userDeleted');
+        },
+        error: (e: HttpErrorResponse & { userMessage?: string }) => {
+          this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
+        }
+      });
     });
   }
 
   toggleUserStatus(u: UserListDto): void {
-    this.userApi.getOne(u.id).subscribe({
-      next: (d) => {
-        if (d.departmentId == null) {
-          this.errorMsg = this.i18n.instant('admin.validationUser');
-          return;
-        }
-        this.userApi
-          .update(u.id, {
-            fullNameAr: d.fullNameAr,
-            fullNameEn: d.fullNameEn,
-            email: d.email,
-            departmentId: d.departmentId,
-            active: !d.active,
-            securityClearanceId: d.securityClearanceId ?? null
-          })
-          .subscribe({
-            next: () => {
-              this.loadUsers();
-              this.toastOk('admin.userUpdated');
-            },
-            error: (e: HttpErrorResponse & { userMessage?: string }) => {
-              this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
-            }
-          });
+    this.userApi.toggleActive(u.id).subscribe({
+      next: () => {
+        this.loadUsers();
+        this.toastOk('admin.userUpdated');
       },
       error: (e: HttpErrorResponse & { userMessage?: string }) => {
-        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.loadUserFailed');
+        this.errorMsg = e.userMessage ?? this.i18n.instant('admin.saveFailed');
       }
     });
   }

@@ -1,5 +1,6 @@
 package com.gov.ac.feature.users.mapper;
 
+import com.gov.ac.common.audit.UserAuditRefDto;
 import com.gov.ac.feature.departments.entity.DepartmentEntity;
 import com.gov.ac.feature.users.dto.UserDetailDto;
 import com.gov.ac.feature.users.entity.AppUserEntity;
@@ -9,7 +10,11 @@ public final class UserAdminMapper {
 
   private UserAdminMapper() {}
 
-  public static UserDetailDto toDetailDto(AppUserEntity user, List<Long> roleIds) {
+  public static UserDetailDto toDetailDto(
+      AppUserEntity user,
+      List<Long> roleIds,
+      UserAuditRefDto createdByUser,
+      UserAuditRefDto updatedByUser) {
     DepartmentEntity department = user.getDepartment();
     return new UserDetailDto(
         user.getId(),
@@ -20,7 +25,12 @@ public final class UserAdminMapper {
         department != null ? department.getCode() : null,
         department != null ? department.getId() : null,
         user.getActive(),
+        user.getMustChangePassword(),
         roleIds,
-        user.getSecurityClearanceId());
+        user.getSecurityClearanceId(),
+        user.getCreatedAt(),
+        user.getUpdatedAt(),
+        createdByUser,
+        updatedByUser);
   }
 }

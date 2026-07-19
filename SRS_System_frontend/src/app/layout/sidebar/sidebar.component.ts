@@ -14,6 +14,7 @@ import { AuthTokenService } from '../../core/auth/auth-token.service';
 import { ProfileNavigationApiService } from '../../core/api/profile-navigation-api.service';
 import type { ShellNavItemDto } from '../../core/api/api-types';
 import { AuthApiService } from '../../core/api/auth-api.service';
+import { NavigationHistoryService } from '../../core/services/navigation-history.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -29,6 +30,7 @@ export class SidebarComponent {
   private readonly authToken = inject(AuthTokenService);
   private readonly navApi = inject(ProfileNavigationApiService);
   private readonly authApi = inject(AuthApiService);
+  private readonly navHistory = inject(NavigationHistoryService);
 
   readonly collapsed = toSignal(this.sidebarService.collapsed$, { initialValue: false });
 
@@ -70,6 +72,7 @@ export class SidebarComponent {
   }
 
   navigateTo(item: ShellNavItemDto) {
+    this.navHistory.markFromMenu();
     void this.router.navigateByUrl(item.routePath);
     if (this.sidebarService.isMobile()) {
       this.closeSidebar();

@@ -22,6 +22,7 @@ function isPublicAuthRequest(url: string): boolean {
   return (
     url.includes('/auth/login') ||
     url.includes('/auth/refresh') ||
+    url.includes('/auth/logout') ||
     url.includes('/auth/mfa') ||
     url.includes('/auth/forgot-password') ||
     url.includes('/auth/reset-password')

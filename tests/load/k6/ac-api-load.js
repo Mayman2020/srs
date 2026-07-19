@@ -2,7 +2,7 @@
  * k6 load profile for Administrative Communications API.
  *
  * Env:
- *   BASE_URL   API root (default http://localhost:8081/api/v1)
+ *   BASE_URL   API root (default http://localhost:8080/api/v1)
  *   API_USER   (default admin)
  *   API_PASS   (default admin)
  *   ADMIN_UUID workflow first assignee (default b0000001-0000-4000-8000-000000000001)

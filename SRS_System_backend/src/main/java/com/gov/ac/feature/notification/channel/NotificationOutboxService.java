@@ -9,6 +9,10 @@ import com.gov.ac.feature.notification.channel.repository.NotificationOutboxRepo
 import com.gov.ac.feature.users.entity.AppUserEntity;
 import com.gov.ac.feature.users.repository.AppUserRepository;
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +48,17 @@ public class NotificationOutboxService {
       UUID correspondenceId,
       String messageKey,
       Map<String, Object> messageParams) {
+    enqueueInApp(recipientUserId, eventTypeCode, correspondenceId, messageKey, messageParams, null);
+  }
+
+  @Transactional
+  public void enqueueInApp(
+      UUID recipientUserId,
+      String eventTypeCode,
+      UUID correspondenceId,
+      String messageKey,
+      Map<String, Object> messageParams,
+      String occurrenceKey) {
     if (recipientUserId == null || eventTypeCode == null) {
       return;
     }
@@ -57,7 +72,8 @@ public class NotificationOutboxService {
             + ":"
             + (correspondenceId != null ? correspondenceId : "-")
             + ":"
-            + messageKey;
+            + messageKey
+            + occurrenceSuffix(occurrenceKey);
     saveOutboxRow(
         idempotencyKey,
         eventTypeCode,
@@ -79,6 +95,18 @@ public class NotificationOutboxService {
       UUID correspondenceId,
       String messageKey,
       Map<String, Object> messageParams) {
+    enqueueEmailIfPreferred(
+        recipientUserId, eventTypeCode, correspondenceId, messageKey, messageParams, null);
+  }
+
+  @Transactional
+  public void enqueueEmailIfPreferred(
+      UUID recipientUserId,
+      String eventTypeCode,
+      UUID correspondenceId,
+      String messageKey,
+      Map<String, Object> messageParams,
+      String occurrenceKey) {
     if (recipientUserId == null || eventTypeCode == null) {
       return;
     }
@@ -96,7 +124,8 @@ public class NotificationOutboxService {
             + ":"
             + (correspondenceId != null ? correspondenceId : "-")
             + ":"
-            + messageKey;
+            + messageKey
+            + occurrenceSuffix(occurrenceKey);
     String subject = messageKey != null ? messageKey : "Notification";
     String body = formatEmailBody(messageKey, messageParams);
     saveOutboxRow(
@@ -167,6 +196,16 @@ public class NotificationOutboxService {
       UUID correspondenceId,
       String messageKey,
       Map<String, Object> messageParams) {
+    enqueueIntegrationChannels(eventTypeCode, correspondenceId, messageKey, messageParams, null);
+  }
+
+  @Transactional
+  public void enqueueIntegrationChannels(
+      String eventTypeCode,
+      UUID correspondenceId,
+      String messageKey,
+      Map<String, Object> messageParams,
+      String occurrenceKey) {
     if (eventTypeCode == null) {
       return;
     }
@@ -185,7 +224,8 @@ public class NotificationOutboxService {
     List<NotificationChannelTargetEntity> webhooks =
         channelTargetRepository.findByChannelCodeAndEnabledTrueAndDeletedAtIsNull(CHANNEL_WEBHOOK);
     for (NotificationChannelTargetEntity t : webhooks) {
-      enqueueTargetRow(CHANNEL_WEBHOOK, t, eventTypeCode, correspondenceId, messageKey, notification);
+      enqueueTargetRow(
+          CHANNEL_WEBHOOK, t, eventTypeCode, correspondenceId, messageKey, notification, occurrenceKey);
     }
 
     List<NotificationChannelTargetEntity> teamsTargets =
@@ -195,7 +235,8 @@ public class NotificationOutboxService {
       if (!onlyCode.isEmpty() && !onlyCode.equalsIgnoreCase(t.getTargetCode())) {
         continue;
       }
-      enqueueTargetRow(CHANNEL_TEAMS, t, eventTypeCode, correspondenceId, messageKey, notification);
+      enqueueTargetRow(
+          CHANNEL_TEAMS, t, eventTypeCode, correspondenceId, messageKey, notification, occurrenceKey);
     }
   }
 
@@ -205,7 +246,8 @@ public class NotificationOutboxService {
       String eventTypeCode,
       UUID correspondenceId,
       String messageKey,
-      Map<String, Object> notification) {
+      Map<String, Object> notification,
+      String occurrenceKey) {
     Map<String, Object> envelope = new LinkedHashMap<>();
     envelope.put("targetCode", target.getTargetCode());
     envelope.put("notification", notification);
@@ -218,7 +260,8 @@ public class NotificationOutboxService {
             + ":"
             + (correspondenceId != null ? correspondenceId : "-")
             + ":"
-            + (messageKey != null ? messageKey : "");
+            + (messageKey != null ? messageKey : "")
+            + occurrenceSuffix(occurrenceKey);
     String payloadJson;
     try {
       payloadJson = objectMapper.writeValueAsString(envelope);
@@ -226,7 +269,7 @@ public class NotificationOutboxService {
       payloadJson = "{}";
     }
     NotificationOutboxEntity row = new NotificationOutboxEntity();
-    row.setIdempotencyKey(idempotencyKey);
+    row.setIdempotencyKey(compactIdempotencyKey(idempotencyKey));
     row.setEventTypeCode(eventTypeCode);
     row.setChannelCode(channelCode);
     row.setRecipientUserId(null);
@@ -267,7 +310,7 @@ public class NotificationOutboxService {
       Map<String, Object> messageParams,
       UUID correspondenceId) {
     NotificationOutboxEntity row = new NotificationOutboxEntity();
-    row.setIdempotencyKey(idempotencyKey);
+    row.setIdempotencyKey(compactIdempotencyKey(idempotencyKey));
     row.setEventTypeCode(eventTypeCode);
     row.setChannelCode(channelCode);
     row.setRecipientUserId(recipientUserId);
@@ -307,5 +350,21 @@ public class NotificationOutboxService {
       }
     }
     return sb.toString();
+  }
+
+  private static String occurrenceSuffix(String occurrenceKey) {
+    return occurrenceKey == null || occurrenceKey.isBlank() ? "" : ":" + occurrenceKey.trim();
+  }
+
+  private static String compactIdempotencyKey(String key) {
+    if (key.length() <= 128) {
+      return key;
+    }
+    try {
+      byte[] digest = MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8));
+      return "sha256:" + HexFormat.of().formatHex(digest);
+    } catch (NoSuchAlgorithmException ex) {
+      throw new IllegalStateException("SHA-256 is unavailable", ex);
+    }
   }
 }

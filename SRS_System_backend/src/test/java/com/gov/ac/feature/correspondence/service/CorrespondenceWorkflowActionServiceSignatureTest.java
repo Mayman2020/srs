@@ -1,6 +1,7 @@
 package com.gov.ac.feature.correspondence.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -28,6 +29,7 @@ import com.gov.ac.feature.users.entity.AppUserEntity;
 import com.gov.ac.feature.users.repository.AppUserRepository;
 import com.gov.ac.feature.workflow.execution.service.WorkflowService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.camunda.bpm.engine.task.Task;
@@ -35,10 +37,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -145,5 +150,44 @@ class CorrespondenceWorkflowActionServiceSignatureTest {
     verify(attachmentRepository, never()).findAllForDetailByCorrespondenceId(any());
     verify(documentSignatureService, never()).hasValidSignatureByUser(anyLong(), any());
     verify(workflowService).completeTask(eq("task-1"), any());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"APPROVE", "REJECT", "RETURN", "FORWARD"})
+  void completingDecisionPassesCanonicalCodeToCamunda(String decision) {
+    rule.setCode(decision);
+    rule.setRequiresSignature(false);
+    rule.setRequiresTargetDepartment("FORWARD".equals(decision));
+    when(workflowActionResolution.resolveTransition(decision, 7L)).thenReturn(Optional.of(rule));
+
+    Long targetDepartmentId = "FORWARD".equals(decision) ? 99L : null;
+    service.completeActiveAssigneeTask(
+        correspondenceId, userId, decision.toLowerCase(), "tested", null, targetDepartmentId);
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Map<String, Object>> variables = ArgumentCaptor.forClass(Map.class);
+    verify(workflowService).completeTask(eq("task-1"), variables.capture());
+    assertThat(variables.getValue()).containsEntry("wfDecision", decision);
+    if (targetDepartmentId != null) {
+      assertThat(variables.getValue()).containsEntry("targetDepartmentId", 99L);
+      verify(referForwardService).prepareForward(task, 99L, attachment.getCorrespondence());
+    }
+  }
+
+  @Test
+  void referReassignsTheOpenTaskWithoutCompletingCamunda() {
+    UUID targetUserId = UUID.randomUUID();
+    rule.setCode("REFER");
+    rule.setRequiresSignature(false);
+    rule.setKeepsTaskOpen(true);
+    rule.setRequiresTargetUser(true);
+    when(workflowActionResolution.resolveTransition("REFER", 7L)).thenReturn(Optional.of(rule));
+
+    service.completeActiveAssigneeTask(
+        correspondenceId, userId, "REFER", "refer note", targetUserId, null);
+
+    verify(referForwardService)
+        .referActiveTask(task, userId, targetUserId, "refer note", attachment.getCorrespondence(), rule);
+    verify(workflowService, never()).completeTask(anyString(), anyMap());
   }
 }

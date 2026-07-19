@@ -7,7 +7,7 @@ Automated smoke and role-based UAT specs for the SRS frontend. **The backend mus
 | Service | Command | URL |
 |---------|---------|-----|
 | Backend | `cd SRS_System_backend && .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=local` | `http://localhost:8080` |
-| Frontend | `cd SRS_System_frontend && npm start` | `http://localhost:1200` |
+| Frontend | `cd SRS_System_frontend && npm start` | `http://localhost:4205` |
 
 Apply Flyway **V29** before testing business-gap routes.
 
@@ -16,7 +16,7 @@ Apply Flyway **V29** before testing business-gap routes.
 ```powershell
 cd tests/browser-e2e
 npm install
-$env:E2E_BASE_URL = "http://localhost:1200"
+$env:E2E_BASE_URL = "http://localhost:4205"
 $env:E2E_SKIP_WEB_SERVER = "1"   # if frontend already running
 npm test
 ```

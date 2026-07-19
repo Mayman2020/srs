@@ -58,7 +58,17 @@
     "add": "Add",
     "create": "Create",
     "save": "Save",
-    "formInvalid": "Please correct the highlighted fields and try again."
+    "formInvalid": "Please correct the highlighted fields and try again.",
+    "back": "Back"
+  },
+  "auditTrail": {
+    "infoTitle": "Audit Information",
+    "createdBy": "Created By",
+    "createdAt": "Created At",
+    "modifiedBy": "Last Modified By",
+    "updatedAt": "Last Modified",
+    "approvedBy": "Approved By",
+    "unknown": "System"
   },
   "orgLevels": {
     "pageTitle": "Organizational Levels (Q / L / K / S)",
@@ -1011,6 +1021,7 @@
     "requiresClearance": "Requires clearance",
     "fieldParentId": "Parent",
     "colCode": "Code",
+    "colName": "Name",
     "colNameAr": "Name AR",
     "colNameEn": "Name EN",
     "colParentId": "Parent id",
@@ -1410,6 +1421,7 @@
   },
   "transactionDetails": {
     "pageTitle": "Transaction details",
+    "workflowHistoryLoadFailed": "Workflow history could not be loaded. The correspondence details may be incomplete.",
     "statCompletedSteps": "Completed stages",
     "statRemainingDays": "Days left to respond",
     "statComments": "Comments",
@@ -1429,6 +1441,8 @@
     "userRecipientsTitle": "User recipients (TO/CC)",
     "userRecipientsEmpty": "No user recipients.",
     "addUserRecipient": "Add user",
+    "recipientKind": "Recipient kind",
+    "selectUser": "Select a user",
     "userRecipientKind": "Recipient kind",
     "userRecipientAdded": "User recipient added.",
     "userRecipientDeleted": "User recipient removed.",
@@ -1750,6 +1764,8 @@
     "assignRolePlaceholder": "Choose roles…",
     "assignRolesPicked": "{{count}} selected",
     "assignRoleSelected": "Selected roles",
+    "effectivePermissionsTitle": "Effective permissions",
+    "effectivePermissionsHint": "Live union of permissions from all active roles and acting assignments.",
     "colName": "Name",
     "colUsername": "Username",
     "colEmail": "Email",

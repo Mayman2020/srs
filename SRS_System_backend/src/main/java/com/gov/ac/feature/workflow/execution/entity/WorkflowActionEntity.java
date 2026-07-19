@@ -16,6 +16,8 @@ import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "workflow_action", schema = "srs_system")
 @Getter
@@ -45,6 +47,7 @@ public class WorkflowActionEntity extends SoftDeletableEntity {
   @Column(name = "comment_text")
   private String commentText;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private String payload;
 

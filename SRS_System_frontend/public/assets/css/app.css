@@ -83,7 +83,7 @@ a:hover{ text-decoration: underline; }
 }
 
 .app.sidebar-collapsed{
-  grid-template-columns: 68px 1fr;
+  grid-template-columns: 76px 1fr;
 }
 
 /* .sidebar{

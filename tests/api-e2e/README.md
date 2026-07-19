@@ -9,7 +9,7 @@ Validated against Spring Boot controllers under **`/api/v1`** (JWT, corresponden
 
 ## Notification delete test (second user)
 
-In-app notifications for “correspondence created” go to **other active users in `ownerDepartmentId`**, not the creator. For a **real** list + delete test:
+In-app notifications for “correspondence created” go to **other active users in `ownerDepartmentId`**, not the creator. The suite always validates durable outbox creation. For the optional list + delete check, the second user must belong to the same owner department used by the created correspondence.
 
 1. Run **`seed-second-user.sql`** on your database (creates **`clerk` / `clerk`** in department `1`).
 2. The Node script uses `API_SECOND_USERNAME` / `API_SECOND_PASSWORD` (defaults: `clerk` / `clerk`).

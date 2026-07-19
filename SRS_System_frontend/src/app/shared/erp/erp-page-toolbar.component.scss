@@ -6,6 +6,35 @@
   flex-wrap: wrap;
 }
 
+.erp-page-toolbar__lead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.erp-page-toolbar__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 2px;
+  border: 1px solid color-mix(in srgb, var(--srs-green, #0b6e4f) 24%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--srs-green, #0b6e4f);
+  cursor: pointer;
+}
+
+.erp-page-toolbar__back:hover {
+  background: color-mix(in srgb, var(--srs-green, #0b6e4f) 8%, transparent);
+}
+
+.erp-page-toolbar__text {
+  min-width: 0;
+}
+
 .erp-page-toolbar__title {
   margin: 0;
   font-size: 1.35rem;

@@ -9,6 +9,7 @@ import {
 } from '../../core/api/attachment-verification-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 
 type VerifyState = 'loading' | 'ok' | 'not-found' | 'rate-limited' | 'error';
 
@@ -20,7 +21,7 @@ type VerifyState = 'loading' | 'ok' | 'not-found' | 'rate-limited' | 'error';
 @Component({
   selector: 'app-public-verify',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, SrsDatePipe],
   templateUrl: './public-verify.component.html',
   styleUrl: './public-verify.component.scss'
 })

@@ -6,6 +6,7 @@ import {
   RetentionAdminApiService
 } from '../../core/api/retention-admin-api.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 
 /**
  * Slice 6 — read-only archive transition log. Pages the audit trail of retention lifecycle
@@ -15,7 +16,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 @Component({
   selector: 'app-retention-archive-log',
   standalone: true,
-  imports: [CommonModule, TranslatePipe],
+  imports: [CommonModule, TranslatePipe, SrsDatePipe],
   templateUrl: './retention-archive-log.component.html',
   styleUrl: './retention-archive-log.component.scss'
 })

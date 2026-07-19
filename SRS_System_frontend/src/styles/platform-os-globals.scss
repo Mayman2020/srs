@@ -23,10 +23,10 @@ html[dir='rtl'] {
   --shadow-hover: 0 10px 30px rgba(14, 31, 51, 0.08);
   --shadow-card: none;
 
-  --primary: var(--navy-900);
-  --accent: var(--brass-500);
+  --primary: #0b6e4f;
+  --accent: #d4af37;
 
-  --sidebar-bg: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-800) 100%);
+  --sidebar-bg: linear-gradient(180deg, #084c38 0%, #0b6e4f 100%);
   --sidebar-text: rgba(233, 223, 200, 0.78);
   --sidebar-text-active: #f4e7c4;
   --sidebar-item-hover: rgba(255, 255, 255, 0.04);
@@ -42,8 +42,8 @@ html[dir='rtl'] {
   --empty-state-border: var(--line);
   --empty-state-text: var(--ink-400);
 
-  --btn-primary-bg: var(--navy-900);
-  --btn-primary-color: var(--brass-100);
+  --btn-primary-bg: #0b6e4f;
+  --btn-primary-color: #ffffff;
 }
 
 html, body {
@@ -78,8 +78,8 @@ html[dir='rtl'] body {
 
 .mat-mdc-unelevated-button:not(:disabled),
 .mat-mdc-raised-button:not(:disabled) {
-  background: var(--navy-900) !important;
-  color: var(--brass-100) !important;
+  background: var(--primary) !important;
+  color: #ffffff !important;
 }
 
 .app-page {

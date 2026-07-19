@@ -9,7 +9,7 @@ import { ErpPageToolbarComponent } from './erp-page-toolbar.component';
   imports: [CommonModule, ErpPageToolbarComponent],
   template: `
     <section class="erp-page-shell" [class.erp-page-shell--narrow]="narrow">
-      <app-erp-page-toolbar [titleKey]="titleKey" [subtitleKey]="subtitleKey">
+      <app-erp-page-toolbar [titleKey]="titleKey" [subtitleKey]="subtitleKey" [showBack]="showBack">
         <div erpToolbarActions>
           <ng-content select="[shellActions]"></ng-content>
         </div>
@@ -52,4 +52,5 @@ export class ErpPageShellComponent {
   @Input({ required: true }) titleKey!: string;
   @Input() subtitleKey: string | null = null;
   @Input() narrow = false;
+  @Input() showBack = false;
 }

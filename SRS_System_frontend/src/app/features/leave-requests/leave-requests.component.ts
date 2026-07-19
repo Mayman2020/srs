@@ -7,6 +7,7 @@ import { LeaveRequestDto, LookupItemDto } from '../../core/api/api-types';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { ErpAutoReferenceFieldComponent } from '../../shared/erp/erp-auto-reference-field.component';
 import { DateFieldComponent } from '../../shared/components/date-field/date-field.component';
 import { SrsDataTableComponent } from '../../shared/data-table/srs-data-table.component';
@@ -14,6 +15,7 @@ import { matchesTableSearch } from '../../core/util/table-text-filter';
 import { LookupLabelsService } from '../../core/lookup/lookup-labels.service';
 import { LookupCode } from '../../core/lookup/lookup-code';
 import { correspondenceStatusBadgeClass } from '../../core/util/correspondence-status-ui';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-leave-requests',
@@ -24,6 +26,7 @@ import { correspondenceStatusBadgeClass } from '../../core/util/correspondence-s
     ReactiveFormsModule,
     TranslatePipe,
     LatinDigitsPipe,
+    SrsDatePipe,
     ErpAutoReferenceFieldComponent,
     DateFieldComponent,
     SrsDataTableComponent
@@ -46,7 +49,8 @@ export class LeaveRequestsComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly api: LeaveRequestApiService,
     public readonly lookupLabels: LookupLabelsService,
-    private readonly i18n: I18nService
+    private readonly i18n: I18nService,
+    private readonly toast: NotificationService
   ) {
     this.form = this.fb.group({
       startDate: ['', Validators.required],
@@ -58,7 +62,10 @@ export class LeaveRequestsComponent implements OnInit {
   ngOnInit(): void {
     this.lookupLabels.loadTable(LookupCode.LeaveStatus).subscribe({
       next: (rows) => (this.leaveStatuses = rows ?? []),
-      error: () => (this.leaveStatuses = [])
+      error: () => {
+        this.leaveStatuses = [];
+        this.toast.error('errors.generic');
+      }
     });
     this.refreshMine();
     this.api.listAllAdmin().subscribe({
@@ -69,6 +76,7 @@ export class LeaveRequestsComponent implements OnInit {
       error: () => {
         this.adminRows = [];
         this.adminLoaded = true;
+        this.toast.error('errors.generic');
       }
     });
   }
@@ -76,7 +84,10 @@ export class LeaveRequestsComponent implements OnInit {
   refreshMine(): void {
     this.api.listMine().subscribe({
       next: (rows) => (this.mine = rows ?? []),
-      error: () => (this.mine = [])
+      error: () => {
+        this.mine = [];
+        this.toast.error('errors.generic');
+      }
     });
   }
 
@@ -132,7 +143,7 @@ export class LeaveRequestsComponent implements OnInit {
           this.form.reset();
           this.refreshMine();
         },
-        error: () => undefined
+        error: () => this.toast.error('errors.generic')
       });
   }
 
@@ -142,7 +153,7 @@ export class LeaveRequestsComponent implements OnInit {
         this.refreshMine();
         this.api.listAllAdmin().subscribe((r) => (this.adminRows = r ?? []));
       },
-      error: () => undefined
+      error: () => this.toast.error('errors.generic')
     });
   }
 

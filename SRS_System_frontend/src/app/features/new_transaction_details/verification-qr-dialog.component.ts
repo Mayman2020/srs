@@ -8,6 +8,7 @@ import {
   AttachmentVerificationTokenIssuedDto
 } from '../../core/api/attachment-verification-api.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { NotificationService } from '../../core/services/notification.service';
 
 export interface VerificationQrDialogData {
@@ -23,7 +24,7 @@ export interface VerificationQrDialogData {
 @Component({
   selector: 'app-verification-qr-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, TranslatePipe, SrsDatePipe],
   templateUrl: './verification-qr-dialog.component.html',
   styleUrl: './verification-qr-dialog.component.scss'
 })

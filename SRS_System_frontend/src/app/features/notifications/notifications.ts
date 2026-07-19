@@ -5,6 +5,7 @@ import { NotificationApiService } from '../../core/api/notification-api.service'
 import { NotificationItemDto } from '../../core/api/api-types';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { HttpErrorResponse } from '@angular/common/http';
 import { subscribePageLoad } from '../../core/rxjs/subscribe-page-load';
@@ -24,7 +25,7 @@ export interface NotificationItem {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, LatinDigitsPipe],
+  imports: [CommonModule, TranslatePipe, LatinDigitsPipe, SrsDatePipe],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss',
 })

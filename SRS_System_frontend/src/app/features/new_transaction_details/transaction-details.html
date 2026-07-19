@@ -2,8 +2,18 @@
 
 <!-- PAGE HEADER -->
 <div class="page-header">
-  <div>
-    <h2>{{ 'transactionDetails.pageTitle' | t }}</h2>
+  <div class="page-header-row">
+    <button
+      *ngIf="canGoBack"
+      type="button"
+      class="btn btn-outline page-back-btn"
+      (click)="onBack()">
+      <i class="fa-solid fa-arrow-right"></i>
+      {{ 'common.back' | t }}
+    </button>
+    <div>
+      <h2>{{ 'transactionDetails.pageTitle' | t }}</h2>
+    </div>
   </div>
   <button
     *ngIf="canEditGuide() && transaction"
@@ -23,6 +33,14 @@
   aria-hidden="true"
   (change)="onAttachmentPicked($event)"
 />
+
+<app-audit-trail
+  *ngIf="detailDto?.id"
+  [createdAt]="detailDto?.createdAt"
+  [updatedAt]="detailDto?.updatedAt"
+  [createdByUser]="detailDto?.createdByUser"
+  [updatedByUser]="detailDto?.updatedByUser">
+</app-audit-trail>
 
 <!-- ══════════════════════════════════════════
      STATS BAR
@@ -270,7 +288,7 @@
       <div class="info-content">
         <span class="info-label">{{ 'transactionDetails.labelCreated' | t }}</span>
         <span class="info-value">
-          {{ (transaction.created | date:'d MMM y') | latinDigits }}
+          {{ transaction.created | srsDate:'date' }}
         </span>
       </div>
 
@@ -419,7 +437,7 @@
     <div class="read-tracking-row" *ngIf="myReadReceipt as r; else notOpenedYet">
       <i class="fa-regular fa-eye"></i>
       <span>
-        {{ 'readTracking.firstOpenedOn' | t: { date: ((r.firstOpenedAt | date:'d MMM y, HH:mm') | latinDigits) } }}
+        {{ 'readTracking.firstOpenedOn' | t: { date: (r.firstOpenedAt | srsDate:'datetime') } }}
       </span>
       <span class="muted">
         ({{ 'readTracking.openedTimes' | t: { n: r.openCount } }})
@@ -435,7 +453,7 @@
     <div class="read-tracking-row success" *ngIf="isAcknowledged() && myReadReceipt as r">
       <i class="fa-solid fa-circle-check"></i>
       <span>
-        {{ 'readTracking.acknowledgedOn' | t: { date: ((r.acknowledgedAt | date:'d MMM y, HH:mm') | latinDigits) } }}
+        {{ 'readTracking.acknowledgedOn' | t: { date: (r.acknowledgedAt | srsDate:'datetime') } }}
       </span>
     </div>
 
@@ -471,12 +489,12 @@
           <li *ngFor="let r of readStatus.receipts">
             <span class="reader-name">{{ readStatusDisplayName(r) }}</span>
             <span class="reader-opened">
-              {{ (r.firstOpenedAt | date:'d MMM y, HH:mm') | latinDigits }}
+              {{ r.firstOpenedAt | srsDate:'datetime' }}
               <span class="muted">({{ 'readTracking.openedTimes' | t: { n: r.openCount } }})</span>
             </span>
             <span class="reader-ack success" *ngIf="r.acknowledgedAt">
               <i class="fa-solid fa-circle-check"></i>
-              {{ (r.acknowledgedAt | date:'d MMM y, HH:mm') | latinDigits }}
+              {{ r.acknowledgedAt | srsDate:'datetime' }}
             </span>
           </li>
         </ul>
@@ -546,7 +564,7 @@
                 <span class="wf-username">{{ step.user }}</span>
                 <span class="wf-datetime">
                   <mat-icon>schedule</mat-icon>
-                  {{ (step.date | date:'d MMM y - hh:mm a') | latinDigits }}
+                  {{ step.date | srsDate:'datetime' }}
                 </span>
               </div>
             </div>
@@ -662,7 +680,7 @@
             <span class="wf-username">{{ step.user }}</span>
             <span class="wf-datetime">
               <mat-icon>schedule</mat-icon>
-              {{ (step.date | date:'d MMM y - hh:mm a') | latinDigits }}
+              {{ step.date | srsDate:'datetime' }}
             </span>
           </div>
         </div>
@@ -910,7 +928,7 @@
           <div class="note-body">
             <div class="note-header">
               <span class="note-author">{{ note.author }}</span>
-              <span class="note-date">{{ (note.date | date:'d MMM y - hh:mm a') | latinDigits }}</span>
+              <span class="note-date">{{ note.date | srsDate:'datetime' }}</span>
             </div>
             <p class="note-text">{{ note.text }}</p>
           </div>
@@ -960,7 +978,7 @@
             <span class="related-title">{{ rel.subject }}</span>
             <span class="related-meta">
               {{ rel.referenceNumber || rel.id }}
-              <ng-container *ngIf="rel.created"> - {{ (rel.created | date:'d MMM y') | latinDigits }}</ng-container>
+              <ng-container *ngIf="rel.created"> - {{ rel.created | srsDate:'date' }}</ng-container>
               · {{ rel.status }}
             </span>
           </div>
@@ -1057,7 +1075,7 @@
           <tbody>
             <tr *ngFor="let r of recipients">
               <td>{{ recipientLabel(r) }} ({{ r.departmentCode }})</td>
-              <td>{{ r.lastReadAt ? (r.lastReadAt | date:'medium') : '—' }}</td>
+              <td>{{ r.lastReadAt ? (r.lastReadAt | srsDate:'datetime') : '—' }}</td>
               <td>
                 <button *ngIf="canEditGuide()" type="button" class="icon-btn danger" (click)="removeRecipient(r)">
                   <i class="fa-solid fa-trash"></i>
@@ -1109,7 +1127,7 @@
             <tr *ngFor="let u of userRecipients">
               <td>{{ userRecipientLabel(u) }}</td>
               <td>{{ u.recipientKindCode }}</td>
-              <td>{{ u.lastReadAt ? (u.lastReadAt | date:'medium') : '—' }}</td>
+              <td>{{ u.lastReadAt ? (u.lastReadAt | srsDate:'datetime') : '—' }}</td>
               <td>
                 <button *ngIf="canEditGuide()" type="button" class="icon-btn danger" (click)="removeUserRecipient(u)">
                   <i class="fa-solid fa-trash"></i>
@@ -1259,7 +1277,7 @@
             <tr *ngFor="let row of accessLogEntries">
               <td>{{ row.actionCode }}</td>
               <td>{{ row.fullNameAr || row.fullNameEn || row.username || '—' }}</td>
-              <td>{{ row.occurredAt | date:'medium' }}</td>
+              <td>{{ row.occurredAt | srsDate:'datetime' }}</td>
               <td>{{ row.success ? ('common.yes' | t) : ('common.no' | t) }}</td>
             </tr>
           </tbody>
@@ -1354,7 +1372,7 @@
         <div class="qi-row">
           <span class="qi-label">{{ 'transactionDetails.qiDueDate' | t }}</span>
           <span class="qi-value" [class.overdue]="isOverdue">
-            {{ (transaction.dueDate | date:'d/M/yyyy') | latinDigits }}
+            {{ transaction.dueDate | srsDate:'date' }}
           </span>
         </div>
 
@@ -1388,7 +1406,7 @@
               <span class="mini-tl-user">{{ step.user }}</span>
               <span class="mini-tl-date" *ngIf="step.date">
                 <i class="fa-regular fa-clock fa-xs"></i>
-                {{ (step.date | date:'d MMM - hh:mm a') | latinDigits }}
+                {{ step.date | srsDate:'datetime' }}
               </span>
             </div>
           </div>

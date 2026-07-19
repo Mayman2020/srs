@@ -13,10 +13,12 @@ import { CurrentUserProfileDto, LookupItemDto } from '../../core/api/api-types';
 import { RoleApiService } from '../../core/api/role-api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { LatinDigitsPipe } from '../../core/i18n/latin-digits.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { NotificationService } from '../../core/services/notification.service';
 import { ErpUserAvatarComponent } from '../../shared/erp/erp-user-avatar.component';
 import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
+import { AuthTokenService } from '../../core/auth/auth-token.service';
 
 @Component({
   selector: 'app-profile',
@@ -26,6 +28,7 @@ import { ErpUserProfileStore } from '../../shared/erp/erp-user-profile.store';
     ReactiveFormsModule,
     TranslatePipe,
     LatinDigitsPipe,
+    SrsDatePipe,
     MatTabsModule,
     MatIconModule,
     MatButtonModule,
@@ -44,6 +47,7 @@ export class ProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly notification = inject(NotificationService);
+  private readonly tokens = inject(AuthTokenService);
 
   readonly profile = toSignal(this.profileStore.profile$, {
     initialValue: this.profileStore.snapshot()
@@ -77,6 +81,8 @@ export class ProfileComponent implements OnInit {
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'settings') {
         this.selectedTabIndex = 3;
+      } else if (fragment === 'password') {
+        this.selectedTabIndex = 2;
       }
     });
     this.loadProfilePage();
@@ -179,6 +185,7 @@ export class ProfileComponent implements OnInit {
       .subscribe({
         next: () => {
           this.savingPassword = false;
+          this.tokens.setMustChangePassword(false);
           this.passwordForm.reset();
           this.loadProfilePage(false);
         },

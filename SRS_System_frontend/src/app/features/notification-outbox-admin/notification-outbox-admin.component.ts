@@ -8,6 +8,7 @@ import {
   NotificationOutboxStatus
 } from '../../core/api/notification-outbox-api.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SrsDatePipe } from '../../shared/pipes/srs-date.pipe';
 import { DialogService } from '../../core/services/dialog.service';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -21,7 +22,7 @@ const STATUSES: NotificationOutboxStatus[] = ['PENDING', 'SENT', 'FAILED', 'DEAD
 @Component({
   selector: 'app-notification-outbox-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipe],
+  imports: [CommonModule, FormsModule, TranslatePipe, SrsDatePipe],
   templateUrl: './notification-outbox-admin.component.html',
   styleUrl: './notification-outbox-admin.component.scss'
 })

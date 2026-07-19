@@ -31,7 +31,7 @@
 </div>
 
 <srs-data-table
-  [loading]="loading"
+  [loading]="listLoad.showInitialSpinner"
   [showPagination]="false"
   [skeletonRows]="6"
   [skeletonColumns]="8"
@@ -127,7 +127,7 @@
         </td>
       </tr>
 
-      <tr *ngIf="loading">
+      <tr *ngIf="listLoad.showInitialSpinner">
         <td colspan="8" class="empty-cell">
           {{ 'common.loading' | t }}
         </td>
@@ -171,6 +171,13 @@
     <label *ngIf="userModal === 'edit'">
       <input type="checkbox" [(ngModel)]="userForm.active" /> {{ 'admin.colActive' | t }}
     </label>
+    <app-audit-trail
+      *ngIf="auditDetail?.id"
+      [createdAt]="auditDetail?.createdAt"
+      [updatedAt]="auditDetail?.updatedAt"
+      [createdByUser]="auditDetail?.createdByUser"
+      [updatedByUser]="auditDetail?.updatedByUser">
+    </app-audit-trail>
     <div class="modal-actions">
       <button type="button" class="btn ghost" (click)="closeUserModal()">
         <i class="fa-solid fa-xmark"></i>
@@ -192,6 +199,13 @@
     <p><strong>{{ 'admin.colNameEn' | t }}:</strong> {{ userForm.fullNameEn }}</p>
     <p><strong>{{ 'admin.colEmail' | t }}:</strong> {{ userForm.email }}</p>
     <p><strong>{{ 'admin.colActive' | t }}:</strong> {{ userForm.active ? ('users.statusActive' | t) : ('users.statusSuspended' | t) }}</p>
+    <app-audit-trail
+      *ngIf="auditDetail?.id"
+      [createdAt]="auditDetail?.createdAt"
+      [updatedAt]="auditDetail?.updatedAt"
+      [createdByUser]="auditDetail?.createdByUser"
+      [updatedByUser]="auditDetail?.updatedByUser">
+    </app-audit-trail>
     <div class="modal-actions">
       <button type="button" class="btn primary" (click)="closeUserModal()">
         <i class="fa-solid fa-check"></i>

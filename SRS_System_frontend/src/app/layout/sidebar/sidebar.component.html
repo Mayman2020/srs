@@ -24,7 +24,9 @@
       (click)="navigateTo(item)"
       [matTooltip]="collapsed() ? navLabel(item) : ''"
       [matTooltipDisabled]="!collapsed()"
-      matTooltipPosition="after">
+      [matTooltipShowDelay]="200"
+      [attr.aria-label]="navLabel(item)"
+      matTooltipPosition="before">
 
       <span class="icon mat-ico-wrap">
         <mat-icon class="nav-mat-icon" aria-hidden="true">{{ item.iconKey }}</mat-icon>

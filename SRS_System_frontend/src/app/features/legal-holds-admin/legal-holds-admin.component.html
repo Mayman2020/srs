@@ -59,7 +59,7 @@
             <tr>
               <td><code class="code">{{ row.correspondenceId }}</code></td>
               <td class="reason-cell">{{ row.reason }}</td>
-              <td>{{ row.placedAt | date: 'short' }}</td>
+              <td>{{ row.placedAt | srsDate:'datetime' }}</td>
               <td class="actions-col">
                 <button
                   *ngIf="releasingId !== row.id"

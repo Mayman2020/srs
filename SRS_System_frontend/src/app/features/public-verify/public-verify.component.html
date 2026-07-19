@@ -33,7 +33,7 @@
           <dd>{{ p.organizationLabel ?? ('common.dash' | t) }}</dd>
 
           <dt>{{ 'verify.issuedAt' | t }}</dt>
-          <dd>{{ p.issuedAt ? (p.issuedAt | date: 'medium') : ('common.dash' | t) }}</dd>
+          <dd>{{ p.issuedAt ? (p.issuedAt | srsDate:'datetime') : ('common.dash' | t) }}</dd>
 
           <dt>{{ 'verify.documentHash' | t }}</dt>
           <dd><code class="code">{{ formatHashShort(p.plaintextSha256) }}</code></dd>
@@ -50,7 +50,7 @@
                 <span class="signer">{{ sig.signerDisplayName ?? ('common.dash' | t) }}</span>
                 <span class="meta">
                   {{ sig.algorithm ?? ('common.dash' | t) }} ·
-                  {{ sig.signedAt ? (sig.signedAt | date: 'medium') : ('common.dash' | t) }}
+                  {{ sig.signedAt ? (sig.signedAt | srsDate:'datetime') : ('common.dash' | t) }}
                 </span>
               </div>
               <div class="sig-status">

@@ -68,6 +68,10 @@ public class WebhookNotificationChannelProvider implements NotificationChannelPr
     }
     byte[] bodyBytes = payload.getBytes(StandardCharsets.UTF_8);
     String secret = resolveSigningSecret(target);
+    if (secret == null || secret.isBlank()) {
+      throw new TerminalNotificationDispatchException(
+          "WEBHOOK signing secret is not configured for target=" + targetCode);
+    }
     String signature = WebhookSignatureHelper.hmacSha256Base64(secret, bodyBytes);
     try {
       restClient

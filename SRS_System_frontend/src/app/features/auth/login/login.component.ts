@@ -14,6 +14,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { catchError, of } from 'rxjs';
 import { TextInputDialogComponent, TextInputDialogData } from '../../../shared/dialogs/text-input-dialog.component';
 import { take } from 'rxjs/operators';
+import { AuthTokenService } from '../../../core/auth/auth-token.service';
 
 declare var particlesJS: unknown;
 
@@ -59,6 +60,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private lookupLabels: LookupLabelsService,
     private dialog: MatDialog,
     private notification: NotificationService,
+    private tokens: AuthTokenService,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
 
@@ -186,7 +188,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       'success'
     );
     this.lookupLabels.load().pipe(catchError(() => of(undefined))).subscribe();
-    setTimeout(() => this.router.navigate(['/dashboard']), 2200);
+    const target = this.tokens.mustChangePassword()
+      ? ['/profile']
+      : ['/dashboard'];
+    setTimeout(
+      () => this.router.navigate(target, { fragment: this.tokens.mustChangePassword() ? 'password' : undefined }),
+      2200
+    );
   }
 
   forgotPassword(): void {

@@ -139,6 +139,11 @@ function collectCanonicalCodes(sqlFiles) {
         codes.add(r[1]);
       }
     }
+    const insertSelectRx =
+      /INSERT\s+INTO\s+(?:srs_system\.)?permission\s*\([^)]*\)\s*SELECT\s+'([A-Z][A-Z0-9_]+)'/gi;
+    while ((m = insertSelectRx.exec(src)) !== null) {
+      codes.add(m[1]);
+    }
     // V14/V15 use a separate idiom: a single `INSERT INTO permission ... VALUES (...)` per
     // row with the code as the first column. Picked up by the generic loop above.
   }
@@ -214,15 +219,22 @@ function collectUiScreens(sqlFiles) {
 
   // V13 also UPDATEs route_path / name_ar / name_en for screens already inserted by V1. We
   // override the routePath if a later migration changed it.
-  const updateRx =
-    /UPDATE\s+(?:srs_system\.)?ui_screen\s+SET([\s\S]*?)WHERE\s+code\s*=\s*'([^']+)'/gi;
+  const updateRx = /UPDATE\s+(?:srs_system\.)?ui_screen\s+SET([\s\S]*?);/gi;
   for (const file of sqlFiles) {
     const src = readFile(file);
     let m;
     while ((m = updateRx.exec(src)) !== null) {
       const setClause = m[1];
-      const code = m[2];
+      const codeMatches = [
+        ...setClause.matchAll(/WHERE\s+code\s*=\s*'([^']+)'/gi)
+      ];
+      const code = codeMatches.at(-1)?.[1];
+      if (!code) continue;
       const routeMatch = /route_path\s*=\s*'([^']*)'/i.exec(setClause);
+      const permissionMatch =
+        /required_permission_id\s*=\s*\([\s\S]*?WHERE\s+code\s*=\s*'([A-Z][A-Z0-9_]+)'/.exec(
+          setClause
+        );
       if (routeMatch) {
         const newRoute = routeMatch[1];
         const existing = screens.get(code);
@@ -237,6 +249,12 @@ function collectUiScreens(sqlFiles) {
             showInShellNav: false,
             isActive: true
           });
+        }
+      }
+      if (permissionMatch) {
+        const existing = screens.get(code);
+        if (existing) {
+          existing.requiredCode = permissionMatch[1];
         }
       }
     }

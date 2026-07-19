@@ -70,11 +70,13 @@
     </label>
     <label>
       <span>{{ 'outboundDelivery.sentAt' | t }}</span>
-      <input type="datetime-local" formControlName="sentAt" />
+      <input type="date" formControlName="sentDate" />
+      <input type="time" formControlName="sentTime" />
     </label>
     <label>
       <span>{{ 'outboundDelivery.deliveredAt' | t }}</span>
-      <input type="datetime-local" formControlName="deliveredAt" />
+      <input type="date" formControlName="deliveredDate" />
+      <input type="time" formControlName="deliveredTime" />
     </label>
     <div class="modal-actions">
       <button type="button" class="btn" (click)="closeModal()">{{ 'common.cancel' | t }}</button>

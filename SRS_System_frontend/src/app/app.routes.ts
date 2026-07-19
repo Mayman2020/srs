@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { permissionCanMatch } from './core/auth/permission.guard';
+import { authCanMatch } from './core/auth/auth.guard';
 
 /**
  * Routing table for the SRS shell.
@@ -41,6 +42,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
+    canMatch: [authCanMatch],
     children: [
       {
         path: 'dashboard',

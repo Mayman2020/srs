@@ -1,5 +1,7 @@
 package com.gov.ac.feature.users.service;
 
+import com.gov.ac.common.audit.UserAuditRefDto;
+import com.gov.ac.common.audit.UserAuditResolutionService;
 import com.gov.ac.common.api.BadRequestException;
 import com.gov.ac.common.api.NotFoundException;
 import com.gov.ac.feature.departments.entity.DepartmentEntity;
@@ -12,6 +14,9 @@ import com.gov.ac.feature.roles.mapper.RoleMapper;
 import com.gov.ac.feature.users.dto.CreateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UpdateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UserDetailDto;
+import com.gov.ac.feature.users.dto.EffectivePermissionDto;
+import com.gov.ac.security.permission.EffectiveUserPermissionService;
+import com.gov.ac.feature.roles.repository.PermissionRepository;
 import com.gov.ac.feature.users.dto.UserListDto;
 import com.gov.ac.feature.lookups.repository.ConfidentialityRepository;
 import com.gov.ac.feature.users.mapper.UserAdminMapper;
@@ -46,10 +51,17 @@ public class UserAdminService {
   private final UserRoleRepository userRoleRepository;
   private final PasswordEncoder passwordEncoder;
   private final ConfidentialityRepository confidentialityRepository;
+  private final UserAuditResolutionService userAuditResolutionService;
+  private final EffectiveUserPermissionService effectiveUserPermissionService;
+  private final PermissionRepository permissionRepository;
 
   @Transactional(readOnly = true)
-  public Page<UserListDto> listUsers(Pageable pageable) {
-    return appUserRepository.findByDeletedAtIsNull(pageable).map(UserListMapper::toListDto);
+  public Page<UserListDto> listUsers(Pageable pageable, String query) {
+    String q = query == null ? "" : query.trim();
+    Page<AppUserEntity> users = q.isEmpty()
+        ? appUserRepository.findByDeletedAtIsNull(pageable)
+        : appUserRepository.searchActiveDirectory(q, pageable);
+    return users.map(UserListMapper::toListDto);
   }
 
   @Transactional(readOnly = true)
@@ -188,6 +200,7 @@ public class UserAdminService {
     u.setDepartment(dept);
     u.setActive(true);
     u.setFailedLoginCount(0);
+    u.setMustChangePassword(true);
     u.setSecurityClearanceId(resolveClearanceId(req.securityClearanceId()));
     u.setCreatedBy(actorId);
     u.setUpdatedBy(actorId);
@@ -215,7 +228,20 @@ public class UserAdminService {
     }
     if (req.password() != null && !req.password().isBlank()) {
       u.setPasswordHash(passwordEncoder.encode(req.password().trim()));
+      u.setMustChangePassword(true);
     }
+    u.setUpdatedBy(actorId);
+    appUserRepository.save(u);
+    return detailResponse(u);
+  }
+
+  @Transactional
+  public UserDetailDto toggleActive(UUID actorId, UUID userId) {
+    AppUserEntity u =
+        appUserRepository
+            .findByIdAndDeletedAtIsNull(userId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+    u.setActive(!Boolean.TRUE.equals(u.getActive()));
     u.setUpdatedBy(actorId);
     appUserRepository.save(u);
     return detailResponse(u);
@@ -235,7 +261,11 @@ public class UserAdminService {
 
   private UserDetailDto detailResponse(AppUserEntity user) {
     List<Long> roleIds = userRoleRepository.findActiveRoleIdsByUserId(user.getId());
-    return UserAdminMapper.toDetailDto(user, roleIds);
+    UserAuditRefDto createdByUser =
+        userAuditResolutionService.toRef(user.getCreatedBy()).orElse(null);
+    UserAuditRefDto updatedByUser =
+        userAuditResolutionService.toRef(user.getUpdatedBy()).orElse(null);
+    return UserAdminMapper.toDetailDto(user, roleIds, createdByUser, updatedByUser);
   }
 
   private Long resolveClearanceId(Long clearanceId) {
@@ -246,5 +276,18 @@ public class UserAdminService {
         .findByIdAndDeletedAtIsNull(clearanceId)
         .orElseThrow(() -> new NotFoundException("Security clearance not found"));
     return clearanceId;
+  }
+
+  @Transactional(readOnly = true)
+  public List<EffectivePermissionDto> effectivePermissions(UUID userId) {
+    if (!appUserRepository.existsById(userId)) {
+      throw new NotFoundException("User not found");
+    }
+    var ids = effectiveUserPermissionService.effectivePermissionIds(userId);
+    return permissionRepository.findByDeletedAtIsNullOrderBySortOrderAsc().stream()
+        .filter(permission -> ids.contains(permission.getId()))
+        .map(permission -> new EffectivePermissionDto(
+            permission.getId(), permission.getCode(), permission.getNameAr(), permission.getNameEn()))
+        .toList();
   }
 }

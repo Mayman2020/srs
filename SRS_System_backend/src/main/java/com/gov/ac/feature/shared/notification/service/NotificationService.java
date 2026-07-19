@@ -67,7 +67,8 @@ public class NotificationService {
         eventTypeOpt.get(),
         correspondence,
         NotificationMessageKeys.CORRESPONDENCE_CREATED,
-        params);
+        params,
+        null);
   }
 
   @Transactional
@@ -91,7 +92,8 @@ public class NotificationService {
         eventTypeOpt.get(),
         correspondence,
         NotificationMessageKeys.CORRESPONDENCE_COMMENT_ADDED,
-        params);
+        params,
+        UUID.randomUUID().toString());
   }
 
   @Transactional
@@ -170,7 +172,8 @@ public class NotificationService {
         eventTypeOpt.get(),
         correspondence,
         NotificationMessageKeys.WORKFLOW_TASK_COMPLETED,
-        params);
+        params,
+        delegateTask.getId());
   }
 
   private String resolveNotificationEventCode(String wfDecision) {
@@ -201,7 +204,8 @@ public class NotificationService {
       NotificationEventTypeEntity eventType,
       CorrespondenceEntity correspondence,
       String messageKey,
-      Map<String, Object> messageParams) {
+      Map<String, Object> messageParams,
+      String occurrenceKey) {
     if (notificationRoutingProperties.isOutbox()) {
       for (UUID recipientId : recipientIds) {
         notificationOutboxService.enqueueInApp(
@@ -209,16 +213,18 @@ public class NotificationService {
             eventType.getCode(),
             correspondence.getId(),
             messageKey,
-            messageParams);
+            messageParams,
+            occurrenceKey);
         notificationOutboxService.enqueueEmailIfPreferred(
             recipientId,
             eventType.getCode(),
             correspondence.getId(),
             messageKey,
-            messageParams);
+            messageParams,
+            occurrenceKey);
       }
       notificationOutboxService.enqueueIntegrationChannels(
-          eventType.getCode(), correspondence.getId(), messageKey, messageParams);
+          eventType.getCode(), correspondence.getId(), messageKey, messageParams, occurrenceKey);
       return;
     }
     for (UUID recipientId : recipientIds) {

@@ -58,7 +58,17 @@
     "add": "إضافة",
     "create": "إنشاء",
     "save": "حفظ",
-    "formInvalid": "يرجى تصحيح الحقول المُحدَّدة ثم إعادة المحاولة."
+    "formInvalid": "يرجى تصحيح الحقول المُحدَّدة ثم إعادة المحاولة.",
+    "back": "رجوع"
+  },
+  "auditTrail": {
+    "infoTitle": "معلومات التدقيق",
+    "createdBy": "تم الإنشاء بواسطة",
+    "createdAt": "تاريخ الإنشاء",
+    "modifiedBy": "تم التعديل بواسطة",
+    "updatedAt": "تاريخ آخر تعديل",
+    "approvedBy": "تم الاعتماد بواسطة",
+    "unknown": "النظام"
   },
   "orgLevels": {
     "pageTitle": "المستويات التنظيمية (ق / ل / ك / س)",
@@ -1011,6 +1021,7 @@
     "requiresClearance": "يتطلب تصريحًا",
     "fieldParentId": "الأب",
     "colCode": "الرمز",
+    "colName": "الاسم",
     "colNameAr": "الاسم عربي",
     "colNameEn": "الاسم إنجليزي",
     "colParentId": "معرّف الأب",
@@ -1410,6 +1421,7 @@
   },
   "transactionDetails": {
     "pageTitle": "تفاصيل المعاملة",
+    "workflowHistoryLoadFailed": "تعذّر تحميل سجل سير العمل. قد تكون تفاصيل المعاملة غير مكتملة.",
     "statCompletedSteps": "مراحل مكتملة",
     "statRemainingDays": "أيام متبقية للرد",
     "statComments": "التعليقات",
@@ -1429,6 +1441,8 @@
     "userRecipientsTitle": "مستلمون أفراد (إلى/نسخة)",
     "userRecipientsEmpty": "لا يوجد مستلمون أفراد.",
     "addUserRecipient": "إضافة مستخدم",
+    "recipientKind": "نوع المستلم",
+    "selectUser": "اختر مستخدمًا",
     "userRecipientKind": "نوع المستلم",
     "userRecipientAdded": "تمت إضافة مستلم فرد.",
     "userRecipientDeleted": "تم حذف مستلم فرد.",
@@ -1750,6 +1764,8 @@
     "assignRolePlaceholder": "اختر الأدوار…",
     "assignRolesPicked": "{{count}} مختارة",
     "assignRoleSelected": "الأدوار المختارة",
+    "effectivePermissionsTitle": "الصلاحيات الفعلية",
+    "effectivePermissionsHint": "الاتحاد الفعلي للصلاحيات من جميع الأدوار النشطة والتكليفات بالإنابة.",
     "colName": "الاسم",
     "colUsername": "اسم المستخدم",
     "colEmail": "البريد",

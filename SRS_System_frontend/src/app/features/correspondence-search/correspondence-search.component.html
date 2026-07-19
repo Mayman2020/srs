@@ -38,7 +38,11 @@
     </div>
   </div>
 
-  <div class="card table-card" *ngIf="!loading">
+  <div
+    class="card table-card app-list-surface"
+    [class.is-refreshing]="listLoad.refreshing"
+    *ngIf="listLoad.showSurface">
+    <div class="list-refresh-spinner" *ngIf="listLoad.refreshing">{{ 'common.loading' | t }}</div>
     <div class="table-head">
       <span>{{ 'correspondenceSearch.results' | t }}: {{ totalElements }}</span>
     </div>
@@ -91,5 +95,5 @@
     <p class="empty" *ngIf="!rows.length">{{ 'common.empty' | t }}</p>
   </div>
 
-  <p *ngIf="loading" class="loading">{{ 'common.loading' | t }}</p>
+  <p *ngIf="listLoad.showInitialSpinner" class="loading">{{ 'common.loading' | t }}</p>
 </div>

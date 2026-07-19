@@ -83,6 +83,18 @@ export class CapabilitiesService implements OnDestroy {
     return this.snapshot;
   }
 
+  /** First route the backend says this session may open, used to avoid deny redirect loops. */
+  firstAllowedRoute(excluding?: string): string | null {
+    const excluded = this.normalizeRoute(excluding);
+    for (const screen of this.snapshot?.screens ?? []) {
+      const route = this.normalizeRoute(screen.route);
+      if (route && route !== excluded) {
+        return route;
+      }
+    }
+    return null;
+  }
+
   clear(): void {
     this.snapshot = null;
     this.permissionCodes.clear();
@@ -126,5 +138,13 @@ export class CapabilitiesService implements OnDestroy {
       })
     );
     return this.cachedLoad;
+  }
+
+  private normalizeRoute(route?: string | null): string {
+    const value = route?.trim().split('?')[0] ?? '';
+    if (!value) {
+      return '';
+    }
+    return value.startsWith('/') ? value : `/${value}`;
   }
 }

@@ -100,7 +100,7 @@
 
   /* App shell layout tokens */
   --shell-sidebar-w: 196px;
-  --shell-sidebar-w-collapsed: 68px;
+  --shell-sidebar-w-collapsed: 76px;
   --shell-header-h: 72px;
   --shell-backdrop: rgba(15, 23, 42, 0.48);
   --bp-sm: 640px;

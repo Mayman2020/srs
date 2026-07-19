@@ -8,6 +8,7 @@ import com.gov.ac.feature.users.dto.CreateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UpdateAppUserRequestDto;
 import com.gov.ac.feature.users.dto.UserDetailDto;
 import com.gov.ac.feature.users.dto.UserListDto;
+import com.gov.ac.feature.users.dto.EffectivePermissionDto;
 import com.gov.ac.feature.users.service.UserAdminService;
 import com.gov.ac.security.SecurityUtils;
 import jakarta.validation.Valid;
@@ -22,11 +23,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,8 +45,9 @@ public class UserController {
 
   @GetMapping
   public Page<UserListDto> page(
-      @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    return userAdminService.listUsers(pageable);
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      @RequestParam(required = false) String q) {
+    return userAdminService.listUsers(pageable, q);
   }
 
   @GetMapping("/roles")
@@ -56,6 +60,11 @@ public class UserController {
     return userAdminService.getUserDetail(userId);
   }
 
+  @GetMapping("/{userId}/effective-permissions")
+  public List<EffectivePermissionDto> effectivePermissions(@PathVariable UUID userId) {
+    return userAdminService.effectivePermissions(userId);
+  }
+
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public UserDetailDto create(@Valid @RequestBody CreateAppUserRequestDto body) {
@@ -66,6 +75,11 @@ public class UserController {
   public UserDetailDto update(
       @PathVariable UUID userId, @Valid @RequestBody UpdateAppUserRequestDto body) {
     return userAdminService.updateUser(SecurityUtils.requireCurrentUserId(), userId, body);
+  }
+
+  @PatchMapping("/{userId}/toggle-active")
+  public UserDetailDto toggleActive(@PathVariable UUID userId) {
+    return userAdminService.toggleActive(SecurityUtils.requireCurrentUserId(), userId);
   }
 
   @DeleteMapping("/{userId}")

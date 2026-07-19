@@ -14,11 +14,14 @@ class CapabilitiesStub {
   can(code: string): boolean {
     return this.permissions.has(code);
   }
+  firstAllowedRoute(): string | null {
+    return '/correspondence';
+  }
 }
 
 describe('permissionCanMatch', () => {
   let cap: CapabilitiesStub;
-  let router: { createUrlTree: (cmd: string[]) => unknown };
+  let router: { createUrlTree: (cmd: string[]) => unknown; parseUrl: (url: string) => unknown };
   let createdUrlTrees: string[][];
 
   beforeEach(() => {
@@ -28,7 +31,8 @@ describe('permissionCanMatch', () => {
       createUrlTree: (commands: string[]) => {
         createdUrlTrees.push(commands);
         return { __urlTree: commands.join('/') };
-      }
+      },
+      parseUrl: (url: string) => ({ __urlTree: url })
     };
     TestBed.configureTestingModule({
       providers: [
@@ -67,12 +71,13 @@ describe('permissionCanMatch', () => {
     });
   });
 
-  it('redirects to /dashboard when the user lacks the required permission', (done) => {
+  it('redirects to the first allowed route when the user lacks the required permission', (done) => {
     const result = runGuard({ data: { permission: 'ADMIN_USER_MANAGE' } });
 
     (result as Observable<unknown>).subscribe((value) => {
       expect(value).not.toBe(true);
-      expect(createdUrlTrees).toEqual([['/dashboard']]);
+      expect(value).toEqual({ __urlTree: '/correspondence' });
+      expect(createdUrlTrees).toEqual([]);
       done();
     });
   });
